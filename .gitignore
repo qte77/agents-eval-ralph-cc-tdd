@@ -1,0 +1,46 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+
+# environment
+.venv/
+*.env
+unset_env.sh
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+
+# Testing
+.pytest_cache/
+.coverage/
+.coverage
+
+# Logs
+*.log
+logs/
+
+# Traces
+scalene-profiles
+profile.html
+profile.json
+.opik_install_reported
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDE specific files (adjust as needed)
+# .vscode/
+# .idea/
+
+# mkdocs
+reference/
+site/
+
+# linting
+.ruff_cache/
+
+# type checking
+.mypy_cache/

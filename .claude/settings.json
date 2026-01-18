@@ -1,0 +1,86 @@
+{
+  "env": {
+    "ANTHROPIC_MODEL": "opusplan",
+    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
+    "CLAUDE_CODE_IDE_SKIP_AUTO_INSTALL": "1",
+    "CLAUDE_CODE_SUBAGENT_MODEL": "opusplan",
+    "DISABLE_NON_ESSENTIAL_MODEL_CALLS": "1",
+    "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL": "",
+    "OTEL_EXPORTER_OTLP_PROTOCOL": "",
+    "OTEL_LOGS_EXPORTER": ""
+  },
+  
+  "permissions": {
+    "allow": [
+      "Bash(bash:scripts/ralph/*.sh:*)",
+      "Bash(chmod:+x:scripts/ralph/*.sh)",
+      "Bash(date:*)",
+      "Bash(git:diff:*)",
+      "Bash(git:log:*)",
+      "Bash(git:status:*)",
+      "Bash(git log --grep:*)",
+      "Bash(jq:*)",
+      "Bash(make:*)",
+      "Bash(tree:*)",
+      "Bash(uv sync:*)",
+      "Bash(uv run mypy:*)",
+      "Bash(uv run pytest:*)",
+      "Bash(uv run ruff:*)",
+      "Edit(AGENT_LEARNINGS.md)",
+      "Edit(AGENT_REQUESTS.md)",
+      "Edit(docs/**/*.md)",
+      "Edit(docs/ralph/*.json)",
+      "Edit(docs/ralph/*.txt)",
+      "Edit(src/**/*.py)",
+      "Edit(src/**/*.json)",
+      "Edit(tests/**/*.py)",
+      "Edit(tests/**/*.json)",
+      "Read(.claude/skills/**/*.md)",
+      "SlashCommand",
+      "Skill",
+      "WebFetch(domain:github.com/DavidAnson/markdownlint/blob/main/doc/Rules.md)",
+      "WebFetch(domain:docs.anthropic.com/en/docs/claude-code/claude_code_docs_map.md)",
+      "WebFetch(domain:docs.anthropic.com)"
+    ],
+    "deny": [
+      "Bash(awk:*)",
+      "Bash(cat:*)",
+      "Bash(find:*)",
+      "Bash(git push:*)",
+      "Bash(grep:*)",
+      "Bash(head:*)",
+      "Bash(ls:*)",
+      "Bash(mkdir:*)",
+      "Bash(mv:*)",
+      "Bash(rg:*)",
+      "Bash(rm:*)",
+      "Bash(source:*)",
+      "Bash(tail:*)",
+      "Bash(touch:*)"
+    ],
+    "ask": [
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Edit(.claude/**)",
+      "Edit(AGENTS.md)",
+      "Edit(CLAUDE.md)",
+      "Edit(CONTRIBUTE.md)",
+      "Edit(Makefile)",
+      "Edit(pyproject.toml)",
+      "Edit(README.md)"
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "bash .claude/scripts/statusline.sh"
+  },
+  "enabledPlugins": {
+    "code-review@claude-plugins-official": true,
+    "code-simplifier@claude-plugins-official": true,
+    "context7@claude-plugins-official": true,
+    "ide@claude-plugins-official": true,
+    "pyright-lsp@claude-plugins-official": true,
+    "ralph-loop@claude-plugins-official": true,
+    "security-guidance@claude-plugins-official": true
+  }
+}
