@@ -36,7 +36,9 @@
         "tests/test_peerread.py"
       ],
       "priority": "high",
-      "estimated_complexity": "medium"
+      "estimated_complexity": "medium",
+      "passes": false,
+      "completed_at": null
     },
     {
       "id": "STORY-002",
@@ -68,7 +70,9 @@
         "tests/test_traditional.py"
       ],
       "priority": "high",
-      "estimated_complexity": "medium"
+      "estimated_complexity": "medium",
+      "passes": false,
+      "completed_at": null
     },
     {
       "id": "STORY-003",
@@ -98,7 +102,9 @@
         "tests/test_llm_judge.py"
       ],
       "priority": "high",
-      "estimated_complexity": "medium"
+      "estimated_complexity": "medium",
+      "passes": false,
+      "completed_at": null
     },
     {
       "id": "STORY-004",
@@ -125,7 +131,9 @@
         "tests/test_graph.py"
       ],
       "priority": "high",
-      "estimated_complexity": "medium"
+      "estimated_complexity": "medium",
+      "passes": false,
+      "completed_at": null
     },
     {
       "id": "STORY-005",
@@ -161,7 +169,9 @@
         "tests/test_pipeline.py"
       ],
       "priority": "high",
-      "estimated_complexity": "high"
+      "estimated_complexity": "high",
+      "passes": false,
+      "completed_at": null
     }
   ],
   "non_functional_requirements": {
