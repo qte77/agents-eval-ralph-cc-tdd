@@ -1,18 +1,16 @@
-# Python Ralph-Loop Template
+# agents-eval-ralph-cc-tdd
 
-> What a time to be alive
-
-Out-of-the-box Python project template using Ralph Loop autonomous development with Claude Code (plugins, skills, rules), TDD, uv, ruff, pyright, pytest.
+A Multi-Agent System (MAS) evaluation framework using PydanticAI that generates and evaluates scientific paper reviews through a three-tiered assessment approach: traditional metrics, LLM-as-a-Judge, and graph-based complexity analysis.
 
 ![Version](https://img.shields.io/badge/version-0.0.0-58f4c2.svg)
 [![License](https://img.shields.io/badge/license-BSD3Clause-58f4c2.svg)](LICENSE.md)
-[![CodeQL](https://github.com/YOUR-ORG/YOUR-PROJECT-NAME/actions/workflows/codeql.yaml/badge.svg)](https://github.com/YOUR-ORG/YOUR-PROJECT-NAME/actions/workflows/codeql.yaml)
-[![CodeFactor](https://www.codefactor.io/repository/github/YOUR-ORG/YOUR-PROJECT-NAME/badge)](https://www.codefactor.io/repository/github/YOUR-ORG/YOUR-PROJECT-NAME)
-[![ruff](https://github.com/YOUR-ORG/YOUR-PROJECT-NAME/actions/workflows/ruff.yaml/badge.svg)](https://github.com/YOUR-ORG/YOUR-PROJECT-NAME/actions/workflows/ruff.yaml)
-[![pyright](https://github.com/YOUR-ORG/YOUR-PROJECT-NAME/actions/workflows/pyright.yaml/badge.svg)](https://github.com/YOUR-ORG/YOUR-PROJECT-NAME/actions/workflows/pyright.yaml)
-[![pytest](https://github.com/YOUR-ORG/YOUR-PROJECT-NAME/actions/workflows/pytest.yaml/badge.svg)](https://github.com/YOUR-ORG/YOUR-PROJECT-NAME/actions/workflows/pytest.yaml)
-[![Link Checker](https://github.com/YOUR-ORG/YOUR-PROJECT-NAME/actions/workflows/links-fail-fast.yaml/badge.svg)](https://github.com/YOUR-ORG/YOUR-PROJECT-NAME/actions/workflows/links-fail-fast.yaml)
-[![Deploy Docs](https://github.com/YOUR-ORG/YOUR-PROJECT-NAME/actions/workflows/generate-deploy-mkdocs-ghpages.yaml/badge.svg)](https://github.com/YOUR-ORG/YOUR-PROJECT-NAME/actions/workflows/generate-deploy-mkdocs-ghpages.yaml)
+[![CodeQL](https://github.com/qte77/agents-eval-ralph-cc-tdd/actions/workflows/codeql.yaml/badge.svg)](https://github.com/qte77/agents-eval-ralph-cc-tdd/actions/workflows/codeql.yaml)
+[![CodeFactor](https://www.codefactor.io/repository/github/qte77/agents-eval-ralph-cc-tdd/badge)](https://www.codefactor.io/repository/github/qte77/agents-eval-ralph-cc-tdd)
+[![ruff](https://github.com/qte77/agents-eval-ralph-cc-tdd/actions/workflows/ruff.yaml/badge.svg)](https://github.com/qte77/agents-eval-ralph-cc-tdd/actions/workflows/ruff.yaml)
+[![pyright](https://github.com/qte77/agents-eval-ralph-cc-tdd/actions/workflows/pyright.yaml/badge.svg)](https://github.com/qte77/agents-eval-ralph-cc-tdd/actions/workflows/pyright.yaml)
+[![pytest](https://github.com/qte77/agents-eval-ralph-cc-tdd/actions/workflows/pytest.yaml/badge.svg)](https://github.com/qte77/agents-eval-ralph-cc-tdd/actions/workflows/pytest.yaml)
+[![Link Checker](https://github.com/qte77/agents-eval-ralph-cc-tdd/actions/workflows/links-fail-fast.yaml/badge.svg)](https://github.com/qte77/agents-eval-ralph-cc-tdd/actions/workflows/links-fail-fast.yaml)
+[![Deploy Docs](https://github.com/qte77/agents-eval-ralph-cc-tdd/actions/workflows/generate-deploy-mkdocs-ghpages.yaml/badge.svg)](https://github.com/qte77/agents-eval-ralph-cc-tdd/actions/workflows/generate-deploy-mkdocs-ghpages.yaml)
 
 ## Features
 

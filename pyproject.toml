@@ -1,8 +1,8 @@
 [project]
-name = "[PROJECT NAME]"
+name = "agents-eval-ralph-cc-tdd"
 version = "0.0.0"
-description = "[PROJECT DESCRIPTION]"
-requires-python = ">=[PYTHON VERSION]"
+description = "A Multi-Agent System (MAS) evaluation framework using PydanticAI that generates and evaluates scientific paper reviews through a three-tiered assessment approach: traditional metrics, LLM-as-a-Judge, and graph-based complexity analysis."
+requires-python = ">=3.13"
 readme = "README.md"
 license = { file = "LICENSE.md" }
 
@@ -28,14 +28,14 @@ dev-dependencies = [
 
 [tool.ruff]
 line-length = 100
-target-version = "py[PYTHON VERSION SHORT]"
+target-version = "py313"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W", "UP"]
 ignore = []
 
 [tool.pyright]
-pythonVersion = "[PYTHON VERSION]"
+pythonVersion = "3.13"
 typeCheckingMode = "basic"
 reportMissingImports = true
 reportMissingTypeStubs = false
@@ -67,7 +67,7 @@ search = 'version = "{current_version}"'
 replace = 'version = "{new_version}"'
 
 [[tool.bumpversion.files]]
-filename = "src/your_project_name/__init__.py"
+filename = "src/AgentsEval-Ralph-TDD/__init__.py"
 search = '__version__ = "{current_version}"'
 replace = '__version__ = "{new_version}"'
 

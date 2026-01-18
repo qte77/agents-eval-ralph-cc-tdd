@@ -1,5 +1,5 @@
 {
-  "project": "your-project-name",
+  "project": "agents-eval-ralph-cc-tdd",
   "desciption": "A concise project desctipion",
   "source": "docs/PRD.md",
   "generated": "TEMPLATE",
