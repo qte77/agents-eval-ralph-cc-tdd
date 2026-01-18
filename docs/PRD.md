@@ -70,7 +70,7 @@
 
 **Files Expected**:
 - `src/agenteval/metrics/traditional.py` - Traditional metrics calculation
-- `tests/test_traditional_metrics.py` - Tests for traditional metrics
+- `tests/test_traditional.py` - Tests for traditional metrics
 
 ---
 
@@ -120,7 +120,7 @@
 
 **Files Expected**:
 - `src/agenteval/metrics/graph.py` - Graph-based metrics
-- `tests/test_graph_metrics.py` - Tests for graph metrics
+- `tests/test_graph.py` - Tests for graph metrics
 
 ---
 

@@ -65,7 +65,7 @@
       },
       "files": [
         "src/agenteval/metrics/traditional.py",
-        "tests/test_traditional_metrics.py"
+        "tests/test_traditional.py"
       ],
       "priority": "high",
       "estimated_complexity": "medium"
@@ -122,9 +122,9 @@
       },
       "files": [
         "src/agenteval/metrics/graph.py",
-        "tests/test_graph_metrics.py"
+        "tests/test_graph.py"
       ],
-      "priority": "medium",
+      "priority": "high",
       "estimated_complexity": "medium"
     },
     {
