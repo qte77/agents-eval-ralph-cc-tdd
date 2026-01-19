@@ -7,6 +7,7 @@ A three-tiered evaluation framework for multi-agent AI systems that provides obj
 ## Why
 
 - Establish foundation with JSON configuration management and shared Pydantic data models to prevent duplication across evaluation modules
+- Download PeerRead dataset and persist locally with versioning for reproducibility and offline use
 
 ## Quick Start
 
@@ -32,6 +33,13 @@ src/agenteval
 │   └── __pycache__
 │       ├── config.cpython-313.pyc
 │       └── __init__.cpython-313.pyc
+├── data
+│   ├── downloader.py
+│   ├── __init__.py
+│   └── __pycache__
+│       ├── downloader.cpython-313.pyc
+│       └── __init__.cpython-313.pyc
+├── example.py
 ├── __init__.py
 ├── models
 │   ├── data.py
@@ -41,15 +49,18 @@ src/agenteval
 │       ├── data.cpython-313.pyc
 │       ├── evaluation.cpython-313.pyc
 │       └── __init__.cpython-313.pyc
-└── __pycache__
-    └── __init__.cpython-313.pyc
+├── __pycache__
+│   └── __init__.cpython-313.pyc
+└── README.md
 tests/
 ├── __init__.py
 ├── __pycache__
 │   ├── __init__.cpython-313.pyc
 │   ├── test_config.cpython-313-pytest-9.0.2.pyc
+│   ├── test_downloader.cpython-313-pytest-9.0.2.pyc
 │   └── test_models.cpython-313-pytest-9.0.2.pyc
 ├── test_config.py
+├── test_downloader.py
 └── test_models.py
 ```
 
