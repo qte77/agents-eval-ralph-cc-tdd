@@ -199,7 +199,7 @@ class MLMetrics:
         Returns:
             Dictionary with F1 score
         """
-        score = f1_score(y_true, y_pred, average="binary", zero_division=0.0)
+        score = f1_score(y_true, y_pred, average="binary", zero_division="warn")
 
         return {
             "f1_score": float(score),
@@ -217,8 +217,8 @@ class MLMetrics:
         Returns:
             Dictionary with precision and recall
         """
-        precision = precision_score(y_true, y_pred, average="binary", zero_division=0.0)
-        recall = recall_score(y_true, y_pred, average="binary", zero_division=0.0)
+        precision = precision_score(y_true, y_pred, average="binary", zero_division="warn")
+        recall = recall_score(y_true, y_pred, average="binary", zero_division="warn")
 
         return {
             "precision": float(precision),
