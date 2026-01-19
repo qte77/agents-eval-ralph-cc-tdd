@@ -50,6 +50,7 @@ src/agenteval
 │   ├── data.py
 │   ├── evaluation.py
 │   └── __init__.py
+├── pipeline.py
 └── README.md
 tests/
 ├── test_config.py
@@ -58,6 +59,7 @@ tests/
 ├── test_llm_judge.py
 ├── test_models.py
 ├── test_peerread.py
+├── test_pipeline.py
 └── test_traditional.py
 ```
 
