@@ -20,7 +20,7 @@
         "src/agenteval/data/peerread.py",
         "tests/test_peerread.py"
       ],
-      "passes": true,
+      "passes": false,
       "completed_at": null
     },
     {
@@ -40,7 +40,7 @@
         "src/agenteval/metrics/traditional.py",
         "tests/test_traditional.py"
       ],
-      "passes": true,
+      "passes": false,
       "completed_at": null
     },
     {
@@ -60,7 +60,7 @@
         "src/agenteval/judges/llm_judge.py",
         "tests/test_llm_judge.py"
       ],
-      "passes": true,
+      "passes": false,
       "completed_at": null
     },
     {
@@ -78,7 +78,7 @@
         "src/agenteval/metrics/graph.py",
         "tests/test_graph.py"
       ],
-      "passes": true,
+      "passes": false,
       "completed_at": null
     },
     {
@@ -99,7 +99,7 @@
         "src/agenteval/report.py",
         "tests/test_pipeline.py"
       ],
-      "passes": true,
+      "passes": false,
       "completed_at": null
     }
   ]
