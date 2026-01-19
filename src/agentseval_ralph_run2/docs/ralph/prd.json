@@ -61,7 +61,7 @@
         "tests/test_llm_judge.py"
       ],
       "passes": true,
-      "completed_at": null
+      "completed_at": "2026-01-19T13:57:34Z"
     },
     {
       "id": "STORY-004",
@@ -79,7 +79,7 @@
         "tests/test_graph.py"
       ],
       "passes": true,
-      "completed_at": null
+      "completed_at": "2026-01-19T14:04:37Z"
     },
     {
       "id": "STORY-005",
@@ -100,7 +100,7 @@
         "tests/test_pipeline.py"
       ],
       "passes": true,
-      "completed_at": null
+      "completed_at": "2026-01-19T14:11:30Z"
     }
   ]
 }
