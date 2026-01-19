@@ -154,9 +154,11 @@ execute_story() {
     # Execute via Claude Code
     log_info "Running Claude Code with story context..."
     if cat "$iteration_prompt" | claude -p --dangerously-skip-permissions 2>&1 | tee "/tmp/ralph_execute_${story_id}.log"; then
+        log_info "Execution log saved: /tmp/ralph_execute_${story_id}.log"
         rm "$iteration_prompt"
         return 0
     else
+        log_error "Execution failed, log saved: /tmp/ralph_execute_${story_id}.log"
         rm "$iteration_prompt"
         return 1
     fi
@@ -216,6 +218,7 @@ fix_validation_errors() {
 
         # Execute fix via Claude Code
         if cat "$fix_prompt" | claude -p --dangerously-skip-permissions 2>&1 | tee "/tmp/ralph_fix_${story_id}_${attempt}.log"; then
+            log_info "Fix attempt log saved: /tmp/ralph_fix_${story_id}_${attempt}.log"
             rm "$fix_prompt"
 
             # Re-run validation
@@ -228,8 +231,8 @@ fix_validation_errors() {
                 error_log="$retry_log"  # Use new errors for next attempt
             fi
         else
+            log_error "Fix execution failed, log saved: /tmp/ralph_fix_${story_id}_${attempt}.log"
             rm "$fix_prompt"
-            log_error "Fix execution failed"
             return 1
         fi
 
@@ -267,8 +270,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>"; then
     if git push; then
         log_info "Commits pushed successfully"
     else
-        log_warn "Failed to push commits"
-        return 1
+        log_warn "Failed to push commits - will retry at end of loop"
     fi
 
     return 0
@@ -428,7 +430,7 @@ EOF
 )"
     fi
 
-    # Push all commits (including per-story commits)
+    # Push all commits (retry any that failed earlier + final tracking commit)
     log_info "Pushing all commits to remote..."
     if git push; then
         log_info "All commits pushed successfully"
