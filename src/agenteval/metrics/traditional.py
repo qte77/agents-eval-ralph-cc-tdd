@@ -187,9 +187,7 @@ class BatchEvaluator:
 class MLMetrics:
     """ML metrics using scikit-learn."""
 
-    def calculate_f1_score(
-        self, y_true: list[int], y_pred: list[int]
-    ) -> dict[str, float]:
+    def calculate_f1_score(self, y_true: list[int], y_pred: list[int]) -> dict[str, float]:
         """Calculate F1 score.
 
         Args:
@@ -205,9 +203,7 @@ class MLMetrics:
             "f1_score": float(score),
         }
 
-    def calculate_precision_recall(
-        self, y_true: list[int], y_pred: list[int]
-    ) -> dict[str, float]:
+    def calculate_precision_recall(self, y_true: list[int], y_pred: list[int]) -> dict[str, float]:
         """Calculate precision and recall.
 
         Args:
