@@ -15,10 +15,11 @@ See `docs/python-best-practices.md` for comprehensive Python guidelines.
 ## Workflow
 
 1. **Read task requirements** to understand expected scope
-2. **Check `make validate`** passes before detailed review
-3. **Match review depth** to task complexity (simple vs complex)
-4. **Validate requirements** - does implementation match task scope exactly?
-5. **Issue focused feedback** with specific file paths and line numbers
+2. **VERIFY `make validate` was run** - check that formatting/types/tests passed during development
+3. **Run `make validate` again** to confirm current state
+4. **Match review depth** to task complexity (simple vs complex)
+5. **Validate requirements** - does implementation match task scope exactly?
+6. **Issue focused feedback** with specific file paths and line numbers
 
 ## Review Strategy
 
@@ -36,7 +37,8 @@ comprehensive testing
 
 - [ ] No security vulnerabilities (injection, XSS, etc.)
 - [ ] Follows @AGENTS.md mandatory requirements
-- [ ] Passes `make validate`
+- [ ] **MANDATORY**: Passes `make validate` (run it now if not already done)
+- [ ] Validation was run incrementally during development (not just at the end)
 
 **Requirements Match**:
 

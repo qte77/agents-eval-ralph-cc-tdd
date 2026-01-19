@@ -25,6 +25,8 @@ Follow TDD workflow below. Tests MUST be written FIRST.
   - Create test file in `tests/` (e.g., `tests/test_messenger.py`)
   - Write tests that verify each acceptance criterion
   - Run tests - they MUST fail (code doesn't exist yet)
+  - **RUN VALIDATION**: `make quick_validate` to check formatting/types on test code
+  - **FIX ANY ISSUES**: Fix formatting/type errors before committing
   - **COMMIT TESTS FIRST**: `git add tests/ && git commit -m "test(STORY-XXX): add failing tests [RED]"`
 
 ### GREEN: Minimal implementation
@@ -33,6 +35,8 @@ Follow TDD workflow below. Tests MUST be written FIRST.
   - Create/modify implementation file (e.g., `src/agentbeats/messenger.py`)
   - Write simplest code that makes tests pass
   - Run tests - they MUST pass now
+  - **RUN VALIDATION**: `make quick_validate` to check formatting/types on implementation
+  - **FIX ANY ISSUES**: Fix formatting/type errors before committing
   - **COMMIT IMPLEMENTATION**: `git add src/ && git commit -m "feat(STORY-XXX): implement to pass tests [GREEN]"`
 
 ### REFACTOR: Clean up
@@ -40,10 +44,11 @@ Follow TDD workflow below. Tests MUST be written FIRST.
 - Clean up code while keeping tests passing
   - Remove duplication (DRY)
   - Simplify logic (KISS)
-  - Ensure `make validate` passes
+  - **RUN FULL VALIDATION**: `make validate` to ensure all checks pass
+  - **FIX ANY ISSUES**: Fix any remaining formatting/type/test errors
   - **COMMIT REFACTORINGS** (if any): `git add . && git commit -m "refactor(STORY-XXX): cleanup [REFACTOR]"`
 
-**Final step**: Verify all acceptance criteria met
+**Final step**: Verify all acceptance criteria met and `make validate` passes
 
 **CRITICAL**: Tests MUST be committed BEFORE implementation. This ensures verifiable TDD compliance and provides audit trail for agent evaluation.
 
