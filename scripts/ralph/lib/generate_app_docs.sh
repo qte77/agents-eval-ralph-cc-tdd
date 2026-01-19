@@ -28,7 +28,7 @@ generate_app_readme() {
 
     # Generate tree structure for src and tests
     if command -v tree &> /dev/null; then
-        architecture=$(tree -L 3 --noreport "$src_dir" tests/ 2>/dev/null || echo "src/$app_name/ and tests/")
+        architecture=$(tree -L 3 --noreport -I '__pycache__|*.pyc|*.pyo' "$src_dir" tests/ 2>/dev/null || echo "src/$app_name/ and tests/")
     else
         # Fallback: manual directory listing
         architecture=$(find "$src_dir" tests/ -type f -name "*.py" 2>/dev/null | sort | sed 's|^|  |' || echo "No files found")
