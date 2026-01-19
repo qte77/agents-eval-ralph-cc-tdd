@@ -68,8 +68,10 @@ src/agenteval
 │       ├── data.cpython-313.pyc
 │       ├── evaluation.cpython-313.pyc
 │       └── __init__.cpython-313.pyc
+├── pipeline.py
 ├── __pycache__
-│   └── __init__.cpython-313.pyc
+│   ├── __init__.cpython-313.pyc
+│   └── pipeline.cpython-313.pyc
 └── README.md
 tests/
 ├── __init__.py
@@ -81,6 +83,7 @@ tests/
 │   ├── test_llm_judge.cpython-313-pytest-9.0.2.pyc
 │   ├── test_models.cpython-313-pytest-9.0.2.pyc
 │   ├── test_peerread.cpython-313-pytest-9.0.2.pyc
+│   ├── test_pipeline.cpython-313-pytest-9.0.2.pyc
 │   └── test_traditional.cpython-313-pytest-9.0.2.pyc
 ├── test_config.py
 ├── test_downloader.py
@@ -88,6 +91,7 @@ tests/
 ├── test_llm_judge.py
 ├── test_models.py
 ├── test_peerread.py
+├── test_pipeline.py
 └── test_traditional.py
 ```
 
