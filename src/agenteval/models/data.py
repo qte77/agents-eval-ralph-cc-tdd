@@ -1,16 +1,25 @@
-"""Data models for papers and reviews.
+"""Data models for papers and reviews."""
 
-Stub implementation - tests will fail.
-"""
-
-
-class Paper:
-    """Paper model stub - will be implemented to pass tests."""
-
-    pass
+from pydantic import BaseModel, Field
 
 
-class Review:
-    """Review model stub - will be implemented to pass tests."""
+class Paper(BaseModel):
+    """Paper model with metadata and content."""
 
-    pass
+    id: str
+    title: str
+    abstract: str
+    authors: list[str]
+    venue: str
+    year: int | None = None
+    keywords: list[str] = Field(default_factory=list)
+
+
+class Review(BaseModel):
+    """Review model with rating and content."""
+
+    id: str
+    paper_id: str
+    rating: int = Field(ge=1, le=10)
+    confidence: int = Field(ge=1, le=5)
+    review_text: str
