@@ -7,10 +7,6 @@ into a single pipeline with consolidated reporting and observability.
 from datetime import datetime
 from typing import Any
 
-from loguru import logger
-from pydantic import field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
-
 from agenteval.judges.llm_judge import EvaluationCriteria, LLMJudge
 from agenteval.metrics.graph import ComplexityAnalyzer, InteractionGraph
 from agenteval.metrics.traditional import (
@@ -18,6 +14,9 @@ from agenteval.metrics.traditional import (
     ExecutionTimeMetric,
     SuccessRateMetric,
 )
+from loguru import logger
+from pydantic import field_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class PipelineConfig(BaseSettings):
