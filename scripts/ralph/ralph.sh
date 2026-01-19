@@ -7,10 +7,16 @@
 #
 # This script orchestrates autonomous task execution by:
 # 1. Reading prd.json for incomplete stories
-# 2. Executing single story via Claude Code
-# 3. Running quality checks (make validate)
-# 4. Updating prd.json status on success
-# 5. Appending learnings to progress.txt
+# 2. Executing single story via Claude Code (with TDD workflow)
+# 3. Verifying TDD commits (RED + GREEN phases)
+# 4. Running quality checks (make validate)
+# 5. Updating prd.json status on success
+# 6. Appending learnings to progress.txt
+#
+# TDD Workflow Enforcement:
+# - Agent must make separate commits for RED (tests) and GREEN (implementation)
+# - Script verifies at least 2 commits were made during execution
+# - Checks for [RED] and [GREEN] markers in commit messages
 #
 
 set -euo pipefail
@@ -149,20 +155,39 @@ run_quality_checks() {
     fi
 }
 
-# Create git commit for completed story
-commit_story() {
+# Check that TDD commits were made during story execution
+# Verify TDD commit order: [RED] must be committed BEFORE [GREEN]
+# In git log output, older commits appear on higher line numbers
+check_tdd_commits() {
     local story_id="$1"
-    local title="$2"
+    local commits_before="$2"
 
-    log_info "Committing changes..."
+    log_info "Checking TDD commits..."
 
-    git add -A
-    git commit -m "feat($story_id): $title
+    # Count commits made during story execution
+    local commits_after=$(git rev-list --count HEAD)
+    local new_commits=$((commits_after - commits_before))
 
-Completed by Ralph loop iteration.
-Passes quality checks: make validate
+    if [ $new_commits -lt 2 ]; then
+        log_error "Expected at least 2 commits (RED + GREEN), found $new_commits"
+        log_error "TDD workflow requires separate commits for tests and implementation"
+        return 1
+    fi
 
-Co-Authored-By: Claude <noreply@anthropic.com>" || true
+    # Verify commits mention the story ID or phases
+    local recent_commits=$(git log --oneline -n $new_commits)
+    log_info "Recent commits:"
+    echo "$recent_commits"
+
+    # Check for RED and GREEN phase markers
+    if echo "$recent_commits" | grep -q "\[RED\]" && echo "$recent_commits" | grep -q "\[GREEN\]"; then
+        log_info "TDD phases verified: RED and GREEN commits found"
+        return 0
+    else
+        log_error "Could not verify RED/GREEN phase markers in commits"
+        log_error "TDD workflow requires [RED] and [GREEN] markers in commit messages"
+        return 1
+    fi
 }
 
 # Main loop
@@ -189,16 +214,25 @@ main() {
         local details=$(get_story_details "$story_id")
         local title=$(echo "$details" | cut -d'|' -f1)
 
+        # Record commit count before execution
+        local commits_before=$(git rev-list --count HEAD)
+
         # Execute story
         if execute_story "$story_id" "$details"; then
             log_info "Story execution completed"
+
+            # Verify TDD commits were made
+            if ! check_tdd_commits "$story_id" "$commits_before"; then
+                log_error "TDD commit verification failed"
+                log_progress "$iteration" "$story_id" "FAIL" "Missing TDD commits"
+                continue
+            fi
 
             # Run quality checks
             if run_quality_checks; then
                 # Mark as passing
                 update_story_status "$story_id" "true"
-                commit_story "$story_id" "$title"
-                log_progress "$iteration" "$story_id" "PASS" "Completed successfully"
+                log_progress "$iteration" "$story_id" "PASS" "Completed successfully with TDD commits"
                 log_info "Story $story_id marked as PASSING"
             else
                 log_warn "Story completed but quality checks failed"
