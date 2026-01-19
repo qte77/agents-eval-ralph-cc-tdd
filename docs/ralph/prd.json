@@ -104,7 +104,7 @@
       "priority": "high",
       "estimated_complexity": "medium",
       "passes": true,
-      "completed_at": "2026-01-19T08:15:00Z"
+      "completed_at": "2026-01-19T07:50:16Z"
     },
     {
       "id": "STORY-004",
@@ -132,8 +132,8 @@
       ],
       "priority": "high",
       "estimated_complexity": "medium",
-      "passes": false,
-      "completed_at": null
+      "passes": true,
+      "completed_at": "2026-01-19T08:15:00Z"
     },
     {
       "id": "STORY-005",
