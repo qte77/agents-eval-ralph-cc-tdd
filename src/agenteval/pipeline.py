@@ -9,7 +9,7 @@ from typing import Any
 
 from loguru import logger
 from pydantic import field_validator
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from agenteval.judges.llm_judge import EvaluationCriteria, LLMJudge
 from agenteval.metrics.graph import ComplexityAnalyzer, InteractionGraph
@@ -23,6 +23,13 @@ from agenteval.metrics.traditional import (
 class PipelineConfig(BaseSettings):
     """Pipeline configuration with pydantic-settings."""
 
+    model_config = SettingsConfigDict(
+        env_prefix="",
+        case_sensitive=False,
+        env_file=".env",
+        env_file_encoding="utf-8",
+    )
+
     enable_logfire: bool = False
     enable_weave: bool = False
     log_level: str = "INFO"
@@ -35,12 +42,6 @@ class PipelineConfig(BaseSettings):
         if v.upper() not in valid_levels:
             raise ValueError(f"Invalid log level: {v}. Must be one of {valid_levels}")
         return v.upper()
-
-    class Config:
-        env_prefix = ""
-        case_sensitive = False
-        env_file = ".env"
-        env_file_encoding = "utf-8"
 
 
 class EvaluationPipeline:
@@ -70,10 +71,14 @@ class EvaluationPipeline:
         # Configure logging
         if enable_tracing:
             logger.remove()
+            log_format = (
+                "<green>{time:YYYY-MM-DD HH:mm:ss}</green> | "
+                "<level>{level: <8}</level> | <level>{message}</level>\n"
+            )
             logger.add(
                 lambda msg: print(msg, end=""),
                 level=self.config.log_level,
-                format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <level>{message}</level>\n",
+                format=log_format,
             )
 
         # Initialize optional observability integrations
@@ -209,9 +214,7 @@ class EvaluationPipeline:
         results: dict[str, Any] = {}
 
         # Execution time
-        exec_time = self._traditional_metrics["execution_time"].calculate(
-            start_time, end_time
-        )
+        exec_time = self._traditional_metrics["execution_time"].calculate(start_time, end_time)
         results.update(exec_time)
 
         # Success rate
@@ -252,9 +255,7 @@ class EvaluationPipeline:
             "justification": result.justification,
         }
 
-    def _run_graph_analysis(
-        self, interaction_data: dict[str, dict[str, float]]
-    ) -> dict[str, Any]:
+    def _run_graph_analysis(self, interaction_data: dict[str, dict[str, float]]) -> dict[str, Any]:
         """Run graph-based complexity analysis.
 
         Args:

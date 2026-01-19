@@ -33,22 +33,17 @@ class TestEvaluationPipeline:
 
         pipeline = EvaluationPipeline(seed=42)
 
-        # Mock the three evaluation tiers
-        with patch("agenteval.pipeline.TraditionalMetrics") as mock_traditional, \
-             patch("agenteval.pipeline.LLMJudge") as mock_llm, \
-             patch("agenteval.pipeline.GraphAnalysis") as mock_graph:
+        result = pipeline.run(
+            agent_output="Test review",
+            baseline="Baseline review",
+            interaction_data={"agent1": {"agent2": 1.0}}
+        )
 
-            result = pipeline.run(
-                agent_output="Test review",
-                baseline="Baseline review",
-                interaction_data={"agent1": {"agent2": 1.0}}
-            )
-
-            # Verify all three tiers were called
-            assert mock_traditional.called
-            assert mock_llm.called
-            assert mock_graph.called
-            assert result is not None
+        # Verify result contains all three tiers
+        assert result is not None
+        assert "traditional_metrics" in result
+        assert "llm_evaluation" in result
+        assert "graph_analysis" in result
 
     def test_pipeline_returns_consolidated_results(self):
         """Test pipeline returns consolidated results from all tiers."""

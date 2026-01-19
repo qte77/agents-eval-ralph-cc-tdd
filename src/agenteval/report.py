@@ -67,9 +67,7 @@ class EvaluationReport(BaseModel):
         if "success_rate" in self.traditional_metrics:
             lines.append(f"Success Rate: {self.traditional_metrics['success_rate']:.2%}")
         if "execution_time" in self.traditional_metrics:
-            lines.append(
-                f"Execution Time: {self.traditional_metrics['execution_time']:.2f}s"
-            )
+            lines.append(f"Execution Time: {self.traditional_metrics['execution_time']:.2f}s")
 
         # LLM evaluation
         if "overall_score" in self.llm_evaluation:
@@ -108,23 +106,21 @@ class BatchReport(BaseModel):
         total = len(self.reports)
 
         # Aggregate traditional metrics
-        avg_execution_time = sum(
-            r.traditional_metrics.get("execution_time", 0.0) for r in self.reports
-        ) / total
+        avg_execution_time = (
+            sum(r.traditional_metrics.get("execution_time", 0.0) for r in self.reports) / total
+        )
 
-        avg_success_rate = sum(
-            r.traditional_metrics.get("success_rate", 0.0) for r in self.reports
-        ) / total
+        avg_success_rate = (
+            sum(r.traditional_metrics.get("success_rate", 0.0) for r in self.reports) / total
+        )
 
         # Aggregate LLM scores
-        avg_llm_score = sum(
-            r.llm_evaluation.get("overall_score", 0.0) for r in self.reports
-        ) / total
+        avg_llm_score = (
+            sum(r.llm_evaluation.get("overall_score", 0.0) for r in self.reports) / total
+        )
 
         # Aggregate graph metrics
-        avg_density = sum(
-            r.graph_analysis.get("density", 0.0) for r in self.reports
-        ) / total
+        avg_density = sum(r.graph_analysis.get("density", 0.0) for r in self.reports) / total
 
         return {
             "total_evaluations": total,

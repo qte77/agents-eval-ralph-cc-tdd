@@ -209,8 +209,8 @@ class TestReportFormatting:
         summary = report.summary()
 
         assert isinstance(summary, str)
-        assert "success_rate" in summary.lower() or "0.8" in summary
-        assert "7.5" in summary or "overall_score" in summary.lower()
+        assert "success rate" in summary.lower() or "80" in summary
+        assert "7.5" in summary or "overall score" in summary.lower()
 
     def test_report_pretty_print(self):
         """Test report can be pretty printed."""
