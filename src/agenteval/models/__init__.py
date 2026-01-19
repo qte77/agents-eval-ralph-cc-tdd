@@ -1,7 +1,4 @@
-"""Core Pydantic data models for AgentEvals.
-
-Provides shared models to prevent duplication across evaluation modules.
-"""
+"""Core Pydantic data models."""
 
 from agenteval.models.data import Paper, Review
 from agenteval.models.evaluation import Evaluation, Metrics, Report
