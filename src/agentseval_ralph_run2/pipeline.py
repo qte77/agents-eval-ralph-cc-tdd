@@ -10,11 +10,11 @@ import time
 import uuid
 from datetime import datetime
 
+from agenteval.judges.llm_judge import AgentReview, LLMJudgeAgent
+from agenteval.metrics.graph import AgentInteraction, GraphMetricsEvaluator
 from loguru import logger
 from pydantic import BaseModel, Field
 
-from agenteval.judges.llm_judge import AgentReview, LLMJudgeAgent
-from agenteval.metrics.graph import AgentInteraction, GraphMetricsEvaluator
 from agenteval.metrics.traditional import (
     AgentTaskResult,
     CoordinationEvent,

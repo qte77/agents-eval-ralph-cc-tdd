@@ -76,9 +76,7 @@ class TraditionalMetricsCalculator:
         successful_tasks = sum(1 for r in results if r.success)
         return successful_tasks / len(results)
 
-    def calculate_coordination_quality(
-        self, results: list[AgentTaskResult]
-    ) -> float:
+    def calculate_coordination_quality(self, results: list[AgentTaskResult]) -> float:
         """Calculate average coordination quality across tasks.
 
         Args:
