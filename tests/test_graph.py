@@ -62,7 +62,7 @@ class TestComplexityMetrics:
         analyzer = ComplexityAnalyzer()
 
         # Create a simple graph with 3 nodes and 2 edges
-        # Density = edges / max_possible_edges = 2 / 3 = 0.667
+        # Density = edges / max_possible_edges = 2 / (3*2) = 0.333 for directed
         from agenteval.metrics.graph import InteractionGraph
         graph = InteractionGraph()
         graph.add_interaction("agent1", "agent2")
@@ -72,7 +72,7 @@ class TestComplexityMetrics:
 
         assert "density" in result
         assert 0.0 <= result["density"] <= 1.0
-        assert result["density"] == pytest.approx(0.667, rel=0.01)
+        assert result["density"] == pytest.approx(0.333, rel=0.01)
 
     def test_calculate_degree_centrality(self):
         """Test degree centrality metric calculation."""
