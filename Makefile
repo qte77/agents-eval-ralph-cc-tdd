@@ -5,8 +5,13 @@
 
 .SILENT:
 .ONESHELL:
-.PHONY: setup_dev setup_claude_code setup_markdownlint setup_project run_markdownlint ruff test_all type_check validate quick_validate ralph_validate_json ralph_userstory ralph_prd ralph_full_init ralph_init ralph_run ralph_status ralph_clean ralph_reorganize ralph_abort help
+.PHONY: setup_dev setup_claude_code setup_markdownlint setup_project run_markdownlint ruff test_all test_coverage type_check validate quick_validate ralph_validate_json ralph_userstory ralph_prd ralph_full_init ralph_init ralph_run ralph_status ralph_clean ralph_reorganize ralph_abort help
 .DEFAULT_GOAL := help
+
+# Ralph configuration - Quality thresholds
+MIN_TEST_COVERAGE ?= 70
+RALPH_MAX_ITERATIONS ?= 25
+RALPH_MAX_FIX_ATTEMPTS ?= 3
 
 
 # MARK: setup
@@ -55,15 +60,19 @@ ruff:  ## Lint: Format and check with ruff
 test_all:  ## Run all tests
 	uv run pytest
 
+test_coverage:  ## Run tests with coverage threshold ($(MIN_TEST_COVERAGE)%)
+	echo "Running tests with $(MIN_TEST_COVERAGE)% coverage gate..."
+	uv run pytest --cov --cov-fail-under=$(MIN_TEST_COVERAGE)
+
 type_check:  ## Check for static typing errors
 	uv run pyright src
 
 validate:  ## Complete pre-commit validation sequence
-	echo "Running complete validation sequence ..."
+	echo "Running complete validation sequence..."
 	$(MAKE) -s ruff
-	-$(MAKE) -s type_check
-	-$(MAKE) -s test_all
-	echo "Validation sequence completed (check output for any failures)"
+	$(MAKE) -s type_check
+	$(MAKE) -s test_coverage
+	echo "Validation completed successfully"
 
 quick_validate:  ## Fast development cycle validation
 	echo "Running quick validation ..."

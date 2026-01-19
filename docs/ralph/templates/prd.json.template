@@ -8,6 +8,7 @@
       "id": "STORY-EXAMPLE",
       "title": "Example story - replace with real stories",
       "description": "This is a placeholder. Use generating-prd skill to populate from PRD.md",
+      "depends_on": [],
       "acceptance": [
         "Run: claude -p and ask 'Use generating-prd skill to create prd.json'",
         "Skill will parse PRD.md and populate real stories here"

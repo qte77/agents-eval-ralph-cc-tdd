@@ -58,6 +58,25 @@ Co-Authored-By: Claude <noreply@anthropic.com>"`
 
 **CRITICAL**: Tests MUST be committed BEFORE implementation. This ensures verifiable TDD compliance and provides audit trail for agent evaluation.
 
+## Before Writing Code (DRY CHECK - MANDATORY)
+
+**Automatically check for existing code to reuse:**
+
+1. Run `ls src/*/config/` → Import existing config if present
+2. Run `ls src/*/models/` → Import existing models if present
+3. Run `grep -r "class.*BaseModel" src/` → Find existing Pydantic models
+
+**Import existing code, don't duplicate:**
+```python
+# ✅ CORRECT - Reuse existing
+from myproject.models import ExistingModel
+from myproject.config import Config
+
+# ❌ WRONG - Duplicate definition
+class ExistingModel(BaseModel):  # Already exists elsewhere!
+    pass
+```
+
 ## Available Skills
 
 You have access to these skills:

@@ -76,12 +76,52 @@ validate_environment() {
         exit 1
     fi
 
+    # Git state check - prevents conflicts
+    if ! git diff --quiet 2>/dev/null || ! git diff --staged --quiet 2>/dev/null; then
+        log_warn "Uncommitted changes detected - consider committing first"
+    fi
+
+    # Branch protection - prevents accidents on main/master
+    current_branch=$(git symbolic-ref --short HEAD 2>/dev/null || echo "")
+    if [ "$current_branch" = "main" ] || [ "$current_branch" = "master" ]; then
+        log_error "Running on protected branch: $current_branch"
+        log_info "Create a feature branch: git checkout -b feat/your-feature"
+        exit 1
+    fi
+
     log_info "Environment validated successfully"
 }
 
-# Get next incomplete story from prd.json
+# Get next story with resolved dependencies (execute deps first)
 get_next_story() {
-    jq -r '.stories[] | select(.passes == false) | .id' "$PRD_JSON" | head -n 1
+    # Get all incomplete stories
+    local incomplete=$(jq -r '.stories[] | select(.passes == false) | .id' "$PRD_JSON")
+
+    for story_id in $incomplete; do
+        # Check if all dependencies are complete
+        local deps=$(jq -r --arg id "$story_id" \
+            '.stories[] | select(.id == $id) | .depends_on // [] | .[]' \
+            "$PRD_JSON" 2>/dev/null)
+
+        local deps_met=true
+        for dep in $deps; do
+            local dep_passes=$(jq -r --arg id "$dep" \
+                '.stories[] | select(.id == $id) | .passes' "$PRD_JSON")
+            if [ "$dep_passes" != "true" ]; then
+                deps_met=false
+                break
+            fi
+        done
+
+        # Return first story with all deps satisfied
+        if [ "$deps_met" = "true" ]; then
+            echo "$story_id"
+            return 0
+        fi
+    done
+
+    # No story with satisfied deps found
+    echo ""
 }
 
 # Get story details
