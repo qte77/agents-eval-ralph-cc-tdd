@@ -153,7 +153,7 @@ execute_story() {
 
     # Execute via Claude Code
     log_info "Running Claude Code with story context..."
-    if cat "$iteration_prompt" | claude -p --dangerously-skip-permissions; then
+    if cat "$iteration_prompt" | claude -p --dangerously-skip-permissions 2>&1 | tee "/tmp/ralph_execute_${story_id}.log"; then
         rm "$iteration_prompt"
         return 0
     else
@@ -215,7 +215,7 @@ fix_validation_errors() {
         } >> "$fix_prompt"
 
         # Execute fix via Claude Code
-        if cat "$fix_prompt" | claude -p --dangerously-skip-permissions; then
+        if cat "$fix_prompt" | claude -p --dangerously-skip-permissions 2>&1 | tee "/tmp/ralph_fix_${story_id}_${attempt}.log"; then
             rm "$fix_prompt"
 
             # Re-run validation
@@ -261,6 +261,16 @@ Co-Authored-By: Claude <noreply@anthropic.com>"; then
         log_warn "No state changes to commit"
         return 1
     fi
+
+    # Push commits immediately after successful story completion
+    log_info "Pushing commits to remote..."
+    if git push; then
+        log_info "Commits pushed successfully"
+    else
+        log_warn "Failed to push commits"
+        return 1
+    fi
+
     return 0
 }
 
@@ -272,8 +282,9 @@ check_tdd_commits() {
     local story_id="$1"
     local commits_before="$2"
 
-    # Skip TDD verification for first story to allow ramp-up
-    if [ "$story_id" = "STORY-001" ]; then
+    # Skip TDD verification for first story being executed to allow ramp-up
+    local completed_stories=$(jq '[.stories[] | select(.passes == true)] | length' "$PRD_JSON")
+    if [ "$completed_stories" -eq 0 ]; then
         log_info "Skipping TDD verification for first story (ramp-up)"
         return 0
     fi
