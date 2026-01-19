@@ -107,10 +107,6 @@ def calculate_coordination_quality(events: list[CoordinationEvent]) -> float:
 class MetricsEvaluator:
     """Evaluator for calculating comprehensive traditional metrics."""
 
-    def __init__(self) -> None:
-        """Initialize the MetricsEvaluator."""
-        pass
-
     def evaluate(
         self,
         task_results: list[AgentTaskResult],
