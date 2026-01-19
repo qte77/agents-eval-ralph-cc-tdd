@@ -34,13 +34,9 @@ class MetricsCalculator:
             )
 
         # Calculate average execution time
-        total_time = 0.0
-        for run in agent_runs:
-            start_time = run["start_time"]
-            end_time = run["end_time"]
-            duration = (end_time - start_time).total_seconds()
-            total_time += duration
-
+        total_time = sum(
+            (run["end_time"] - run["start_time"]).total_seconds() for run in agent_runs
+        )
         avg_execution_time = total_time / len(agent_runs)
 
         # Calculate success rate
