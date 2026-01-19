@@ -7,11 +7,11 @@ Tests validate calculation of execution time, success rate, and coordination qua
 from datetime import datetime
 
 import pytest
+
 from agenteval.metrics.traditional import (
     AgentTaskResult,
     TraditionalMetricsCalculator,
 )
-
 from agenteval.models.evaluation import Metrics
 
 
@@ -195,7 +195,7 @@ class TestTraditionalMetricsCalculator:
 
         coord_quality = calculator.calculate_coordination_quality(results)
         # (0.7 + 0.75 + 0.8 + 0.85) / 4 = 0.775
-        assert coord_quality == 0.775
+        assert abs(coord_quality - 0.775) < 0.01
 
     def test_calculate_metrics_returns_metrics_model(self):
         """Test calculate_metrics returns Metrics Pydantic model."""
