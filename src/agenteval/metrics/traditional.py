@@ -39,6 +39,18 @@ class AgentTaskResult(BaseModel):
 class TraditionalMetricsCalculator:
     """Calculator for traditional performance metrics."""
 
+    def _validate_results(self, results: list[AgentTaskResult]) -> None:
+        """Validate that results list is not empty.
+
+        Args:
+            results: List of agent task results
+
+        Raises:
+            ValueError: If results list is empty
+        """
+        if not results:
+            raise ValueError("Cannot calculate metrics for empty results")
+
     def calculate_execution_time(self, results: list[AgentTaskResult]) -> float:
         """Calculate average execution time across tasks.
 
@@ -48,8 +60,7 @@ class TraditionalMetricsCalculator:
         Returns:
             Average execution time in seconds
         """
-        if not results:
-            raise ValueError("Cannot calculate execution time for empty results")
+        self._validate_results(results)
         return sum(r.execution_time_seconds for r in results) / len(results)
 
     def calculate_success_rate(self, results: list[AgentTaskResult]) -> float:
@@ -61,8 +72,7 @@ class TraditionalMetricsCalculator:
         Returns:
             Success rate as a float between 0.0 and 1.0
         """
-        if not results:
-            raise ValueError("Cannot calculate success rate for empty results")
+        self._validate_results(results)
         successful_tasks = sum(1 for r in results if r.success)
         return successful_tasks / len(results)
 
@@ -77,10 +87,7 @@ class TraditionalMetricsCalculator:
         Returns:
             Average coordination quality score between 0.0 and 1.0
         """
-        if not results:
-            raise ValueError(
-                "Cannot calculate coordination quality for empty results"
-            )
+        self._validate_results(results)
         return sum(r.coordination_score for r in results) / len(results)
 
     def calculate_metrics(self, results: list[AgentTaskResult]) -> Metrics:
@@ -95,8 +102,7 @@ class TraditionalMetricsCalculator:
         Raises:
             ValueError: If results list is empty
         """
-        if not results:
-            raise ValueError("Cannot calculate metrics for empty results")
+        self._validate_results(results)
 
         return Metrics(
             execution_time_seconds=self.calculate_execution_time(results),
