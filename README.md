@@ -49,7 +49,8 @@ make ralph_clean
 make ralph_reorganize NEW_PRD=docs/PRD-v2.md [VERSION=2]
 ```
 
-For detailed setup and usage, see [docs/TEMPLATE_USAGE.md](docs/TEMPLATE_USAGE.md).
+For detailed setup and usage, see [docs/TEMPLATE_USAGE.md](docs/TEMPLATE_USAGE.md). For Ralph Loop details see [Ralph README.md](./docs/ralph/README.md
+).
 
 ## Workflow
 
