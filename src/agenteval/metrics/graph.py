@@ -91,6 +91,19 @@ class GraphAnalyzer:
         """
         return dict(nx.betweenness_centrality(graph))
 
+    def _calculate_avg_centrality(self, centrality: dict[str, float]) -> float:
+        """Calculate average centrality value from a centrality dictionary.
+
+        Args:
+            centrality: Dictionary mapping node to centrality value
+
+        Returns:
+            Average centrality as float
+        """
+        if not centrality:
+            return 0.0
+        return sum(centrality.values()) / len(centrality)
+
     def calculate_avg_degree_centrality(self, graph: nx.DiGraph) -> float:
         """Calculate average degree centrality across all nodes.
 
@@ -100,10 +113,7 @@ class GraphAnalyzer:
         Returns:
             Average degree centrality as float
         """
-        centrality = self.calculate_degree_centrality(graph)
-        if not centrality:
-            return 0.0
-        return sum(centrality.values()) / len(centrality)
+        return self._calculate_avg_centrality(self.calculate_degree_centrality(graph))
 
     def calculate_avg_betweenness_centrality(self, graph: nx.DiGraph) -> float:
         """Calculate average betweenness centrality across all nodes.
@@ -114,10 +124,7 @@ class GraphAnalyzer:
         Returns:
             Average betweenness centrality as float
         """
-        centrality = self.calculate_betweenness_centrality(graph)
-        if not centrality:
-            return 0.0
-        return sum(centrality.values()) / len(centrality)
+        return self._calculate_avg_centrality(self.calculate_betweenness_centrality(graph))
 
     def calculate_avg_clustering_coefficient(self, graph: nx.DiGraph) -> float:
         """Calculate average clustering coefficient.
@@ -134,6 +141,18 @@ class GraphAnalyzer:
         undirected = graph.to_undirected()
         return nx.average_clustering(undirected)
 
+    def _filter_by_threshold(self, centrality: dict[str, float], threshold: float) -> list[str]:
+        """Filter agents by centrality threshold.
+
+        Args:
+            centrality: Dictionary mapping node to centrality value
+            threshold: Minimum centrality value
+
+        Returns:
+            List of agent IDs meeting threshold
+        """
+        return [agent for agent, score in centrality.items() if score >= threshold]
+
     def identify_hubs(self, graph: nx.DiGraph, threshold: float = 0.5) -> list[str]:
         """Identify hub agents with high degree centrality.
 
@@ -144,8 +163,7 @@ class GraphAnalyzer:
         Returns:
             List of agent IDs that are hubs
         """
-        centrality = self.calculate_degree_centrality(graph)
-        return [agent for agent, score in centrality.items() if score >= threshold]
+        return self._filter_by_threshold(self.calculate_degree_centrality(graph), threshold)
 
     def identify_bridges(self, graph: nx.DiGraph, threshold: float = 0.1) -> list[str]:
         """Identify bridge agents with high betweenness centrality.
@@ -157,8 +175,7 @@ class GraphAnalyzer:
         Returns:
             List of agent IDs that are bridges
         """
-        centrality = self.calculate_betweenness_centrality(graph)
-        return [agent for agent, score in centrality.items() if score >= threshold]
+        return self._filter_by_threshold(self.calculate_betweenness_centrality(graph), threshold)
 
     def identify_isolated_agents(self, graph: nx.DiGraph) -> list[str]:
         """Identify isolated agents with no meaningful connections.
