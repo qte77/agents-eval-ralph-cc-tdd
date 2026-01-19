@@ -20,9 +20,7 @@ class InteractionGraph:
         """
         self._graph: nx.Graph | nx.DiGraph = nx.DiGraph() if directed else nx.Graph()
 
-    def add_interaction(
-        self, source: str, target: str, weight: float = 1.0, **attrs: Any
-    ) -> None:
+    def add_interaction(self, source: str, target: str, weight: float = 1.0, **attrs: Any) -> None:
         """Add agent interaction edge to graph.
 
         Args:
@@ -98,9 +96,10 @@ class InteractionGraph:
             GraphML XML string
         """
         import io
+
         buffer = io.BytesIO()
         nx.write_graphml(self._graph, buffer)
-        return buffer.getvalue().decode('utf-8')
+        return buffer.getvalue().decode("utf-8")
 
 
 class ComplexityAnalyzer:
@@ -119,9 +118,7 @@ class ComplexityAnalyzer:
         density = nx.density(nx_graph)
         return {"density": density}
 
-    def calculate_degree_centrality(
-        self, graph: InteractionGraph
-    ) -> dict[str, dict[str, float]]:
+    def calculate_degree_centrality(self, graph: InteractionGraph) -> dict[str, dict[str, float]]:
         """Calculate degree centrality for all nodes.
 
         Args:
@@ -149,9 +146,7 @@ class ComplexityAnalyzer:
         centrality = nx.betweenness_centrality(nx_graph)
         return {"betweenness_centrality": centrality}
 
-    def calculate_clustering_coefficient(
-        self, graph: InteractionGraph
-    ) -> dict[str, float]:
+    def calculate_clustering_coefficient(self, graph: InteractionGraph) -> dict[str, float]:
         """Calculate clustering coefficient metric.
 
         Args:
@@ -241,9 +236,7 @@ class PatternDetector:
         # Consider nodes with above-average betweenness as bottlenecks
         if centrality:
             avg_centrality = sum(centrality.values()) / len(centrality)
-            bottlenecks = [
-                node for node, value in centrality.items() if value > avg_centrality
-            ]
+            bottlenecks = [node for node, value in centrality.items() if value > avg_centrality]
         else:
             bottlenecks = []
 
