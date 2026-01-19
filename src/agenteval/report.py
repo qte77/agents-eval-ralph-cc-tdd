@@ -47,25 +47,26 @@ class ReportGenerator:
             # Loguru is already configured by default, just ensure it's enabled
             logger.enable("agenteval")
 
-        if self.config.logfire_enabled:
-            # Optional: Initialize logfire if enabled
-            try:
-                import logfire  # noqa: F401
+        # Initialize optional observability tools
+        self._init_optional_tool("logfire", self.config.logfire_enabled)
+        self._init_optional_tool("weave", self.config.weave_enabled)
 
-                logger.info("Logfire observability enabled")
+    def _init_optional_tool(self, tool_name: str, enabled: bool) -> None:
+        """Initialize optional observability tool if enabled.
+
+        Args:
+            tool_name: Name of the tool to initialize
+            enabled: Whether the tool is enabled
+        """
+        if enabled:
+            try:
+                __import__(tool_name)
+                logger.info(f"{tool_name.capitalize()} observability enabled")
             except ImportError:
                 logger.warning(
-                    "Logfire enabled but not installed. Install with: pip install logfire"
+                    f"{tool_name.capitalize()} enabled but not installed. "
+                    f"Install with: pip install {tool_name}"
                 )
-
-        if self.config.weave_enabled:
-            # Optional: Initialize weave if enabled
-            try:
-                import weave  # noqa: F401
-
-                logger.info("Weave observability enabled")
-            except ImportError:
-                logger.warning("Weave enabled but not installed. Install with: pip install weave")
 
     def generate_report(self, pipeline_result: PipelineResult) -> ConsolidatedReport:
         """Generate consolidated report from pipeline result.
