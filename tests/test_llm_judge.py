@@ -5,6 +5,7 @@ Tests validate semantic quality evaluation of agent-generated reviews against hu
 """
 
 import pytest
+from pydantic_ai.models.test import TestModel
 
 from agenteval.judges.llm_judge import (
     AgentReview,
@@ -64,7 +65,8 @@ class TestLLMJudgeEvaluator:
 
     def test_evaluator_initialization_default_criteria(self):
         """Test LLMJudgeEvaluator can be initialized with default criteria."""
-        evaluator = LLMJudgeEvaluator()
+        test_model = TestModel()
+        evaluator = LLMJudgeEvaluator(model=test_model)
         assert isinstance(evaluator, LLMJudgeEvaluator)
 
     def test_evaluator_initialization_custom_criteria(self):
@@ -75,14 +77,21 @@ class TestLLMJudgeEvaluator:
             completeness_weight=0.2,
             technical_accuracy_weight=0.1,
         )
-        evaluator = LLMJudgeEvaluator(criteria=criteria)
+        test_model = TestModel()
+        evaluator = LLMJudgeEvaluator(criteria=criteria, model=test_model)
         assert isinstance(evaluator, LLMJudgeEvaluator)
         assert evaluator.criteria == criteria
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_evaluate_single_review(self):
         """Test evaluating a single agent review against baseline."""
-        evaluator = LLMJudgeEvaluator()
+        test_model = TestModel(
+            custom_output_args={
+                "semantic_score": 0.85,
+                "justification": "Reviews are semantically similar",
+            }
+        )
+        evaluator = LLMJudgeEvaluator(model=test_model)
 
         agent_review = AgentReview(
             review_id="agent_review_001",
@@ -108,10 +117,16 @@ class TestLLMJudgeEvaluator:
         assert 0.0 <= evaluation.semantic_score <= 1.0
         assert len(evaluation.justification) > 0
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_evaluate_high_quality_match(self):
         """Test evaluation of high-quality agent review matching baseline."""
-        evaluator = LLMJudgeEvaluator()
+        test_model = TestModel(
+            custom_output_args={
+                "semantic_score": 0.92,
+                "justification": "Highly similar semantic content",
+            }
+        )
+        evaluator = LLMJudgeEvaluator(model=test_model)
 
         agent_review = AgentReview(
             review_id="agent_review_002",
@@ -133,12 +148,21 @@ class TestLLMJudgeEvaluator:
 
         # High semantic similarity expected
         assert evaluation.semantic_score >= 0.7
-        assert "similar" in evaluation.justification.lower() or "match" in evaluation.justification.lower()
+        assert (
+            "similar" in evaluation.justification.lower()
+            or "match" in evaluation.justification.lower()
+        )
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_evaluate_low_quality_mismatch(self):
         """Test evaluation of poor agent review not matching baseline."""
-        evaluator = LLMJudgeEvaluator()
+        test_model = TestModel(
+            custom_output_args={
+                "semantic_score": 0.35,
+                "justification": "Significant semantic differences",
+            }
+        )
+        evaluator = LLMJudgeEvaluator(model=test_model)
 
         agent_review = AgentReview(
             review_id="agent_review_003",
@@ -153,7 +177,10 @@ class TestLLMJudgeEvaluator:
             paper_id="paper_003",
             rating=8,
             confidence=5,
-            review_text="This work demonstrates significant innovation with comprehensive experimental validation.",
+            review_text=(
+                "This work demonstrates significant innovation with "
+                "comprehensive experimental validation."
+            ),
         )
 
         evaluation = await evaluator.evaluate(agent_review, baseline_review)
@@ -162,10 +189,19 @@ class TestLLMJudgeEvaluator:
         assert evaluation.semantic_score < 0.7
         assert len(evaluation.justification) > 0
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_evaluate_provides_justification(self):
         """Test that evaluation includes detailed justification."""
-        evaluator = LLMJudgeEvaluator()
+        test_model = TestModel(
+            custom_output_args={
+                "semantic_score": 0.78,
+                "justification": (
+                    "Both reviews highlight similar concerns about "
+                    "the experimental methodology"
+                ),
+            }
+        )
+        evaluator = LLMJudgeEvaluator(model=test_model)
 
         agent_review = AgentReview(
             review_id="agent_review_004",
@@ -189,10 +225,13 @@ class TestLLMJudgeEvaluator:
         assert len(evaluation.justification) > 20
         assert isinstance(evaluation.justification, str)
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_batch_evaluate_multiple_reviews(self):
         """Test batch evaluation of multiple agent reviews."""
-        evaluator = LLMJudgeEvaluator()
+        test_model = TestModel(
+            custom_output_args={"semantic_score": 0.75, "justification": "Batch evaluation result"}
+        )
+        evaluator = LLMJudgeEvaluator(model=test_model)
 
         agent_reviews = [
             AgentReview(
@@ -224,7 +263,7 @@ class TestLLMJudgeEvaluator:
             assert 0.0 <= evaluation.semantic_score <= 1.0
             assert len(evaluation.justification) > 0
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_evaluate_respects_custom_criteria(self):
         """Test that evaluation respects custom criteria weights."""
         criteria = EvaluationCriteria(
@@ -233,7 +272,13 @@ class TestLLMJudgeEvaluator:
             completeness_weight=0.1,
             technical_accuracy_weight=0.1,
         )
-        evaluator = LLMJudgeEvaluator(criteria=criteria)
+        test_model = TestModel(
+            custom_output_args={
+                "semantic_score": 0.65,
+                "justification": "Evaluated with custom criteria",
+            }
+        )
+        evaluator = LLMJudgeEvaluator(criteria=criteria, model=test_model)
 
         agent_review = AgentReview(
             review_id="agent_review_005",
@@ -257,10 +302,11 @@ class TestLLMJudgeEvaluator:
         assert isinstance(evaluation, Evaluation)
         assert 0.0 <= evaluation.semantic_score <= 1.0
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_batch_evaluate_mismatched_lengths_raises_error(self):
         """Test batch evaluation raises error for mismatched input lengths."""
-        evaluator = LLMJudgeEvaluator()
+        test_model = TestModel()
+        evaluator = LLMJudgeEvaluator(model=test_model)
 
         agent_reviews = [
             AgentReview(
@@ -292,10 +338,16 @@ class TestLLMJudgeEvaluator:
         with pytest.raises(ValueError):
             await evaluator.batch_evaluate(agent_reviews, baseline_reviews)
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_evaluate_with_empty_review_text(self):
         """Test evaluation handles edge case of empty review text."""
-        evaluator = LLMJudgeEvaluator()
+        test_model = TestModel(
+            custom_output_args={
+                "semantic_score": 0.15,
+                "justification": "Empty review provides no semantic content",
+            }
+        )
+        evaluator = LLMJudgeEvaluator(model=test_model)
 
         agent_review = AgentReview(
             review_id="agent_review_006",
@@ -318,10 +370,11 @@ class TestLLMJudgeEvaluator:
         assert isinstance(evaluation, Evaluation)
         assert 0.0 <= evaluation.semantic_score <= 1.0
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_batch_evaluate_empty_list(self):
         """Test batch evaluation with empty lists."""
-        evaluator = LLMJudgeEvaluator()
+        test_model = TestModel()
+        evaluator = LLMJudgeEvaluator(model=test_model)
 
         evaluations = await evaluator.batch_evaluate([], [])
 
