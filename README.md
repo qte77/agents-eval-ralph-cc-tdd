@@ -1,6 +1,9 @@
 # agents-eval-ralph-cc-tdd
 
-A Multi-Agent System (MAS) evaluation framework using PydanticAI that generates and evaluates scientific paper reviews through a three-tiered assessment approach: traditional metrics, LLM-as-a-Judge, and graph-based complexity analysis.
+A Multi-Agent System (MAS) evaluation framework using PydanticAI that
+generates and evaluates scientific paper reviews through a three-tiered
+assessment approach: traditional metrics, LLM-as-a-Judge, and graph-based
+complexity analysis.
 
 ![Version](https://img.shields.io/badge/version-0.0.0-58f4c2.svg)
 [![License](https://img.shields.io/badge/license-BSD3Clause-58f4c2.svg)](LICENSE.md)
@@ -15,13 +18,18 @@ A Multi-Agent System (MAS) evaluation framework using PydanticAI that generates 
 ## Features
 
 - **Ralph Loop** - Autonomous development using a shell loop
-- **Claude Code** - Pre-configured skills, plugins, rules, and commands for AI-assisted development
+- **Claude Code** - Pre-configured skills, plugins, rules, and commands for
+  AI-assisted development
 - **Makefile** - Build automation, Ralph orchestration, and validation commands
-- **Python Tooling** - ruff (linting/formatting), pyright (type checking), pytest (testing)
+- **Python Tooling** - ruff (linting/formatting), pyright (type checking),
+  pytest (testing)
 - **MkDocs** - Auto-generated documentation with GitHub Pages deployment
-- **GitHub Actions** - CI/CD workflows (CodeQL, ruff, pyright, pytest, link checking, docs deployment)
-- **DevContainers** - Template (Alpine ~10MB) and actual project (Python/Node/Docker ~1GB+)
-- **VS Code** - Workspace settings, tasks, and extensions for optimal Python development
+- **GitHub Actions** - CI/CD workflows (CodeQL, ruff, pyright, pytest, link
+  checking, docs deployment)
+- **DevContainers** - Template (Alpine ~10MB) and actual project
+  (Python/Node/Docker ~1GB+)
+- **VS Code** - Workspace settings, tasks, and extensions for optimal Python
+  development
 
 ## Quick Start
 
@@ -49,8 +57,9 @@ make ralph_clean
 make ralph_reorganize NEW_PRD=docs/PRD-v2.md [VERSION=2]
 ```
 
-For detailed setup and usage, see [docs/TEMPLATE_USAGE.md](docs/TEMPLATE_USAGE.md). For Ralph Loop details see [Ralph README.md](./docs/ralph/README.md
-).
+For detailed setup and usage, see
+[docs/TEMPLATE_USAGE.md](docs/TEMPLATE_USAGE.md). For Ralph Loop details see
+[Ralph README.md](./docs/ralph/README.md).
 
 ## Workflow
 
@@ -76,10 +85,15 @@ Mandatory for Both:
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for development workflow, core principles, and contribution guidelines.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development workflow, core
+principles, and contribution guidelines.
 
 ## TODO
 
-- **Parallel Story Execution**: Current story breakdown executes sequentially. Future optimization: implement parallel execution support in Ralph Loop for independent stories.
-- **Memory for Lessons Learned**: Use simple mechanism with an `AGENT_LEARNINGS.md`
-- **Bi-directional Communication**: Use simple `AGENT_REQUESTS.md` for session-spanning communication between humans and agents
+- **Parallel Story Execution**: Current story breakdown executes
+  sequentially. Future optimization: implement parallel execution support in
+  Ralph Loop for independent stories.
+- **Memory for Lessons Learned**: Use simple mechanism with an
+  `AGENT_LEARNINGS.md`
+- **Bi-directional Communication**: Use simple `AGENT_REQUESTS.md` for
+  session-spanning communication between humans and agents

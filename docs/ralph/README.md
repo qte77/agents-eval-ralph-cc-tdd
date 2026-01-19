@@ -58,11 +58,13 @@ scripts/ralph/
 ## Commit Architecture
 
 **Agent commits** (during story execution):
+
 - `test(STORY-XXX): ... [RED]` - Failing tests
 - `feat(STORY-XXX): ... [GREEN]` - Implementation
 - `refactor(STORY-XXX): ... [REFACTOR]` - Cleanup
 
 **Script commits** (after validation passes):
+
 - `docs(STORY-XXX): update state and documentation` - State files
 
 **Why both?** Agent commits prove TDD compliance. Script commits track progress.
@@ -79,6 +81,7 @@ scripts/ralph/
 ## Configuration
 
 In `ralph.sh`:
+
 - `MAX_ITERATIONS=10` - Maximum loop iterations
 - `MAX_FIX_ATTEMPTS=3` - Maximum validation fix attempts
 - `PRD_JSON="docs/ralph/prd.json"` - Story definitions
@@ -95,6 +98,7 @@ In `ralph.sh`:
 ## Quality Gates
 
 All stories must pass:
+
 - Code formatting (ruff)
 - Type checking (pyright)
 - All tests (pytest)
@@ -104,6 +108,7 @@ Via: `make validate`
 ## TDD Verification
 
 Script enforces:
+
 - Minimum 2 commits per story
 - [RED] marker present (tests committed first)
 - [GREEN] marker present (implementation committed second)
@@ -114,6 +119,7 @@ Skipped for STORY-001 (ramp-up).
 ## Autonomous Operation
 
 Runs without human approval:
+
 - `--dangerously-skip-permissions` flag on all Claude invocations
 - Auto-commits state files
 - Auto-pushes to remote at completion

@@ -62,7 +62,7 @@ Template includes `context7` and `exa` MCP servers. Remove from `.claude/setting
 
 ## Directory Structure
 
-```
+```text
 your-project/
 ├── .claude/              # Claude Code configuration
 ├── .devcontainer/        # DevContainer configs (template/ & project/)
