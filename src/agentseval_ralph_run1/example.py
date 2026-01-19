@@ -5,8 +5,8 @@ This demonstrates the basic usage of the unified evaluation pipeline
 that combines traditional metrics, LLM-as-a-Judge, and graph analysis.
 """
 
-from agenteval.pipeline import EvaluationPipeline
-from agenteval.report import EvaluationReport
+from agentseval_ralph_run1.pipeline import EvaluationPipeline
+from agentseval_ralph_run1.report import EvaluationReport
 
 
 def main():
