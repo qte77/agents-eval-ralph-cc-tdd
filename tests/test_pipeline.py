@@ -8,12 +8,12 @@ import random
 from datetime import datetime
 
 import pytest
-from agenteval.pipeline import EvaluationPipeline, PipelineConfig, PipelineResult
 
 from agenteval.judges.llm_judge import AgentReview
 from agenteval.metrics.graph import AgentInteraction
 from agenteval.metrics.traditional import AgentTaskResult
 from agenteval.models.data import Review
+from agenteval.pipeline import EvaluationPipeline, PipelineConfig, PipelineResult
 
 
 @pytest.fixture
