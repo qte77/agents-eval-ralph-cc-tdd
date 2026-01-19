@@ -79,7 +79,7 @@
         "tests/test_graph.py"
       ],
       "passes": true,
-      "completed_at": "2026-01-19T14:03:40Z"
+      "completed_at": "2026-01-19T14:04:37Z"
     },
     {
       "id": "STORY-005",
@@ -99,8 +99,8 @@
         "src/agenteval/report.py",
         "tests/test_pipeline.py"
       ],
-      "passes": false,
-      "completed_at": null
+      "passes": true,
+      "completed_at": "2026-01-19T15:30:00Z"
     }
   ]
 }
