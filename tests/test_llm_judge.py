@@ -5,13 +5,13 @@ Tests validate semantic quality evaluation of agent-generated reviews against hu
 """
 
 import pytest
+from pydantic_ai.models.test import TestModel
+
 from agenteval.judges.llm_judge import (
     AgentReview,
     EvaluationCriteria,
     LLMJudgeEvaluator,
 )
-from pydantic_ai.models.test import TestModel
-
 from agenteval.models.data import Review
 from agenteval.models.evaluation import Evaluation
 

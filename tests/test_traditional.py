@@ -4,7 +4,7 @@ Following TDD RED phase - these tests should FAIL until implementation is comple
 Tests validate calculation of execution time, task success rate, and coordination quality metrics.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime
 
 import pytest
 
