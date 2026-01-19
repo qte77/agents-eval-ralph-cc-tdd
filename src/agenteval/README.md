@@ -10,6 +10,7 @@ A three-tiered evaluation framework for multi-agent AI systems that provides obj
 - Download PeerRead dataset and persist locally with versioning for reproducibility and offline use
 - Load and parse PeerRead dataset from local storage into structured Pydantic models
 - Implement standard metrics (execution time, success rate, coordination quality) for agent system evaluation
+- Evaluate semantic quality of provided agent outputs using LLM-based assessment against human baseline reviews from PeerRead dataset
 
 ## Quick Start
 
@@ -45,6 +46,12 @@ src/agenteval
 │       └── peerread.cpython-313.pyc
 ├── example.py
 ├── __init__.py
+├── judges
+│   ├── __init__.py
+│   ├── llm_judge.py
+│   └── __pycache__
+│       ├── __init__.cpython-313.pyc
+│       └── llm_judge.cpython-313.pyc
 ├── metrics
 │   ├── __init__.py
 │   ├── __pycache__
@@ -68,11 +75,13 @@ tests/
 │   ├── __init__.cpython-313.pyc
 │   ├── test_config.cpython-313-pytest-9.0.2.pyc
 │   ├── test_downloader.cpython-313-pytest-9.0.2.pyc
+│   ├── test_llm_judge.cpython-313-pytest-9.0.2.pyc
 │   ├── test_models.cpython-313-pytest-9.0.2.pyc
 │   ├── test_peerread.cpython-313-pytest-9.0.2.pyc
 │   └── test_traditional.cpython-313-pytest-9.0.2.pyc
 ├── test_config.py
 ├── test_downloader.py
+├── test_llm_judge.py
 ├── test_models.py
 ├── test_peerread.py
 └── test_traditional.py
