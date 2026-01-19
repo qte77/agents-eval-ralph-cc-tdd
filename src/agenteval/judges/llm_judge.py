@@ -146,11 +146,7 @@ matches the depth, insight, and quality of the human review."""
         Returns:
             List of ReviewEvaluation objects
         """
-        evaluations = []
-        for review in reviews:
-            evaluation = await self.evaluate_review(review)
-            evaluations.append(evaluation)
-        return evaluations
+        return [await self.evaluate_review(review) for review in reviews]
 
     async def evaluate_batch_with_baselines(
         self, agent_reviews: list[AgentReview], baselines: list[HumanBaseline]
@@ -164,8 +160,7 @@ matches the depth, insight, and quality of the human review."""
         Returns:
             List of ReviewEvaluation objects
         """
-        evaluations = []
-        for agent_review, baseline in zip(agent_reviews, baselines):
-            evaluation = await self.evaluate_with_baseline(agent_review, baseline)
-            evaluations.append(evaluation)
-        return evaluations
+        return [
+            await self.evaluate_with_baseline(agent_review, baseline)
+            for agent_review, baseline in zip(agent_reviews, baselines, strict=True)
+        ]
