@@ -37,8 +37,8 @@
       ],
       "priority": "high",
       "estimated_complexity": "medium",
-      "passes": false,
-      "completed_at": null
+      "passes": true,
+      "completed_at": "2026-01-19T07:38:49Z"
     },
     {
       "id": "STORY-002",
@@ -71,8 +71,8 @@
       ],
       "priority": "high",
       "estimated_complexity": "medium",
-      "passes": false,
-      "completed_at": null
+      "passes": true,
+      "completed_at": "2026-01-19T07:43:11Z"
     },
     {
       "id": "STORY-003",
@@ -103,8 +103,8 @@
       ],
       "priority": "high",
       "estimated_complexity": "medium",
-      "passes": false,
-      "completed_at": null
+      "passes": true,
+      "completed_at": "2026-01-19T08:15:00Z"
     },
     {
       "id": "STORY-004",
