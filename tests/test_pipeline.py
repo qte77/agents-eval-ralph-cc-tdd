@@ -55,8 +55,11 @@ class TestPipelineModels:
         )
 
         assert result.run_id == "test_run_1"
+        assert result.traditional_metrics is not None
         assert result.traditional_metrics["success_rate"] == 0.95
+        assert result.llm_judge_results is not None
         assert result.llm_judge_results["avg_score"] == 8.5
+        assert result.graph_metrics is not None
         assert result.graph_metrics["density"] == 0.75
         assert result.execution_time == 123.45
 

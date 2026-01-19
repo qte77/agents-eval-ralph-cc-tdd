@@ -23,6 +23,32 @@ class ReportGenerator:
         """
         return result.model_dump()
 
+    def _add_section(self, lines: list[str], title: str, metrics: dict | None) -> None:
+        """Add a metrics section to the report.
+
+        Args:
+            lines: List to append lines to
+            title: Section title
+            metrics: Dictionary of metrics to display
+        """
+        if not metrics:
+            return
+
+        lines.append(f"{title}:")
+        lines.append("-" * 40)
+
+        # Format specific metrics
+        if "success_rate" in metrics:
+            lines.append(f"  Success Rate: {metrics['success_rate']:.2%}")
+        if "avg_execution_time" in metrics:
+            lines.append(f"  Avg Execution Time: {metrics['avg_execution_time']:.2f}s")
+        if "avg_score" in metrics:
+            lines.append(f"  Average Score: {metrics['avg_score']:.2f}")
+        if "density" in metrics:
+            lines.append(f"  Graph Density: {metrics['density']:.3f}")
+
+        lines.append("")
+
     def generate_summary(self, result: PipelineResult) -> str:
         """Generate human-readable summary report.
 
@@ -32,42 +58,19 @@ class ReportGenerator:
         Returns:
             String containing formatted summary
         """
-        lines = []
-        lines.append("=" * 60)
-        lines.append("EVALUATION PIPELINE SUMMARY")
-        lines.append("=" * 60)
-        lines.append(f"Run ID: {result.run_id}")
-        lines.append(f"Timestamp: {result.timestamp}")
-        lines.append(f"Execution Time: {result.execution_time:.2f}s")
-        lines.append("")
+        lines = [
+            "=" * 60,
+            "EVALUATION PIPELINE SUMMARY",
+            "=" * 60,
+            f"Run ID: {result.run_id}",
+            f"Timestamp: {result.timestamp}",
+            f"Execution Time: {result.execution_time:.2f}s",
+            "",
+        ]
 
-        # Traditional metrics section
-        if result.traditional_metrics:
-            lines.append("TRADITIONAL METRICS:")
-            lines.append("-" * 40)
-            if "success_rate" in result.traditional_metrics:
-                lines.append(f"  Success Rate: {result.traditional_metrics['success_rate']:.2%}")
-            if "avg_execution_time" in result.traditional_metrics:
-                lines.append(
-                    f"  Avg Execution Time: {result.traditional_metrics['avg_execution_time']:.2f}s"
-                )
-            lines.append("")
-
-        # LLM judge section
-        if result.llm_judge_results:
-            lines.append("LLM JUDGE RESULTS:")
-            lines.append("-" * 40)
-            if "avg_score" in result.llm_judge_results:
-                lines.append(f"  Average Score: {result.llm_judge_results['avg_score']:.2f}")
-            lines.append("")
-
-        # Graph metrics section
-        if result.graph_metrics:
-            lines.append("GRAPH METRICS:")
-            lines.append("-" * 40)
-            if "density" in result.graph_metrics:
-                lines.append(f"  Graph Density: {result.graph_metrics['density']:.3f}")
-            lines.append("")
+        self._add_section(lines, "TRADITIONAL METRICS", result.traditional_metrics)
+        self._add_section(lines, "LLM JUDGE RESULTS", result.llm_judge_results)
+        self._add_section(lines, "GRAPH METRICS", result.graph_metrics)
 
         lines.append("=" * 60)
 
