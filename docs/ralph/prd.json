@@ -21,7 +21,7 @@
         "tests/test_peerread.py"
       ],
       "passes": true,
-      "completed_at": "2026-01-19T13:36:29Z"
+      "completed_at": null
     },
     {
       "id": "STORY-002",
@@ -41,7 +41,7 @@
         "tests/test_traditional.py"
       ],
       "passes": true,
-      "completed_at": "2026-01-19T14:30:00Z"
+      "completed_at": null
     },
     {
       "id": "STORY-003",
