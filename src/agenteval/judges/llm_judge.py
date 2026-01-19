@@ -58,23 +58,36 @@ class LLMJudge:
         self.max_retries = max_retries
         self.retry_delay = retry_delay
 
-        # Use TestModel for testing if model is "test"
-        if isinstance(model, str) and model == "test":
-            # Create TestModel with mock response
-            test_model = TestModel()
-            self._agent: Agent[None, EvaluationResult] = Agent(
-                test_model, output_type=EvaluationResult
-            )
-        elif isinstance(model, TestModel):
-            self._agent = Agent(model, output_type=EvaluationResult)
-        else:
-            # Use specified model for production
-            self._agent = Agent(model, output_type=EvaluationResult)
+        # Initialize PydanticAI Agent with appropriate model
+        agent_model = TestModel() if (isinstance(model, str) and model == "test") else model
+        self._agent: Agent[None, EvaluationResult] = Agent(
+            agent_model, output_type=EvaluationResult
+        )
 
     @property
     def agent(self) -> Agent[None, EvaluationResult]:
         """Get the underlying PydanticAI agent."""
         return self._agent
+
+    def _create_error_result(
+        self, criteria: EvaluationCriteria, reasoning: str, justification: str
+    ) -> EvaluationResult:
+        """Create an error result with zero scores.
+
+        Args:
+            criteria: Evaluation criteria for aspect scores
+            reasoning: Error reasoning message
+            justification: Error justification message
+
+        Returns:
+            EvaluationResult with zero scores
+        """
+        return EvaluationResult(
+            overall_score=0.0,
+            aspect_scores={aspect: 0.0 for aspect in criteria.aspects},
+            reasoning=reasoning,
+            justification=justification,
+        )
 
     def evaluate(
         self,
@@ -92,11 +105,8 @@ class LLMJudge:
         """
         # Handle empty text
         if not text or text.strip() == "":
-            return EvaluationResult(
-                overall_score=0.0,
-                aspect_scores={aspect: 0.0 for aspect in criteria.aspects},
-                reasoning="Empty text provided",
-                justification="Cannot evaluate empty text",
+            return self._create_error_result(
+                criteria, "Empty text provided", "Cannot evaluate empty text"
             )
 
         # Build evaluation prompt
@@ -111,11 +121,8 @@ class LLMJudge:
             if "API" in str(e) or "key" in str(e).lower():
                 raise Exception(f"API error: {e}") from e
             # Return minimal result for other errors
-            return EvaluationResult(
-                overall_score=0.0,
-                aspect_scores={aspect: 0.0 for aspect in criteria.aspects},
-                reasoning=f"Error during evaluation: {e}",
-                justification="Evaluation failed",
+            return self._create_error_result(
+                criteria, f"Error during evaluation: {e}", "Evaluation failed"
             )
 
     def compare(
@@ -145,11 +152,8 @@ class LLMJudge:
             # Handle API errors gracefully
             if "API" in str(e) or "key" in str(e).lower():
                 raise Exception(f"API error: {e}") from e
-            return EvaluationResult(
-                overall_score=0.0,
-                aspect_scores={aspect: 0.0 for aspect in criteria.aspects},
-                reasoning=f"Error during comparison: {e}",
-                justification="Comparison failed",
+            return self._create_error_result(
+                criteria, f"Error during comparison: {e}", "Comparison failed"
             )
 
     def batch_evaluate(
