@@ -5,10 +5,13 @@ Load and parse PeerRead dataset from local storage into structured Pydantic mode
 
 import json
 from pathlib import Path
+from typing import TypeVar
 
-from pydantic import ValidationError
+from pydantic import BaseModel, ValidationError
 
 from agenteval.models.data import Paper, Review
+
+T = TypeVar("T", bound=BaseModel)
 
 
 class PeerReadLoader:
@@ -22,6 +25,39 @@ class PeerReadLoader:
         """
         self.data_dir = data_dir
 
+    def _load_items(
+        self, pattern: str, model_class: type[T], max_items: int | None = None
+    ) -> list[T]:
+        """Load items from JSON files matching pattern.
+
+        Args:
+            pattern: Glob pattern for files to load
+            model_class: Pydantic model class to parse into
+            max_items: Maximum number of items to load
+
+        Returns:
+            List of parsed model instances
+        """
+        items = []
+
+        if not self.data_dir.exists():
+            return items
+
+        json_files = sorted(self.data_dir.glob(pattern))
+
+        for json_file in json_files:
+            if max_items and len(items) >= max_items:
+                break
+
+            try:
+                data = json.loads(json_file.read_text())
+                item = model_class(**data)
+                items.append(item)
+            except (json.JSONDecodeError, ValidationError):
+                continue
+
+        return items
+
     def load_papers(
         self, max_papers: int | None = None, paper_ids: list[str] | None = None
     ) -> list[Paper]:
@@ -34,30 +70,13 @@ class PeerReadLoader:
         Returns:
             List of Paper objects
         """
-        papers = []
+        papers = self._load_items("paper*.json", Paper, max_items=None)
 
-        if not self.data_dir.exists():
-            return papers
+        if paper_ids:
+            papers = [p for p in papers if p.id in paper_ids]
 
-        # Find all JSON files that match paper pattern
-        json_files = sorted(self.data_dir.glob("paper*.json"))
-
-        for json_file in json_files:
-            if max_papers and len(papers) >= max_papers:
-                break
-
-            try:
-                data = json.loads(json_file.read_text())
-                paper = Paper(**data)
-
-                # Filter by paper_ids if provided
-                if paper_ids and paper.id not in paper_ids:
-                    continue
-
-                papers.append(paper)
-            except (json.JSONDecodeError, ValidationError):
-                # Skip invalid files
-                continue
+        if max_papers:
+            papers = papers[:max_papers]
 
         return papers
 
@@ -67,24 +86,7 @@ class PeerReadLoader:
         Returns:
             List of Review objects
         """
-        reviews = []
-
-        if not self.data_dir.exists():
-            return reviews
-
-        # Find all JSON files that match review pattern
-        json_files = sorted(self.data_dir.glob("review*.json"))
-
-        for json_file in json_files:
-            try:
-                data = json.loads(json_file.read_text())
-                review = Review(**data)
-                reviews.append(review)
-            except (json.JSONDecodeError, ValidationError):
-                # Skip invalid files
-                continue
-
-        return reviews
+        return self._load_items("review*.json", Review)
 
     def load_dataset(self) -> dict[str, list[Paper] | list[Review]]:
         """Load complete dataset with papers and reviews.
