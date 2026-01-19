@@ -5,7 +5,7 @@
 
 .SILENT:
 .ONESHELL:
-.PHONY: setup_dev setup_claude_code setup_markdownlint setup_project run_markdownlint ruff test_all type_check validate quick_validate ralph_userstory ralph_prd ralph_full_init ralph_init ralph_run ralph_status ralph_clean ralph_reorganize ralph_abort help
+.PHONY: setup_dev setup_claude_code setup_markdownlint setup_project run_markdownlint ruff test_all type_check validate quick_validate ralph_validate_json ralph_userstory ralph_prd ralph_full_init ralph_init ralph_run ralph_status ralph_clean ralph_reorganize ralph_abort help
 .DEFAULT_GOAL := help
 
 
@@ -74,6 +74,16 @@ quick_validate:  ## Fast development cycle validation
 
 # MARK: ralph
 
+ralph_validate_json:  ## Internal: Validate prd.json syntax
+	@if [ ! -f docs/ralph/prd.json ]; then
+		echo "ERROR: prd.json not found"
+		exit 1
+	fi
+	@if ! jq empty docs/ralph/prd.json 2>/dev/null; then
+		echo "ERROR: Invalid JSON in docs/ralph/prd.json"
+		exit 1
+	fi
+	@echo "✓ prd.json validated"
 
 ralph_userstory:  ## [Optional] Create UserStory.md interactively. Usage: make ralph_userstory
 	echo "Creating UserStory.md through interactive Q&A ..."
@@ -86,9 +96,11 @@ ralph_prd:  ## [Optional] Generate PRD.md from UserStory.md
 ralph_init:  ## Initialize Ralph loop environment
 	echo "Initializing Ralph loop environment ..."
 	bash scripts/ralph/init.sh
+	$(MAKE) -s ralph_validate_json
 
 ralph_run:  ## Run Ralph autonomous development loop (use ITERATIONS=N to set max iterations)
 	echo "Starting Ralph loop ..."
+	$(MAKE) -s ralph_validate_json
 	ITERATIONS=$${ITERATIONS:-25}
 	bash scripts/ralph/ralph.sh $$ITERATIONS
 
@@ -124,10 +136,11 @@ ralph_reorganize:  ## Archive current PRD and start new iteration. Usage: make r
 		VERSION_ARG="-v $(VERSION)"
 	fi
 	bash scripts/ralph/reorganize_prd.sh $$VERSION_ARG $(NEW_PRD)
+	$(MAKE) -s ralph_validate_json
 
 ralph_abort:  ## Abort all running Ralph loops
 	echo "Aborting all running Ralph loops..."
-	ralph_pids=$$(pgrep -f "scripts/ralph/ralph.sh" || true)
+	ralph_pids=$$(ps aux | grep "scripts/ralph/ralph.sh" | grep -v grep | awk '{print $$2}' || true)
 	if [ -n "$$ralph_pids" ]; then
 		echo "Found Ralph processes: $$ralph_pids"
 		kill $$ralph_pids 2>/dev/null || true
@@ -139,7 +152,7 @@ ralph_abort:  ## Abort all running Ralph loops
 		echo "No running Ralph loops found"
 	fi
 	# Also kill any orphaned Claude processes spawned by Ralph
-	claude_pids=$$(pgrep -f "claude -p.*dangerously-skip-permissions" || true)
+	claude_pids=$$(ps aux | grep "claude -p.*dangerously-skip-permissions" | grep -v grep | awk '{print $$2}' || true)
 	if [ -n "$$claude_pids" ]; then
 		echo "Cleaning up orphaned Claude processes: $$claude_pids"
 		kill $$claude_pids 2>/dev/null || true

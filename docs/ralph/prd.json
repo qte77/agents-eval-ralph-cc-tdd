@@ -1,6 +1,6 @@
-cl{
+{
   "project": "agents-eval-ralph-cc-tdd",
-  "desciption": "A three-tiered evaluation framework for multi-agent AI systems that provides objective benchmarking of autonomous agent teams using the PeerRead dataset",
+  "description": "A three-tiered evaluation framework for multi-agent AI systems that provides objective benchmarking of autonomous agent teams using the PeerRead dataset",
   "source": "docs/PRD.md",
   "generated": "2026-01-19T12:58:09Z",
   "stories": [

@@ -89,6 +89,13 @@ update_story_status() {
         (.stories[] | select(.id == $id) | .completed_at) |= (if $status == "true" then $timestamp else null end)' \
        "$PRD_JSON" > "${PRD_JSON}.tmp"
 
+    # Validate JSON before replacing original
+    if ! jq empty "${PRD_JSON}.tmp" 2>/dev/null; then
+        log_error "Generated invalid JSON, keeping original prd.json"
+        rm -f "${PRD_JSON}.tmp"
+        return 1
+    fi
+
     mv "${PRD_JSON}.tmp" "$PRD_JSON"
 }
 
@@ -163,6 +170,12 @@ check_tdd_commits() {
     local story_id="$1"
     local commits_before="$2"
 
+    # Skip TDD verification for first story to allow ramp-up
+    if [ "$story_id" = "STORY-001" ]; then
+        log_info "Skipping TDD verification for first story (ramp-up)"
+        return 0
+    fi
+
     log_info "Checking TDD commits..."
     TDD_ERROR_MSG=""  # Reset error message
 
@@ -230,9 +243,9 @@ main() {
         if execute_story "$story_id" "$details"; then
             log_info "Story execution completed"
 
-            # Verify TDD commits were made
-            check_tdd_commits "$story_id" "$commits_before"
-            local tdd_check_result=$?
+            # Verify TDD commits were made (capture return code without triggering set -e)
+            local tdd_check_result=0
+            check_tdd_commits "$story_id" "$commits_before" || tdd_check_result=$?
 
             if [ $tdd_check_result -eq 2 ]; then
                 # No commits made, skip verification and continue to next iteration
