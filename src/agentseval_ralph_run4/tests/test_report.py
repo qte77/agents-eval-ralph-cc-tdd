@@ -12,7 +12,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from agenteval.pipeline import PipelineResult
+from agentseval_ralph_run4.pipeline import PipelineResult
 
 
 class TestReportGeneratorInitialization:
@@ -20,15 +20,15 @@ class TestReportGeneratorInitialization:
 
     def test_report_generator_exists(self):
         """Test ReportGenerator class exists."""
-        from agenteval.report import ReportGenerator
+        from agentseval_ralph_run4.report import ReportGenerator
 
         generator = ReportGenerator()
         assert generator is not None
 
     def test_report_generator_accepts_config(self):
         """Test ReportGenerator accepts configuration."""
-        from agenteval.config import Config
-        from agenteval.report import ReportGenerator
+        from agentseval_ralph_run4.config import Config
+        from agentseval_ralph_run4.report import ReportGenerator
 
         config = Config()
         generator = ReportGenerator(config=config)
@@ -69,8 +69,8 @@ class TestConsolidatedReportGeneration:
 
     def test_generate_report_returns_report_model(self, pipeline_result):
         """Test generate_report returns Report model."""
-        from agenteval.models.evaluation import Report
-        from agenteval.report import ReportGenerator
+        from agentseval_ralph_run4.models.evaluation import Report
+        from agentseval_ralph_run4.report import ReportGenerator
 
         generator = ReportGenerator()
         report = generator.generate_report(pipeline_result)
@@ -79,7 +79,7 @@ class TestConsolidatedReportGeneration:
 
     def test_generate_report_combines_all_tiers(self, pipeline_result):
         """Test generate_report combines results from all three tiers."""
-        from agenteval.report import ReportGenerator
+        from agentseval_ralph_run4.report import ReportGenerator
 
         generator = ReportGenerator()
         report = generator.generate_report(pipeline_result)
@@ -91,7 +91,7 @@ class TestConsolidatedReportGeneration:
 
     def test_generate_report_includes_run_metadata(self, pipeline_result):
         """Test generate_report includes run metadata (run_id, timestamp)."""
-        from agenteval.report import ReportGenerator
+        from agentseval_ralph_run4.report import ReportGenerator
 
         generator = ReportGenerator()
         report = generator.generate_report(pipeline_result)
@@ -101,7 +101,7 @@ class TestConsolidatedReportGeneration:
 
     def test_generate_report_transforms_traditional_metrics(self, pipeline_result):
         """Test generate_report transforms traditional metrics into Metrics model."""
-        from agenteval.report import ReportGenerator
+        from agentseval_ralph_run4.report import ReportGenerator
 
         generator = ReportGenerator()
         report = generator.generate_report(pipeline_result)
@@ -112,7 +112,7 @@ class TestConsolidatedReportGeneration:
 
     def test_generate_report_transforms_llm_judge_results(self, pipeline_result):
         """Test generate_report transforms LLM judge results into Evaluation models."""
-        from agenteval.report import ReportGenerator
+        from agentseval_ralph_run4.report import ReportGenerator
 
         generator = ReportGenerator()
         report = generator.generate_report(pipeline_result)
@@ -126,7 +126,7 @@ class TestConsolidatedReportGeneration:
 
     def test_generate_report_includes_graph_metrics(self, pipeline_result):
         """Test generate_report includes graph metrics as dict."""
-        from agenteval.report import ReportGenerator
+        from agentseval_ralph_run4.report import ReportGenerator
 
         generator = ReportGenerator()
         report = generator.generate_report(pipeline_result)
@@ -157,7 +157,7 @@ class TestJSONReportOutput:
 
     def test_save_report_to_json(self, tmp_path, pipeline_result):
         """Test save_report writes JSON file to specified path."""
-        from agenteval.report import ReportGenerator
+        from agentseval_ralph_run4.report import ReportGenerator
 
         generator = ReportGenerator()
         report = generator.generate_report(pipeline_result)
@@ -169,7 +169,7 @@ class TestJSONReportOutput:
 
     def test_save_report_json_structure(self, tmp_path, pipeline_result):
         """Test save_report produces valid JSON with correct structure."""
-        from agenteval.report import ReportGenerator
+        from agentseval_ralph_run4.report import ReportGenerator
 
         generator = ReportGenerator()
         report = generator.generate_report(pipeline_result)
@@ -188,7 +188,7 @@ class TestJSONReportOutput:
 
     def test_save_report_json_valid_format(self, tmp_path, pipeline_result):
         """Test save_report JSON is valid and readable."""
-        from agenteval.report import ReportGenerator
+        from agentseval_ralph_run4.report import ReportGenerator
 
         generator = ReportGenerator()
         report = generator.generate_report(pipeline_result)
@@ -224,8 +224,8 @@ class TestLoguruLogging:
 
     def test_loguru_enabled_by_default(self):
         """Test loguru logging is enabled by default via config."""
-        from agenteval.config import Config
-        from agenteval.report import ReportGenerator
+        from agentseval_ralph_run4.config import Config
+        from agentseval_ralph_run4.report import ReportGenerator
 
         config = Config()
         generator = ReportGenerator(config=config)
@@ -235,7 +235,7 @@ class TestLoguruLogging:
     @patch("agenteval.report.logger")
     def test_generate_report_logs_to_console(self, mock_logger, pipeline_result):
         """Test generate_report logs activity to console via loguru."""
-        from agenteval.report import ReportGenerator
+        from agentseval_ralph_run4.report import ReportGenerator
 
         generator = ReportGenerator()
         generator.generate_report(pipeline_result)
@@ -246,7 +246,7 @@ class TestLoguruLogging:
     @patch("agenteval.report.logger")
     def test_generate_report_logs_run_id(self, mock_logger, pipeline_result):
         """Test generate_report logs run_id in console output."""
-        from agenteval.report import ReportGenerator
+        from agentseval_ralph_run4.report import ReportGenerator
 
         generator = ReportGenerator()
         generator.generate_report(pipeline_result)
@@ -259,7 +259,7 @@ class TestLoguruLogging:
     @patch("agenteval.report.logger")
     def test_save_report_logs_output_path(self, mock_logger, tmp_path, pipeline_result):
         """Test save_report logs output file path."""
-        from agenteval.report import ReportGenerator
+        from agentseval_ralph_run4.report import ReportGenerator
 
         generator = ReportGenerator()
         report = generator.generate_report(pipeline_result)
@@ -293,7 +293,7 @@ class TestLogfireIntegration:
 
     def test_logfire_disabled_by_default(self):
         """Test Logfire export is disabled by default."""
-        from agenteval.config import Config
+        from agentseval_ralph_run4.config import Config
 
         config = Config()
         assert config.observability["logfire_enabled"] is False
@@ -301,8 +301,8 @@ class TestLogfireIntegration:
     @patch("agenteval.report.logfire", create=True)
     def test_export_to_logfire_when_enabled(self, mock_logfire, pipeline_result):
         """Test report exports to Logfire when enabled in config."""
-        from agenteval.config import Config
-        from agenteval.report import ReportGenerator
+        from agentseval_ralph_run4.config import Config
+        from agentseval_ralph_run4.report import ReportGenerator
 
         config = Config(observability={"loguru_enabled": True, "logfire_enabled": True})
         generator = ReportGenerator(config=config)
@@ -316,8 +316,8 @@ class TestLogfireIntegration:
     @patch("agenteval.report.logfire", create=True)
     def test_no_logfire_export_when_disabled(self, mock_logfire, pipeline_result):
         """Test report does not export to Logfire when disabled."""
-        from agenteval.config import Config
-        from agenteval.report import ReportGenerator
+        from agentseval_ralph_run4.config import Config
+        from agentseval_ralph_run4.report import ReportGenerator
 
         config = Config(observability={"loguru_enabled": True, "logfire_enabled": False})
         generator = ReportGenerator(config=config)
@@ -349,7 +349,7 @@ class TestWeaveIntegration:
 
     def test_weave_disabled_by_default(self):
         """Test Weave export is disabled by default."""
-        from agenteval.config import Config
+        from agentseval_ralph_run4.config import Config
 
         config = Config()
         assert config.observability["weave_enabled"] is False
@@ -357,8 +357,8 @@ class TestWeaveIntegration:
     @patch("agenteval.report.weave", create=True)
     def test_export_to_weave_when_enabled(self, mock_weave, pipeline_result):
         """Test report exports to Weave when enabled in config."""
-        from agenteval.config import Config
-        from agenteval.report import ReportGenerator
+        from agentseval_ralph_run4.config import Config
+        from agentseval_ralph_run4.report import ReportGenerator
 
         config = Config(observability={"loguru_enabled": True, "weave_enabled": True})
         generator = ReportGenerator(config=config)
@@ -372,8 +372,8 @@ class TestWeaveIntegration:
     @patch("agenteval.report.weave", create=True)
     def test_no_weave_export_when_disabled(self, mock_weave, pipeline_result):
         """Test report does not export to Weave when disabled."""
-        from agenteval.config import Config
-        from agenteval.report import ReportGenerator
+        from agentseval_ralph_run4.config import Config
+        from agentseval_ralph_run4.report import ReportGenerator
 
         config = Config(observability={"loguru_enabled": True, "weave_enabled": False})
         generator = ReportGenerator(config=config)
@@ -413,7 +413,7 @@ class TestStructuredOutputFormat:
 
     def test_report_output_is_serializable(self, pipeline_result):
         """Test report output is fully serializable to JSON."""
-        from agenteval.report import ReportGenerator
+        from agentseval_ralph_run4.report import ReportGenerator
 
         generator = ReportGenerator()
         report = generator.generate_report(pipeline_result)
@@ -425,7 +425,7 @@ class TestStructuredOutputFormat:
 
     def test_report_includes_all_required_fields(self, pipeline_result):
         """Test report includes all required fields per acceptance criteria."""
-        from agenteval.report import ReportGenerator
+        from agentseval_ralph_run4.report import ReportGenerator
 
         generator = ReportGenerator()
         report = generator.generate_report(pipeline_result)
@@ -445,7 +445,7 @@ class TestReportGeneratorEdgeCases:
 
     def test_generate_report_with_empty_results(self):
         """Test generate_report handles empty evaluation results."""
-        from agenteval.report import ReportGenerator
+        from agentseval_ralph_run4.report import ReportGenerator
 
         pipeline_result = PipelineResult(
             run_id="empty-run",
@@ -467,7 +467,7 @@ class TestReportGeneratorEdgeCases:
 
     def test_save_report_creates_directory_if_missing(self, tmp_path):
         """Test save_report creates output directory if it doesn't exist."""
-        from agenteval.report import ReportGenerator
+        from agentseval_ralph_run4.report import ReportGenerator
 
         pipeline_result = PipelineResult(
             run_id="dir-test",
