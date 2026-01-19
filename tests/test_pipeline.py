@@ -126,7 +126,7 @@ class TestEvaluationPipeline:
         assert hasattr(pipeline, "llm_evaluator")
         assert hasattr(pipeline, "graph_analyzer")
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_run_all_tiers(
         self,
         sample_task_results: list[AgentTaskResult],
@@ -152,7 +152,7 @@ class TestEvaluationPipeline:
         assert result.llm_judge_results is not None
         assert result.graph_metrics is not None
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_pipeline_result_structure(
         self,
         sample_task_results: list[AgentTaskResult],
@@ -185,7 +185,7 @@ class TestEvaluationPipeline:
         assert "num_nodes" in result.graph_metrics
         assert "num_edges" in result.graph_metrics
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_reproducible_runs(
         self,
         sample_task_results: list[AgentTaskResult],
@@ -216,7 +216,7 @@ class TestEvaluationPipeline:
         assert result1.traditional_metrics == result2.traditional_metrics
         assert result1.graph_metrics == result2.graph_metrics
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_dependency_handling(
         self,
         sample_task_results: list[AgentTaskResult],
@@ -242,7 +242,7 @@ class TestEvaluationPipeline:
         assert result.llm_judge_results is not None
         assert result.graph_metrics is not None
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_empty_inputs(self) -> None:
         """Test pipeline handles empty inputs gracefully."""
         config = PipelineConfig(seed=42)
@@ -260,7 +260,7 @@ class TestEvaluationPipeline:
         # Empty inputs should produce empty/default results
         assert result.llm_judge_results == []
 
-    @pytest.mark.asyncio
+    @pytest.mark.anyio
     async def test_mismatched_review_lengths(
         self,
         sample_task_results: list[AgentTaskResult],
