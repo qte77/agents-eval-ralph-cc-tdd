@@ -3,8 +3,10 @@
 Loads and parses PeerRead dataset papers and reviews for evaluation.
 """
 
-from typing import Any, Iterator
-from pydantic import BaseModel, Field
+from collections.abc import Iterator
+from typing import Any
+
+from pydantic import BaseModel
 
 
 class Paper(BaseModel):
