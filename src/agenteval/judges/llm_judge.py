@@ -245,20 +245,16 @@ Return your evaluation as structured JSON matching the EvaluationResult schema."
         """
         aspects_str = ", ".join(criteria.aspects)
 
-        return f"""Compare the following text against the baseline using these criteria: {criteria.description}
-
-Aspects to compare: {aspects_str}
-
-Text to evaluate:
-{text}
-
-Baseline for comparison:
-{baseline}
-
-Provide:
-1. An overall comparison score from 0-10 (10 = matches or exceeds baseline)
-2. Individual scores for each aspect (0-10)
-3. Clear reasoning explaining the comparison
-4. Detailed justification for the scores
-
-Return your evaluation as structured JSON matching the EvaluationResult schema."""
+        return (
+            f"Compare the following text against the baseline "
+            f"using these criteria: {criteria.description}\n\n"
+            f"Aspects to compare: {aspects_str}\n\n"
+            f"Text to evaluate:\n{text}\n\n"
+            f"Baseline for comparison:\n{baseline}\n\n"
+            "Provide:\n"
+            "1. An overall comparison score from 0-10 (10 = matches or exceeds baseline)\n"
+            "2. Individual scores for each aspect (0-10)\n"
+            "3. Clear reasoning explaining the comparison\n"
+            "4. Detailed justification for the scores\n\n"
+            "Return your evaluation as structured JSON matching the EvaluationResult schema."
+        )
