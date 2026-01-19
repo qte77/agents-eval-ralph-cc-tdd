@@ -5,10 +5,13 @@ Loads and parses PeerRead dataset from local storage into structured Pydantic mo
 
 import json
 from pathlib import Path
+from typing import TypeVar
 
-from pydantic import ValidationError
+from pydantic import BaseModel, ValidationError
 
 from agenteval.models.data import Paper, Review
+
+T = TypeVar("T", bound=BaseModel)
 
 
 class PeerReadLoader:
@@ -22,6 +25,42 @@ class PeerReadLoader:
         """
         self.data_dir = data_dir
 
+    def _load_models(
+        self, pattern: str, model_class: type[T], max_count: int | None = None
+    ) -> list[T]:
+        """Load models from JSON files matching pattern.
+
+        Args:
+            pattern: Glob pattern for files (e.g., "paper_*.json")
+            model_class: Pydantic model class to parse into
+            max_count: Maximum number of models to load (None for all)
+
+        Returns:
+            List of parsed model instances
+
+        Raises:
+            FileNotFoundError: If data directory doesn't exist
+        """
+        if not self.data_dir.exists():
+            raise FileNotFoundError(f"Data directory not found: {self.data_dir}")
+
+        models = []
+        json_files = sorted(self.data_dir.glob(pattern))
+
+        for file_path in json_files:
+            if max_count is not None and len(models) >= max_count:
+                break
+
+            try:
+                data = json.loads(file_path.read_text())
+                model = model_class(**data)
+                models.append(model)
+            except (json.JSONDecodeError, ValidationError):
+                # Skip corrupted or invalid files
+                continue
+
+        return models
+
     def load_papers(self, max_count: int | None = None) -> list[Paper]:
         """Load papers from local storage.
 
@@ -34,25 +73,7 @@ class PeerReadLoader:
         Raises:
             FileNotFoundError: If data directory doesn't exist
         """
-        if not self.data_dir.exists():
-            raise FileNotFoundError(f"Data directory not found: {self.data_dir}")
-
-        papers = []
-        json_files = sorted(self.data_dir.glob("paper_*.json"))
-
-        for file_path in json_files:
-            if max_count is not None and len(papers) >= max_count:
-                break
-
-            try:
-                data = json.loads(file_path.read_text())
-                paper = Paper(**data)
-                papers.append(paper)
-            except (json.JSONDecodeError, ValidationError):
-                # Skip corrupted or invalid files
-                continue
-
-        return papers
+        return self._load_models("paper_*.json", Paper, max_count)
 
     def load_reviews(self, max_count: int | None = None) -> list[Review]:
         """Load reviews from local storage.
@@ -66,25 +87,7 @@ class PeerReadLoader:
         Raises:
             FileNotFoundError: If data directory doesn't exist
         """
-        if not self.data_dir.exists():
-            raise FileNotFoundError(f"Data directory not found: {self.data_dir}")
-
-        reviews = []
-        json_files = sorted(self.data_dir.glob("review_*.json"))
-
-        for file_path in json_files:
-            if max_count is not None and len(reviews) >= max_count:
-                break
-
-            try:
-                data = json.loads(file_path.read_text())
-                review = Review(**data)
-                reviews.append(review)
-            except (json.JSONDecodeError, ValidationError):
-                # Skip corrupted or invalid files
-                continue
-
-        return reviews
+        return self._load_models("review_*.json", Review, max_count)
 
     def load_dataset(self) -> dict[str, list[Paper] | list[Review]]:
         """Load complete dataset with papers and reviews.
