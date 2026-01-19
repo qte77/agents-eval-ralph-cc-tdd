@@ -60,7 +60,111 @@ analysis.
 
 ### Core Features
 
-#### Feature 1: Traditional Performance Metrics
+#### Feature 0: Configuration & Core Data Models
+
+**Description**: Establish foundation with JSON configuration management and
+shared Pydantic data models to prevent duplication across evaluation modules.
+
+**User Stories**:
+
+- As a developer, I want centralized configuration management so that settings
+  are separated from code and easily maintainable
+- As a developer, I want shared data models so that I avoid duplication and
+  ensure consistency across modules
+
+**Acceptance Criteria**:
+
+- [ ] Create JSON config loader in `src/agenteval/config/`
+- [ ] Load configuration at application runtime
+- [ ] Define core Pydantic models: Paper, Review, Evaluation, Metrics, Report
+- [ ] Models are reusable across all evaluation modules
+- [ ] Pass all tests in `tests/test_config.py` and `tests/test_models.py`
+
+**Technical Requirements**:
+
+- Use pydantic-settings for configuration management
+- JSON format for config files
+- Type-safe Pydantic models with validation
+- Configuration separated from implementation
+
+**Files Expected**:
+
+- `src/agenteval/config/__init__.py` - Config loader
+- `src/agenteval/config/config.py` - Configuration schema
+- `src/agenteval/models/__init__.py` - Core models
+- `src/agenteval/models/data.py` - Paper, Review models
+- `src/agenteval/models/evaluation.py` - Evaluation, Metrics, Report models
+- `tests/test_config.py` - Config tests
+- `tests/test_models.py` - Model tests
+- `src/agenteval/config/default.json` - Default configuration
+
+---
+
+#### Feature 1: Dataset Downloader & Persistence
+
+**Description**: Download PeerRead dataset and persist locally with versioning
+for reproducibility and offline use.
+
+**User Stories**:
+
+- As a researcher, I want to download the PeerRead dataset once so that I can
+  work offline and ensure reproducible experiments
+
+**Acceptance Criteria**:
+
+- [ ] Download PeerRead dataset from source
+- [ ] Save dataset locally in structured format
+- [ ] Implement versioning and checksums for integrity verification
+- [ ] Verify dataset completeness after download
+- [ ] Pass all tests in `tests/test_downloader.py`
+
+**Technical Requirements**:
+
+- Use httpx for async downloads
+- Store in `data/peerread/` directory
+- Include version metadata and checksums
+- Graceful handling of network errors
+
+**Files Expected**:
+
+- `src/agenteval/data/downloader.py` - Dataset downloader
+- `tests/test_downloader.py` - Downloader tests
+
+---
+
+#### Feature 2: Dataset Loader & Parser
+
+**Description**: Load and parse PeerRead dataset from local storage into
+structured Pydantic models.
+
+**User Stories**:
+
+- As a developer, I want to load PeerRead data from local storage so that
+  evaluation modules can access structured paper and review data
+
+**Acceptance Criteria**:
+
+- [ ] Load PeerRead dataset from local storage
+- [ ] Parse into Pydantic models (Paper, Review from Feature 0)
+- [ ] Support batch loading of multiple papers
+- [ ] Return structured data format for downstream processing
+- [ ] Pass all tests in `tests/test_peerread.py`
+
+**Technical Requirements**:
+
+- Load from `data/peerread/` directory
+- Parse into models defined in Feature 0
+- Efficient batch processing
+- Error handling for corrupted data
+
+**Files Expected**:
+
+- `src/agenteval/data/peerread.py` - PeerRead dataset loader
+- `tests/test_peerread.py` - Loader tests
+
+---
+
+#### Feature 3: Traditional Performance Metrics
 
 **Description**: Measure agent system performance with standard metrics for
 objective comparison of implementations.
@@ -91,10 +195,10 @@ objective comparison of implementations.
 
 ---
 
-#### Feature 2: LLM-as-a-Judge Evaluation
+#### Feature 4: LLM-as-a-Judge Evaluation
 
-**Description**: Evaluate semantic quality of agent-generated reviews using
-LLM-based assessment against human baselines from PeerRead dataset.
+**Description**: Evaluate semantic quality of provided agent outputs using
+LLM-based assessment against human baseline reviews from PeerRead dataset.
 
 **User Stories**:
 
@@ -103,31 +207,31 @@ LLM-based assessment against human baselines from PeerRead dataset.
 
 **Acceptance Criteria**:
 
-- [ ] Download and save PeerRead dataset locally for reproducibility
-- [ ] Load and parse PeerRead dataset papers and reviews from local storage
-- [ ] Evaluate semantic quality of agent-generated reviews
-- [ ] Compare agent outputs against human baseline reviews
+- [ ] Evaluate semantic quality of provided agent-generated reviews
+- [ ] Compare agent outputs against human baseline reviews from PeerRead
 - [ ] Provide scoring with justification from LLM judge
 - [ ] Support configurable evaluation criteria
+- [ ] Use mock/sample agent outputs for testing
+- [ ] Pass all tests in `tests/test_llm_judge.py`
 
 **Technical Requirements**:
 
-- PeerRead dataset integration for scientific reviews
-- Dataset must be downloaded and persisted locally for offline use
 - PydanticAI for LLM judge agent
+- Use PeerRead human reviews as baseline (loaded via Feature 2)
 - Structured evaluation output with scores and reasoning
+- Agent outputs provided as input (not generated by this module)
 
 **Files Expected**:
 
-- `src/agenteval/data/peerread.py` - PeerRead dataset loader
+- `src/agenteval/judges/__init__.py` - Judge module init
 - `src/agenteval/judges/llm_judge.py` - LLM-as-a-Judge implementation
 - `tests/test_llm_judge.py` - Tests for LLM judge
 
 ---
 
-#### Feature 3: Graph-Based Complexity Analysis
+#### Feature 5: Graph-Based Complexity Analysis
 
-**Description**: Analyze agent interaction patterns through graph-based
+**Description**: Analyze provided agent interaction data through graph-based
 structural analysis to understand coordination complexity.
 
 **User Stories**:
@@ -141,7 +245,9 @@ structural analysis to understand coordination complexity.
 - [ ] Calculate complexity metrics (density, centrality, clustering
       coefficient) from interaction graphs
 - [ ] Identify coordination patterns between agents
-- [ ] Export graph data for external analysis
+- [ ] Export graph data in JSON/GraphML format for external analysis
+- [ ] Use mock/sample interaction data for testing
+- [ ] Pass all tests in `tests/test_graph.py`
 
 **Technical Requirements**:
 
@@ -149,6 +255,7 @@ structural analysis to understand coordination complexity.
 - NetworkX-based complexity metrics (graph density, degree centrality,
   betweenness centrality, clustering coefficient)
 - JSON/GraphML export format
+- Agent interaction data provided as input (not collected by this module)
 
 **Files Expected**:
 
@@ -157,38 +264,72 @@ structural analysis to understand coordination complexity.
 
 ---
 
-#### Feature 4: Unified Evaluation Pipeline
+#### Feature 6: Evaluation Pipeline Orchestrator
 
-**Description**: Combine all three evaluation tiers into a unified pipeline
-with consolidated reporting.
+**Description**: Orchestrate the execution of all evaluation modules in
+sequence with dependency management and reproducibility controls.
 
 **User Stories**:
 
-- As a researcher, I want a unified evaluation pipeline so that I can run all
-  three evaluation approaches together
+- As a researcher, I want a unified pipeline orchestrator so that I can run
+  all three evaluation approaches together in the correct order
 
 **Acceptance Criteria**:
 
-- [ ] Run all three evaluation tiers in sequence
-- [ ] Generate consolidated evaluation report
+- [ ] Run all three evaluation tiers (traditional, LLM judge, graph) in
+      sequence
+- [ ] Handle module dependencies correctly
 - [ ] Support reproducible runs with seed configuration
-- [ ] Output combined results in structured format
-- [ ] Provide local console tracing by default
-- [ ] Support optional Logfire/Weave cloud export via configuration
+- [ ] Collect results from all modules
+- [ ] Pass results to reporting module
+- [ ] Pass all tests in `tests/test_pipeline.py`
 
 **Technical Requirements**:
 
-- Pipeline orchestration for all three tiers
-- Consolidated JSON report format
+- Pipeline orchestration for Features 3, 4, 5
 - Seed-based reproducibility
-- Local console tracing by default (loguru)
-- Optional Logfire/Weave cloud export via config
+- Error handling and graceful degradation
+- Pass structured data between modules
 
 **Files Expected**:
 
-- `src/agenteval/pipeline.py` - Unified evaluation pipeline
-- `src/agenteval/report.py` - Report generation
+- `src/agenteval/pipeline.py` - Pipeline orchestrator
 - `tests/test_pipeline.py` - Pipeline integration tests
+
+---
+
+#### Feature 7: Consolidated Reporting & Observability
+
+**Description**: Combine results from all evaluation tiers into unified reports
+with integrated observability for debugging and monitoring.
+
+**User Stories**:
+
+- As a researcher, I want consolidated reports so that I can view all
+  evaluation results in one place
+- As a developer, I want observability so that I can debug and monitor
+  evaluation runs
+
+**Acceptance Criteria**:
+
+- [ ] Combine results from all three evaluation tiers
+- [ ] Generate consolidated JSON report with all metrics
+- [ ] Integrate loguru for local console tracing by default
+- [ ] Support optional Logfire/Weave cloud export via configuration
+- [ ] Output combined results in structured format
+- [ ] Pass all tests in `tests/test_report.py`
+
+**Technical Requirements**:
+
+- Consolidated JSON report format combining all tier results
+- Local console tracing by default (loguru)
+- Optional Logfire/Weave cloud export via config (from Feature 0)
+- Report schema using models from Feature 0
+
+**Files Expected**:
+
+- `src/agenteval/report.py` - Report generation and observability
+- `tests/test_report.py` - Report tests
 
 ---
 
@@ -225,6 +366,9 @@ with consolidated reporting.
 - Real-time streaming evaluation of agent outputs
 - Support for agent frameworks beyond PydanticAI
 - Multi-language support for non-English reviews
+- **Review-generation agents**: This framework evaluates agent outputs, not
+  generates them. Test data should use mock/sample agent outputs or integrate
+  with external agent systems
 
 ## Notes for Ralph Loop
 
@@ -235,10 +379,80 @@ When using the `generating-prd` skill to convert this PRD to `docs/ralph/prd.jso
 3. Acceptance criteria become the `acceptance` field
 4. Files expected become the `files` field
 
-Suggested story breakdown:
+### Story Breakdown (Sequential Execution)
 
-- STORY-001: PeerRead dataset loader
-- STORY-002: Traditional performance metrics
-- STORY-003: LLM-as-a-Judge evaluation
-- STORY-004: Graph-based complexity analysis
-- STORY-005: Unified evaluation pipeline
+**Foundation (Must Complete First):**
+
+- **STORY-000: Configuration & Core Data Models**
+  - Create JSON config loader (`src/agenteval/config/`)
+  - Define core Pydantic models (Paper, Review, Evaluation, Metrics, Report)
+  - Prevent duplicate model definitions across stories (DRY principle)
+  - Foundation for all subsequent stories
+
+**Data Layer (Sequential Dependencies):**
+
+- **STORY-001: Dataset Downloader & Persistence**
+  - Download PeerRead dataset from source
+  - Save locally with versioning/checksums
+  - Verify dataset integrity
+  - One-time infrastructure setup
+
+- **STORY-002: Dataset Loader & Parser**
+  - Load PeerRead data from local storage
+  - Parse into Pydantic models (defined in STORY-000)
+  - Batch loading API
+  - Requires: STORY-000, STORY-001
+
+**Evaluation Modules (Sequential, Each Depends on STORY-000 and STORY-002):**
+
+- **STORY-003: Traditional Metrics Calculator**
+  - Calculate execution time, success rate, coordination quality
+  - JSON output format
+  - Deterministic results with seed configuration
+  - Requires: STORY-000, STORY-002
+
+- **STORY-004: LLM Judge Evaluator**
+  - Evaluate semantic quality using PydanticAI judge agent
+  - Compare against human baseline reviews
+  - Structured reasoning output with scores
+  - Requires: STORY-000, STORY-002
+
+- **STORY-005: Graph Complexity Analyzer**
+  - Model agent interactions as NetworkX graphs
+  - Calculate complexity metrics (density, centrality, clustering)
+  - Export GraphML/JSON format
+  - Requires: STORY-000
+
+**Integration Layer (Requires All Evaluation Modules):**
+
+- **STORY-006: Evaluation Pipeline Orchestrator**
+  - Orchestrate evaluation modules in sequence
+  - Handle module dependencies
+  - Seed-based reproducibility
+  - Requires: STORY-003, STORY-004, STORY-005
+
+- **STORY-007: Consolidated Reporting & Observability**
+  - Combine results from all evaluation tiers
+  - Generate unified JSON report
+  - Integrate loguru console logging
+  - Optional Logfire/Weave cloud export via configuration
+  - Requires: STORY-006
+
+### Story Dependencies
+
+```text
+STORY-000 (Foundation)
+    ├─→ STORY-001 (Download)
+    │       └─→ STORY-002 (Load/Parse)
+    │               ├─→ STORY-003 (Traditional Metrics)
+    │               └─→ STORY-004 (LLM Judge)
+    └─→ STORY-005 (Graph Analysis)
+
+STORY-003 + STORY-004 + STORY-005
+    └─→ STORY-006 (Pipeline)
+            └─→ STORY-007 (Reporting)
+```
+
+**Note**: While STORY-003, STORY-004, and STORY-005 could theoretically run in
+parallel, this breakdown maintains sequential execution for simplicity. See
+README.md TODO for future parallel optimization.
