@@ -61,7 +61,7 @@
         "tests/test_llm_judge.py"
       ],
       "passes": true,
-      "completed_at": "2026-01-19"
+      "completed_at": "2026-01-19T13:57:34Z"
     },
     {
       "id": "STORY-004",
@@ -78,8 +78,8 @@
         "src/agenteval/metrics/graph.py",
         "tests/test_graph.py"
       ],
-      "passes": false,
-      "completed_at": null
+      "passes": true,
+      "completed_at": "2026-01-19T14:03:40Z"
     },
     {
       "id": "STORY-005",
