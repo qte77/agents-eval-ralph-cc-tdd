@@ -158,19 +158,28 @@ run_quality_checks() {
 # Check that TDD commits were made during story execution
 # Verify TDD commit order: [RED] must be committed BEFORE [GREEN]
 # In git log output, older commits appear on higher line numbers
+# Sets TDD_ERROR_MSG global variable with detailed error message
 check_tdd_commits() {
     local story_id="$1"
     local commits_before="$2"
 
     log_info "Checking TDD commits..."
+    TDD_ERROR_MSG=""  # Reset error message
 
     # Count commits made during story execution
     local commits_after=$(git rev-list --count HEAD)
     local new_commits=$((commits_after - commits_before))
 
+    # If no commits made during this execution, skip verification
+    if [ $new_commits -eq 0 ]; then
+        log_warn "No commits made - skipping TDD verification"
+        TDD_ERROR_MSG="No commits made during execution"
+        return 2  # Return code 2 = skip (not fail)
+    fi
+
     if [ $new_commits -lt 2 ]; then
-        log_error "Expected at least 2 commits (RED + GREEN), found $new_commits"
-        log_error "TDD workflow requires separate commits for tests and implementation"
+        TDD_ERROR_MSG="Found $new_commits commit(s), need 2+ (RED + GREEN)"
+        log_error "TDD check failed: $TDD_ERROR_MSG"
         return 1
     fi
 
@@ -181,11 +190,11 @@ check_tdd_commits() {
 
     # Check for RED and GREEN phase markers
     if echo "$recent_commits" | grep -q "\[RED\]" && echo "$recent_commits" | grep -q "\[GREEN\]"; then
-        log_info "TDD phases verified: RED and GREEN commits found"
+        log_info "TDD phases verified: RED and GREEN found"
         return 0
     else
-        log_error "Could not verify RED/GREEN phase markers in commits"
-        log_error "TDD workflow requires [RED] and [GREEN] markers in commit messages"
+        TDD_ERROR_MSG="Missing [RED] or [GREEN] markers in commits: $recent_commits"
+        log_error "TDD check failed: missing [RED] or [GREEN] markers in commits"
         return 1
     fi
 }
@@ -222,9 +231,17 @@ main() {
             log_info "Story execution completed"
 
             # Verify TDD commits were made
-            if ! check_tdd_commits "$story_id" "$commits_before"; then
-                log_error "TDD commit verification failed"
-                log_progress "$iteration" "$story_id" "FAIL" "Missing TDD commits"
+            check_tdd_commits "$story_id" "$commits_before"
+            local tdd_check_result=$?
+
+            if [ $tdd_check_result -eq 2 ]; then
+                # No commits made, skip verification and continue to next iteration
+                log_info "No commits - retrying story"
+                log_progress "$iteration" "$story_id" "RETRY" "$TDD_ERROR_MSG"
+                continue
+            elif [ $tdd_check_result -ne 0 ]; then
+                # TDD verification failed
+                log_progress "$iteration" "$story_id" "FAIL" "TDD verification failed: $TDD_ERROR_MSG"
                 continue
             fi
 

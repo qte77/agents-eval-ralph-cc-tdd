@@ -5,7 +5,7 @@
 
 .SILENT:
 .ONESHELL:
-.PHONY: setup_dev setup_claude_code setup_markdownlint setup_project run_markdownlint ruff test_all type_check validate quick_validate ralph_userstory ralph_prd ralph_full_init ralph_init ralph_run ralph_status ralph_clean ralph_reorganize help
+.PHONY: setup_dev setup_claude_code setup_markdownlint setup_project run_markdownlint ruff test_all type_check validate quick_validate ralph_userstory ralph_prd ralph_full_init ralph_init ralph_run ralph_status ralph_clean ralph_reorganize ralph_abort help
 .DEFAULT_GOAL := help
 
 
@@ -124,6 +124,26 @@ ralph_reorganize:  ## Archive current PRD and start new iteration. Usage: make r
 		VERSION_ARG="-v $(VERSION)"
 	fi
 	bash scripts/ralph/reorganize_prd.sh $$VERSION_ARG $(NEW_PRD)
+
+ralph_abort:  ## Abort all running Ralph loops
+	echo "Aborting all running Ralph loops..."
+	ralph_pids=$$(pgrep -f "scripts/ralph/ralph.sh" || true)
+	if [ -n "$$ralph_pids" ]; then
+		echo "Found Ralph processes: $$ralph_pids"
+		kill $$ralph_pids 2>/dev/null || true
+		sleep 1
+		# Force kill if still running
+		kill -9 $$ralph_pids 2>/dev/null || true
+		echo "Ralph loops terminated"
+	else
+		echo "No running Ralph loops found"
+	fi
+	# Also kill any orphaned Claude processes spawned by Ralph
+	claude_pids=$$(pgrep -f "claude -p.*dangerously-skip-permissions" || true)
+	if [ -n "$$claude_pids" ]; then
+		echo "Cleaning up orphaned Claude processes: $$claude_pids"
+		kill $$claude_pids 2>/dev/null || true
+	fi
 
 
 # MARK: help
