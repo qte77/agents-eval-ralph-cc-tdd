@@ -22,6 +22,8 @@ class DatasetMetadata(BaseModel):
 class DatasetDownloader:
     """Download and manage PeerRead dataset with versioning."""
 
+    METADATA_FILENAME = "metadata.json"
+
     def __init__(self, output_dir: Path):
         """Initialize downloader with output directory.
 
@@ -72,7 +74,7 @@ class DatasetDownloader:
         Args:
             metadata: Metadata to save
         """
-        metadata_file = self.output_dir / "metadata.json"
+        metadata_file = self.output_dir / self.METADATA_FILENAME
         metadata_file.write_text(metadata.model_dump_json(indent=2))
 
     def count_dataset_files(self) -> int:
@@ -81,9 +83,7 @@ class DatasetDownloader:
         Returns:
             int: Number of JSON files in directory (excluding metadata.json)
         """
-        json_files = list(self.output_dir.glob("*.json"))
-        # Exclude metadata.json if it exists
-        json_files = [f for f in json_files if f.name != "metadata.json"]
+        json_files = [f for f in self.output_dir.glob("*.json") if f.name != self.METADATA_FILENAME]
         return len(json_files)
 
     def load_metadata(self) -> DatasetMetadata:
@@ -95,7 +95,7 @@ class DatasetDownloader:
         Raises:
             FileNotFoundError: If metadata file doesn't exist
         """
-        metadata_file = self.output_dir / "metadata.json"
+        metadata_file = self.output_dir / self.METADATA_FILENAME
         metadata_data = json.loads(metadata_file.read_text())
         return DatasetMetadata(**metadata_data)
 
