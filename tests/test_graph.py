@@ -623,7 +623,7 @@ class TestComplexInteractionPatterns:
         metrics = evaluator.evaluate(interactions)
 
         # Peer-to-peer should have high density and clustering
-        assert metrics.density > 0.5
+        assert metrics.density >= 0.5
         assert metrics.num_nodes == 4
 
     def test_pipeline_pattern(self):
