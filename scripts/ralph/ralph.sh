@@ -470,13 +470,24 @@ EOF
 )"
     fi
 
-    # Push all commits (retry any that failed earlier + final tracking commit)
+    # Push all commits with retry (ensure changes are pushed before exit)
     log_info "Pushing all commits to remote..."
-    if git push; then
-        log_info "All commits pushed successfully"
-    else
-        log_warn "Failed to push commits"
-    fi
+    local push_attempts=0
+    local max_push_attempts=3
+    while [ $push_attempts -lt $max_push_attempts ]; do
+        push_attempts=$((push_attempts + 1))
+        if git push; then
+            log_info "All commits pushed successfully"
+            break
+        else
+            if [ $push_attempts -lt $max_push_attempts ]; then
+                log_warn "Push failed (attempt $push_attempts/$max_push_attempts), retrying in 5s..."
+                sleep 5
+            else
+                log_error "Failed to push commits after $max_push_attempts attempts"
+            fi
+        fi
+    done
 
     # Summary
     local total=$(jq '.stories | length' "$PRD_JSON")
