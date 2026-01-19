@@ -71,8 +71,10 @@ src/agenteval
 ├── pipeline.py
 ├── __pycache__
 │   ├── __init__.cpython-313.pyc
-│   └── pipeline.cpython-313.pyc
-└── README.md
+│   ├── pipeline.cpython-313.pyc
+│   └── report.cpython-313.pyc
+├── README.md
+└── report.py
 tests/
 ├── __init__.py
 ├── __pycache__
@@ -84,6 +86,7 @@ tests/
 │   ├── test_models.cpython-313-pytest-9.0.2.pyc
 │   ├── test_peerread.cpython-313-pytest-9.0.2.pyc
 │   ├── test_pipeline.cpython-313-pytest-9.0.2.pyc
+│   ├── test_report.cpython-313-pytest-9.0.2.pyc
 │   └── test_traditional.cpython-313-pytest-9.0.2.pyc
 ├── test_config.py
 ├── test_downloader.py
@@ -92,6 +95,7 @@ tests/
 ├── test_models.py
 ├── test_peerread.py
 ├── test_pipeline.py
+├── test_report.py
 └── test_traditional.py
 ```
 
