@@ -12,17 +12,31 @@
 # 4. Running quality checks (make validate)
 # 5. Updating prd.json status on success
 # 6. Appending learnings to progress.txt
+# 7. Generating application documentation (README.md, example.py)
 #
 # TDD Workflow Enforcement:
 # - Agent must make separate commits for RED (tests) and GREEN (implementation)
 # - Script verifies at least 2 commits were made during execution
 # - Checks for [RED] and [GREEN] markers in commit messages
 #
+# Commit Architecture:
+# - Agent commits (prompt.md): tests [RED], implementation [GREEN], refactoring [REFACTOR]
+# - Script commits (commit_story_state): prd.json, progress.txt, README.md, example.py
+# - Both required: Agent commits prove TDD compliance, script commits track progress
+#
 
 set -euo pipefail
 
+# Get script directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Source libraries
+source "$SCRIPT_DIR/lib/generate_app_docs.sh"
+
 # Configuration
 MAX_ITERATIONS=${1:-10}
+# Maximum attempts to fix validation errors
+MAX_FIX_ATTEMPTS=3
 PRD_JSON="docs/ralph/prd.json"
 PROGRESS_FILE="docs/ralph/progress.txt"
 PROMPT_FILE="docs/ralph/templates/prompt.md"
@@ -150,16 +164,104 @@ execute_story() {
 
 # Run quality checks
 run_quality_checks() {
+    local error_log="${1:-/tmp/ralph_validate.log}"
     log_info "Running quality checks (make validate)..."
 
-    if make validate 2>&1 | tee /tmp/ralph_validate.log; then
+    if make validate 2>&1 | tee "$error_log"; then
         log_info "Quality checks passed"
         return 0
     else
         log_error "Quality checks failed"
-        cat /tmp/ralph_validate.log
+        cat "$error_log"
         return 1
     fi
+}
+
+# Fix validation errors by re-invoking agent with error details
+fix_validation_errors() {
+    local story_id="$1"
+    local details="$2"
+    local error_log="$3"
+    local max_attempts="$4"
+
+    log_info "Attempting to fix validation errors (max $max_attempts attempts)..."
+
+    local title=$(echo "$details" | cut -d'|' -f1)
+    local description=$(echo "$details" | cut -d'|' -f2)
+
+    local attempt=1
+    while [ $attempt -le $max_attempts ]; do
+        log_info "Fix attempt $attempt/$max_attempts"
+
+        # Reuse main prompt with story details + validation errors
+        local fix_prompt=$(mktemp)
+        cat "$PROMPT_FILE" > "$fix_prompt"
+        {
+            echo ""
+            echo "## Current Story"
+            echo "**ID**: $story_id"
+            echo "**Title**: $title"
+            echo "**Description**: $description"
+            echo ""
+            echo "## VALIDATION ERRORS TO FIX"
+            echo ""
+            echo "The story implementation has validation errors. Fix them:"
+            echo ""
+            echo '```'
+            cat "$error_log"
+            echo '```'
+            echo ""
+            echo "Fix all errors and run \`make validate\` to verify."
+        } >> "$fix_prompt"
+
+        # Execute fix via Claude Code
+        if cat "$fix_prompt" | claude -p --dangerously-skip-permissions; then
+            rm "$fix_prompt"
+
+            # Re-run validation
+            local retry_log="/tmp/ralph_validate_fix_${attempt}.log"
+            if run_quality_checks "$retry_log"; then
+                log_info "Validation passed after fix attempt $attempt"
+                return 0
+            else
+                log_warn "Validation still failing after fix attempt $attempt"
+                error_log="$retry_log"  # Use new errors for next attempt
+            fi
+        else
+            rm "$fix_prompt"
+            log_error "Fix execution failed"
+            return 1
+        fi
+
+        attempt=$((attempt + 1))
+    done
+
+    log_error "Failed to fix validation errors after $max_attempts attempts"
+    return 1
+}
+
+# Commit story state files after successful completion
+commit_story_state() {
+    local story_id="$1"
+    local message="$2"
+
+    # Generate/update application documentation
+    local app_readme=$(generate_app_readme)
+    local app_example=$(generate_app_example)
+
+    # Commit state files (prd.json, progress.txt, README.md, example.py)
+    log_info "Committing state files..."
+    git add "$PRD_JSON" "$PROGRESS_FILE"
+    [ -n "$app_readme" ] && git add "$app_readme"
+    [ -n "$app_example" ] && git add "$app_example"
+
+    if ! git commit -m "docs($story_id): $message
+
+Co-Authored-By: Claude <noreply@anthropic.com>"; then
+        log_warn "No state changes to commit"
+        return 1
+    fi
+    return 0
 }
 
 # Check that TDD commits were made during story execution
@@ -259,14 +361,31 @@ main() {
             fi
 
             # Run quality checks
-            if run_quality_checks; then
+            local validation_log="/tmp/ralph_validate_${story_id}.log"
+            if run_quality_checks "$validation_log"; then
                 # Mark as passing
                 update_story_status "$story_id" "true"
                 log_progress "$iteration" "$story_id" "PASS" "Completed successfully with TDD commits"
                 log_info "Story $story_id marked as PASSING"
+
+                # Commit state files with documentation
+                commit_story_state "$story_id" "update state and documentation after completion"
             else
-                log_warn "Story completed but quality checks failed"
-                log_progress "$iteration" "$story_id" "FAIL" "Quality checks failed"
+                log_warn "Story completed but quality checks failed - attempting fixes"
+
+                # Attempt to fix validation errors
+                if fix_validation_errors "$story_id" "$details" "$validation_log" "$MAX_FIX_ATTEMPTS"; then
+                    # Mark as passing after successful fixes
+                    update_story_status "$story_id" "true"
+                    log_progress "$iteration" "$story_id" "PASS" "Completed after fixing validation errors"
+                    log_info "Story $story_id marked as PASSING after fixes"
+
+                    # Commit state files with documentation
+                    commit_story_state "$story_id" "update state and documentation after fixing validation errors"
+                else
+                    log_error "Failed to fix validation errors"
+                    log_progress "$iteration" "$story_id" "FAIL" "Quality checks failed after $MAX_FIX_ATTEMPTS fix attempts"
+                fi
             fi
         else
             log_error "Story execution failed"
@@ -278,6 +397,32 @@ main() {
 
     if [ $iteration -eq $MAX_ITERATIONS ]; then
         log_warn "Reached maximum iterations ($MAX_ITERATIONS)"
+    fi
+
+    # Commit any remaining uncommitted tracking files
+    if ! git diff --quiet "$PRD_JSON" "$PROGRESS_FILE" 2>/dev/null; then
+        log_info "Committing final tracking file changes..."
+        git add "$PRD_JSON" "$PROGRESS_FILE"
+
+        local total=$(jq '.stories | length' "$PRD_JSON")
+        local passing=$(jq '[.stories[] | select(.passes == true)] | length' "$PRD_JSON")
+
+        git commit -m "$(cat <<EOF
+docs(ralph): update progress after loop completion
+
+Summary: $passing/$total stories passing
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+EOF
+)"
+    fi
+
+    # Push all commits (including per-story commits)
+    log_info "Pushing all commits to remote..."
+    if git push; then
+        log_info "All commits pushed successfully"
+    else
+        log_warn "Failed to push commits"
     fi
 
     # Summary

@@ -25,9 +25,11 @@ Follow TDD workflow below. Tests MUST be written FIRST.
   - Create test file in `tests/` (e.g., `tests/test_messenger.py`)
   - Write tests that verify each acceptance criterion
   - Run tests - they MUST fail (code doesn't exist yet)
-  - **RUN VALIDATION**: `make quick_validate` to check formatting/types on test code
-  - **FIX ANY ISSUES**: Fix formatting/type errors before committing
-  - **COMMIT TESTS FIRST**: `git add tests/ && git commit -m "test(STORY-XXX): add failing tests [RED]"`
+  - **RUN VALIDATION**: `make validate` to check formatting/types/tests on test code
+  - **FIX ANY ISSUES**: Fix all formatting/type/test errors before committing
+  - **COMMIT TESTS FIRST**: `git add tests/ && git commit -m "test(STORY-XXX): add failing tests [RED]
+
+Co-Authored-By: Claude <noreply@anthropic.com>"`
 
 ### GREEN: Minimal implementation
 
@@ -35,9 +37,11 @@ Follow TDD workflow below. Tests MUST be written FIRST.
   - Create/modify implementation file (e.g., `src/agentbeats/messenger.py`)
   - Write simplest code that makes tests pass
   - Run tests - they MUST pass now
-  - **RUN VALIDATION**: `make quick_validate` to check formatting/types on implementation
-  - **FIX ANY ISSUES**: Fix formatting/type errors before committing
-  - **COMMIT IMPLEMENTATION**: `git add src/ && git commit -m "feat(STORY-XXX): implement to pass tests [GREEN]"`
+  - **RUN VALIDATION**: `make validate` to check formatting/types/tests on implementation
+  - **FIX ANY ISSUES**: Fix all formatting/type/test errors before committing
+  - **COMMIT IMPLEMENTATION**: `git add src/ && git commit -m "feat(STORY-XXX): implement to pass tests [GREEN]
+
+Co-Authored-By: Claude <noreply@anthropic.com>"`
 
 ### REFACTOR: Clean up
 
@@ -46,7 +50,9 @@ Follow TDD workflow below. Tests MUST be written FIRST.
   - Simplify logic (KISS)
   - **RUN FULL VALIDATION**: `make validate` to ensure all checks pass
   - **FIX ANY ISSUES**: Fix any remaining formatting/type/test errors
-  - **COMMIT REFACTORINGS** (if any): `git add . && git commit -m "refactor(STORY-XXX): cleanup [REFACTOR]"`
+  - **COMMIT REFACTORINGS** (if any): `git add . && git commit -m "refactor(STORY-XXX): cleanup [REFACTOR]
+
+Co-Authored-By: Claude <noreply@anthropic.com>"`
 
 **Final step**: Verify all acceptance criteria met and `make validate` passes
 
