@@ -44,11 +44,18 @@ NEXT_RUN=$((NEXT_RUN + 1))
 # Create archive directory following existing pattern
 ARCHIVE_DIR="src_archive/agentseval_ralph_run${NEXT_RUN}"
 log_info "Creating archive: $ARCHIVE_DIR"
-mkdir -p "$ARCHIVE_DIR/docs/ralph"
+mkdir -p "$ARCHIVE_DIR/docs"
 
 # Archive source and tests
-[ -d "src/agenteval" ] && mv src/agenteval/* "$ARCHIVE_DIR/" 2>/dev/null && rmdir src/agenteval && log_info "Archived src/agenteval -> $ARCHIVE_DIR/"
-[ -d "tests" ] && mv tests "$ARCHIVE_DIR/tests" && log_info "Archived tests/"
+for dir in src/agenteval tests; do
+    [ ! -d "$dir" ] && continue
+    if [ "$dir" = "src/agenteval" ]; then
+        mv "$dir"/* "$ARCHIVE_DIR/" 2>/dev/null && rmdir "$dir"
+    else
+        mv "$dir" "$ARCHIVE_DIR/"
+    fi
+    log_info "Archived $dir/"
+done
 
 # Copy docs to archive (keep originals)
 for doc in PRD.md UserStory.md; do
@@ -59,12 +66,8 @@ for doc in PRD.md UserStory.md; do
 done
 
 # Move ralph state to archive
-for file in prd.json progress.txt; do
-    if [ -f "docs/ralph/$file" ]; then
-        mv "docs/ralph/$file" "$ARCHIVE_DIR/docs/ralph/$file"
-        log_info "Archived docs/ralph/$file"
-    fi
-done
+[ -d "docs/ralph" ] && mv docs/ralph "$ARCHIVE_DIR/docs/" && log_info "Archived docs/ralph/"
+mkdir -p docs/ralph
 
 # Handle ralph logs from /tmp
 if [ "$ARCHIVE_LOGS" = true ]; then
