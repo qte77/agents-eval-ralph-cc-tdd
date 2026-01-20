@@ -32,15 +32,16 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Source libraries
 source "$SCRIPT_DIR/lib/colors.sh"
+source "$SCRIPT_DIR/lib/config.sh"
 source "$SCRIPT_DIR/lib/generate_app_docs.sh"
 
 # Configuration
 MAX_ITERATIONS=${1:-10}
 # Maximum attempts to fix validation errors
 MAX_FIX_ATTEMPTS=3
-PRD_JSON="docs/ralph/prd.json"
-PROGRESS_FILE="docs/ralph/progress.txt"
-PROMPT_FILE="docs/ralph/templates/prompt.md"
+PRD_JSON="$RALPH_PRD_JSON"
+PROGRESS_FILE="$RALPH_PROGRESS_FILE"
+PROMPT_FILE="$RALPH_PROMPT_FILE"
 BRANCH_PREFIX="ralph/story-"
 
 # Timeout configuration
@@ -48,7 +49,7 @@ VALIDATION_TIMEOUT=${VALIDATION_TIMEOUT:-300}  # 5 minutes
 FIX_TIMEOUT=${FIX_TIMEOUT:-600}                # 10 minutes
 
 # Log rotation
-LOG_DIR="/tmp/ralph_logs"
+LOG_DIR="$RALPH_LOG_DIR/ralph_logs"
 MAX_LOG_FILES=20
 
 # Model Configuration

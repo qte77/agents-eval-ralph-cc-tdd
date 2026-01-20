@@ -7,6 +7,19 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Source libraries
 source "$SCRIPT_DIR/lib/colors.sh"
+source "$SCRIPT_DIR/lib/config.sh"
+
+# Script-specific configuration
+SRC_DIR="src/agenteval"
+TESTS_DIR="$TESTS_BASE_DIR"
+DOCS_DIR="$DOCS_BASE_DIR"
+RALPH_DIR="$RALPH_DOCS_DIR"
+ARCHIVE_BASE="$ARCHIVE_BASE_DIR"
+ARCHIVE_PREFIX="$ARCHIVE_PREFIX"
+DOC_FILES=("PRD.md" "UserStory.md")
+STATE_FILES=("prd.json" "progress.txt")
+LOG_DIR="$RALPH_LOG_DIR"
+LOG_PATTERN="$RALPH_LOG_PATTERN"
 
 # Usage info
 usage() {
@@ -36,18 +49,6 @@ while getopts "hl" opt; do
     esac
 done
 shift $((OPTIND-1))
-
-# Configuration
-SRC_DIR="src/agenteval"
-TESTS_DIR="tests"
-DOCS_DIR="docs"
-RALPH_DIR="docs/ralph"
-ARCHIVE_BASE="src_archive"
-ARCHIVE_PREFIX="agentseval_ralph_run"
-DOC_FILES=("PRD.md" "UserStory.md")
-STATE_FILES=("prd.json" "progress.txt")
-LOG_DIR="/tmp"
-LOG_PATTERN="ralph_*.log"
 
 # Auto-detect next run number based on existing archives
 NEXT_RUN=$(ls -d "$ARCHIVE_BASE/${ARCHIVE_PREFIX}"* 2>/dev/null | wc -l)

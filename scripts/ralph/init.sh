@@ -12,6 +12,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Source libraries
 source "$SCRIPT_DIR/lib/colors.sh"
+source "$SCRIPT_DIR/lib/config.sh"
 
 log_info "Initializing Ralph Loop environment..."
 
@@ -72,7 +73,7 @@ check_project_structure() {
         "Makefile"
         ".claude/commands/generate-prd-json-from-md.md"
         "scripts/ralph/ralph.sh"
-        "docs/ralph/templates/prompt.md"
+        "$RALPH_PROMPT_FILE"
     )
 
     local missing=0
@@ -95,23 +96,23 @@ check_project_structure() {
 create_state_dirs() {
     log_info "Creating state directories..."
 
-    mkdir -p docs/ralph
+    mkdir -p "$RALPH_DOCS_DIR"
 
     log_success "State directories created"
 }
 
 # Initialize progress.txt from template if it doesn't exist
 initialize_progress() {
-    if [ ! -f "docs/ralph/progress.txt" ]; then
+    if [ ! -f "$RALPH_PROGRESS_FILE" ]; then
         log_info "Initializing progress.txt from template..."
 
-        if [ -f "docs/ralph/templates/progress.txt.template" ]; then
+        if [ -f "$RALPH_PROGRESS_TEMPLATE" ]; then
             # Copy from template and replace {{DATE}} placeholder
-            sed "s/{{DATE}}/$(date)/" docs/ralph/templates/progress.txt.template > docs/ralph/progress.txt
+            sed "s/{{DATE}}/$(date)/" "$RALPH_PROGRESS_TEMPLATE" > "$RALPH_PROGRESS_FILE"
             log_success "progress.txt initialized from template"
         else
             log_warn "Template not found, creating default progress.txt..."
-            cat > docs/ralph/progress.txt <<EOF
+            cat > "$RALPH_PROGRESS_FILE" <<EOF
 # Ralph Loop Progress Log
 
 Started: $(date)
@@ -132,14 +133,14 @@ EOF
 
 # Check if prd.json exists, create from template if not
 check_prd_json() {
-    if [ ! -f "docs/ralph/prd.json" ]; then
+    if [ ! -f "$RALPH_PRD_JSON" ]; then
         log_warn "prd.json not found"
 
-        if [ -f "docs/ralph/templates/prd.json.template" ]; then
+        if [ -f "$RALPH_PRD_TEMPLATE" ]; then
             log_info "Creating prd.json from template..."
-            cp docs/ralph/templates/prd.json.template docs/ralph/prd.json
+            cp "$RALPH_PRD_TEMPLATE" "$RALPH_PRD_JSON"
             # Update timestamp
-            sed -i "s/\"TEMPLATE\"/\"$(date -u +"%Y-%m-%dT%H:%M:%SZ")\"/" docs/ralph/prd.json
+            sed -i "s/\"TEMPLATE\"/\"$(date -u +"%Y-%m-%dT%H:%M:%SZ")\"/" "$RALPH_PRD_JSON"
             log_success "prd.json created from template"
         fi
 
@@ -152,9 +153,9 @@ check_prd_json() {
         log_success "prd.json found"
 
         # Validate JSON format
-        if jq empty docs/ralph/prd.json 2>/dev/null; then
-            local total=$(jq '.stories | length' docs/ralph/prd.json)
-            local passing=$(jq '[.stories[] | select(.passes == true)] | length' docs/ralph/prd.json)
+        if jq empty "$RALPH_PRD_JSON" 2>/dev/null; then
+            local total=$(jq '.stories | length' "$RALPH_PRD_JSON")
+            local passing=$(jq '[.stories[] | select(.passes == true)] | length' "$RALPH_PRD_JSON")
             log_info "Status: $passing/$total stories completed"
         else
             log_error "prd.json is invalid JSON"

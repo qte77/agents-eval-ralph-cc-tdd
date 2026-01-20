@@ -2,6 +2,7 @@
 #
 # Application Documentation Generator
 # Generates README.md and example.py for the application
+# NOTE: This file is sourced, not executed. Requires config.sh to be loaded first.
 
 # Generate/update README.md in src directory
 # Returns the path to the generated README (empty if not generated)
@@ -9,7 +10,7 @@ generate_app_readme() {
     log_info "Generating application README.md..."
 
     # Find src directory (first dir in src/)
-    local src_dir=$(find src -mindepth 1 -maxdepth 1 -type d | head -1)
+    local src_dir=$(find "$SRC_BASE_DIR" -mindepth 1 -maxdepth 1 -type d | head -1)
     if [ -z "$src_dir" ]; then
         log_warn "No src directory found, skipping README generation"
         echo ""
@@ -28,10 +29,10 @@ generate_app_readme() {
 
     # Generate tree structure for src and tests
     if command -v tree &> /dev/null; then
-        architecture=$(tree -L 3 --noreport -I '__pycache__|*.pyc|*.pyo' "$src_dir" tests/ 2>/dev/null || echo "src/$app_name/ and tests/")
+        architecture=$(tree -L 3 --noreport -I '__pycache__|*.pyc|*.pyo' "$src_dir" "$TESTS_BASE_DIR/" 2>/dev/null || echo "$src_dir/ and $TESTS_BASE_DIR/")
     else
         # Fallback: manual directory listing
-        architecture=$(find "$src_dir" tests/ -type f -name "*.py" 2>/dev/null | sort | sed 's|^|  |' || echo "No files found")
+        architecture=$(find "$src_dir" "$TESTS_BASE_DIR/" -type f -name "*.py" 2>/dev/null | sort | sed 's|^|  |' || echo "No files found")
     fi
 
     # Generate concise README with actual information
@@ -56,7 +57,7 @@ python -m $app_name
 python $src_dir/example.py
 
 # Run tests
-pytest tests/
+pytest $TESTS_BASE_DIR/
 \`\`\`
 
 ## Architecture
@@ -80,7 +81,7 @@ generate_app_example() {
     log_info "Generating application example.py..."
 
     # Find src directory (first dir in src/)
-    local src_dir=$(find src -mindepth 1 -maxdepth 1 -type d | head -1)
+    local src_dir=$(find "$SRC_BASE_DIR" -mindepth 1 -maxdepth 1 -type d | head -1)
     if [ -z "$src_dir" ]; then
         log_warn "No src directory found, skipping example generation"
         echo ""
