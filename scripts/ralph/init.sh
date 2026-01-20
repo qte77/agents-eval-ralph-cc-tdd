@@ -7,16 +7,11 @@
 
 set -euo pipefail
 
-# Colors
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-RED='\033[0;31m'
-NC='\033[0m'
+# Get script directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-log_info() { echo -e "${GREEN}[INFO]${NC} $1"; }
-log_warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
-log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
-log_success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
+# Source libraries
+source "$SCRIPT_DIR/lib/colors.sh"
 
 log_info "Initializing Ralph Loop environment..."
 
@@ -75,7 +70,7 @@ check_project_structure() {
         "CONTRIBUTING.md"
         "docs/PRD.md"
         "Makefile"
-        ".claude/skills/generating-prd/SKILL.md"
+        ".claude/commands/generate-prd-json-from-md.md"
         "scripts/ralph/ralph.sh"
         "docs/ralph/templates/prompt.md"
     )
@@ -150,8 +145,7 @@ check_prd_json() {
 
         log_info ""
         log_info "To populate prd.json with real stories, run:"
-        log_info "  claude -p"
-        log_info "  Then ask: 'Use generating-prd skill to create prd.json from PRD.md'"
+        log_info "  claude -p '/generate-prd-json-from-md'"
         log_info ""
         return 1
     else

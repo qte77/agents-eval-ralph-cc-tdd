@@ -5,9 +5,8 @@ applies-to: Agents and humans
 purpose: Developer setup, workflow, and contribution guidelines
 ---
 
-# Contributing
-
-Contributions welcome! Follow these guidelines for both human and agent contributors:
+Contributions welcome! Follow these guidelines for both human and agent
+contributors:
 
 ## Core Principles
 
@@ -33,10 +32,12 @@ Follow TDD: Write tests before implementing features.
 ### 3. Validate
 
 ```bash
-make ruff        # Format and lint
-make type_check  # Type checking
-make test_all    # Run tests
-make validate    # Run all checks (required before committing)
+make ruff           # Format and lint
+make type_check     # Type checking
+make test_all       # Run tests
+make test_quick     # Rerun only failed tests (faster iteration)
+make validate       # Run all checks (required before committing)
+make validate_quick # Quick validation without coverage (faster iteration)
 ```
 
 ### 4. Commit

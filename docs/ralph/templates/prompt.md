@@ -17,24 +17,58 @@ Follow TDD workflow below. Tests MUST be written FIRST.
 
 ## Workflow (TDD - MANDATORY)
 
-**You MUST follow Test-Driven Development (RED → GREEN → REFACTOR):**
+**RED → GREEN → REFACTOR cycle:**
 
-1. **RED**: Read story from prd.json, write FAILING tests for acceptance criteria
-   - Create test file in `tests/` (e.g., `tests/test_messenger.py`)
-   - Write tests that verify each acceptance criterion
-   - Run tests - they MUST fail (code doesn't exist yet)
+### RED: Write failing tests FIRST
 
-2. **GREEN**: Study patterns in `src/`, implement MINIMAL code to pass tests
-   - Create/modify implementation file (e.g., `src/agentbeats/messenger.py`)
-   - Write simplest code that makes tests pass
-   - Run tests - they MUST pass now
+- Read story from prd.json, write FAILING tests for acceptance criteria
+  - Create test file in `tests/` (e.g., `tests/test_messenger.py`)
+  - Write tests that verify each acceptance criterion
+  - Run tests - they MUST fail (code doesn't exist yet)
+  - **RUN VALIDATION**: `make validate` - fix any errors before committing
+  - **COMMIT TESTS FIRST**: `git add tests/ && git commit -m "test(STORY-XXX): add failing tests [RED]
 
-3. **REFACTOR**: Clean up code while keeping tests passing
-   - Remove duplication (DRY)
-   - Simplify logic (KISS)
-   - Ensure `make validate` passes
+Co-Authored-By: Claude <noreply@anthropic.com>"`
 
-4. Verify all acceptance criteria met
+### GREEN: Minimal implementation
+
+- Study patterns in `src/`, implement MINIMAL code to pass tests
+  - Create/modify implementation file (e.g., `src/agentbeats/messenger.py`)
+  - Write simplest code that makes tests pass
+  - Run tests - they MUST pass now
+  - **RUN VALIDATION**: `make validate` - fix any errors before committing
+  - **COMMIT IMPLEMENTATION**: `git add src/ && git commit -m "feat(STORY-XXX): implement to pass tests [GREEN]
+
+Co-Authored-By: Claude <noreply@anthropic.com>"`
+
+### REFACTOR: Clean up
+
+- Clean up code while keeping tests passing (see core-principles.md)
+  - **RUN VALIDATION**: `make validate` before committing
+  - **COMMIT REFACTORINGS** (if any): `git add . && git commit -m "refactor(STORY-XXX): cleanup [REFACTOR]
+
+Co-Authored-By: Claude <noreply@anthropic.com>"`
+
+**CRITICAL**: Tests MUST be committed BEFORE implementation. This ensures verifiable TDD compliance and provides audit trail for agent evaluation.
+
+## Before Writing Code (DRY CHECK - MANDATORY)
+
+**Automatically check for existing code to reuse:**
+
+1. Run `ls src/*/config/` → Import existing config if present
+2. Run `ls src/*/models/` → Import existing models if present
+3. Run `grep -r "class.*BaseModel" src/` → Find existing Pydantic models
+
+**Import existing code, don't duplicate:**
+```python
+# ✅ CORRECT - Reuse existing
+from myproject.models import ExistingModel
+from myproject.config import Config
+
+# ❌ WRONG - Duplicate definition
+class ExistingModel(BaseModel):  # Already exists elsewhere!
+    pass
+```
 
 ## Available Skills
 
@@ -48,17 +82,7 @@ Use skills appropriately based on task requirements.
 
 ## Quality Gates
 
-Before marking the story complete:
-
-```bash
-make validate
-```
-
-Must pass:
-
-- [ ] Code formatting (ruff)
-- [ ] Type checking (pyright)
-- [ ] All tests (pytest)
+Run `make validate` before marking complete. See `CONTRIBUTING.md` for all validation commands.
 
 ## Current Story Details
 

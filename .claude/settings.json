@@ -62,10 +62,16 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Edit(.claude/**)",
+      "Edit(.devcontainer/**)",
+      "Edit(.github/**)",
+      "Edit(.vscode/**)",
+      "Edit(.scripts/**)",
       "Edit(AGENTS.md)",
       "Edit(CLAUDE.md)",
-      "Edit(CONTRIBUTE.md)",
+      "Edit(CONTRIBUTING.md)",
+      "Edit(LICENSE.md)",
       "Edit(Makefile)",
+      "Edit(mkdocs.yaml)",
       "Edit(pyproject.toml)",
       "Edit(README.md)"
     ]

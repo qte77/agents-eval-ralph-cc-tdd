@@ -5,40 +5,55 @@ description = "A Multi-Agent System (MAS) evaluation framework using PydanticAI 
 requires-python = ">=3.13"
 readme = "README.md"
 license = { file = "LICENSE.md" }
+dependencies = [
+    "pydantic>=2.10.6",
+    "pydantic-ai-slim>=0.8.1",
+    "pydantic-settings>=2.9.1",
+    "networkx>=3.6",
+    "rapidfuzz>=3.0",
+    "scikit-learn>=1.7",
+    "httpx>=0.28",
+    "loguru>=0.7",
+]
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
-dependencies = []
+[tool.hatch.build.targets.wheel]
+packages = ["src/agenteval"]
 
-[project.optional-dependencies]
+[dependency-groups]
 dev = [
     "pytest>=8.0.0",
+    "pytest-cov>=7.0.0",
     "ruff>=0.8.0",
     "pyright>=1.1.0",
+]
+observability = [
+    "logfire>=3.16",
+    "weave>=0.51",
 ]
 
 [tool.uv]
-dev-dependencies = [
-    "pytest>=8.0.0",
-    "ruff>=0.8.0",
-    "pyright>=1.1.0",
-]
+package = true
+exclude-newer = "2026-01-20T00:00:00Z"
 
 [tool.ruff]
 line-length = 100
 target-version = "py313"
+include = ["src/**/*.py", "tests/**/*.py"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W", "UP"]
-ignore = []
+ignore = ["N999"]
 
 [tool.pyright]
 pythonVersion = "3.13"
 typeCheckingMode = "basic"
 reportMissingImports = true
 reportMissingTypeStubs = false
+include = ["src/agenteval", "tests"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

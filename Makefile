@@ -5,8 +5,13 @@
 
 .SILENT:
 .ONESHELL:
-.PHONY: setup_dev setup_claude_code setup_markdownlint setup_project run_markdownlint ruff test_all type_check validate quick_validate ralph_userstory ralph_prd ralph_full_init ralph_init ralph_run ralph_status ralph_clean ralph_reorganize help
+.PHONY: setup_dev setup_claude_code setup_markdownlint setup_project run_markdownlint ruff test_all test_quick test_coverage type_check validate validate_quick quick_validate ralph_validate_json ralph_userstory ralph_prd ralph_full_init ralph_init_loop ralph_run ralph_status ralph_clean ralph_reorganize ralph_abort help
 .DEFAULT_GOAL := help
+
+# Ralph configuration - Quality thresholds
+MIN_TEST_COVERAGE ?= 70
+RALPH_MAX_ITERATIONS ?= 25
+RALPH_MAX_FIX_ATTEMPTS ?= 3
 
 
 # MARK: setup
@@ -55,15 +60,31 @@ ruff:  ## Lint: Format and check with ruff
 test_all:  ## Run all tests
 	uv run pytest
 
+test_quick:  ## Quick test - rerun only failed tests (use during fix iterations)
+	uv run pytest --lf -x
+
+test_coverage:  ## Run tests with coverage threshold ($(MIN_TEST_COVERAGE)%)
+	echo "Running tests with $(MIN_TEST_COVERAGE)% coverage gate..."
+	uv run pytest --cov --cov-fail-under=$(MIN_TEST_COVERAGE)
+
 type_check:  ## Check for static typing errors
-	uv run pyright src
+	uv run pyright
 
 validate:  ## Complete pre-commit validation sequence
-	echo "Running complete validation sequence ..."
+	set -e
+	echo "Running complete validation sequence..."
 	$(MAKE) -s ruff
-	-$(MAKE) -s type_check
-	-$(MAKE) -s test_all
-	echo "Validation sequence completed (check output for any failures)"
+	$(MAKE) -s type_check
+	$(MAKE) -s test_coverage
+	echo "Validation completed successfully"
+
+validate_quick:  ## Quick validation for fix iterations (no coverage check)
+	set -e
+	echo "Running quick validation (no coverage check)..."
+	$(MAKE) -s ruff
+	$(MAKE) -s type_check
+	$(MAKE) -s test_quick
+	echo "Quick validation completed"
 
 quick_validate:  ## Fast development cycle validation
 	echo "Running quick validation ..."
@@ -74,21 +95,34 @@ quick_validate:  ## Fast development cycle validation
 
 # MARK: ralph
 
+ralph_validate_json:  ## Internal: Validate prd.json syntax
+	@if [ ! -f docs/ralph/prd.json ]; then
+		echo "ERROR: prd.json not found"
+		exit 1
+	fi
+	@if ! jq empty docs/ralph/prd.json 2>/dev/null; then
+		echo "ERROR: Invalid JSON in docs/ralph/prd.json"
+		exit 1
+	fi
+	@echo "✓ prd.json validated"
 
 ralph_userstory:  ## [Optional] Create UserStory.md interactively. Usage: make ralph_userstory
 	echo "Creating UserStory.md through interactive Q&A ..."
-	claude /building-userstory
+	claude /build-userstory
 
 ralph_prd:  ## [Optional] Generate PRD.md from UserStory.md
 	echo "Generating PRD.md from UserStory.md ..."
-	claude /generating-prd-from-userstory
+	claude /generate-prd-md-from-userstory
 
-ralph_init:  ## Initialize Ralph loop environment
+ralph_init_loop:  ## Initialize Ralph loop environment
 	echo "Initializing Ralph loop environment ..."
+	claude -p '/generate-prd-json-from-md'
 	bash scripts/ralph/init.sh
+	$(MAKE) -s ralph_validate_json
 
 ralph_run:  ## Run Ralph autonomous development loop (use ITERATIONS=N to set max iterations)
 	echo "Starting Ralph loop ..."
+	$(MAKE) -s ralph_validate_json
 	ITERATIONS=$${ITERATIONS:-25}
 	bash scripts/ralph/ralph.sh $$ITERATIONS
 
@@ -103,7 +137,7 @@ ralph_status:  ## Show Ralph loop progress and status
 		echo "Incomplete stories:"
 		jq -r '.stories[] | select(.passes == false) | "  - [\(.id)] \(.title)"' docs/ralph/prd.json
 	else
-		echo "prd.json not found. Run 'make ralph_init' first."
+		echo "prd.json not found. Run 'make ralph_init_loop' first."
 	fi
 
 ralph_clean:  ## Reset Ralph state (WARNING: removes prd.json and progress.txt)
@@ -111,19 +145,30 @@ ralph_clean:  ## Reset Ralph state (WARNING: removes prd.json and progress.txt)
 	echo "Press Ctrl+C to cancel, Enter to continue..."
 	read
 	rm -f docs/ralph/prd.json docs/ralph/progress.txt
-	echo "Ralph state cleaned. Run 'make ralph_init' to reinitialize."
+	echo "Ralph state cleaned. Run 'make ralph_init_loop' to reinitialize."
 
-ralph_reorganize:  ## Archive current PRD and start new iteration. Usage: make ralph_reorganize NEW_PRD=path/to/new.md [VERSION=2]
-	@if [ -z "$(NEW_PRD)" ]; then
-		echo "Error: NEW_PRD parameter required"
-		echo "Usage: make ralph_reorganize NEW_PRD=docs/PRD-New.md [VERSION=2]"
-		exit 1
+ralph_reorganize:  ## Archive current PRD and optionally activate new one. Usage: make ralph_reorganize [NEW_PRD=path/to/new.md]
+	bash scripts/ralph/reorganize_prd.sh $(NEW_PRD)
+
+ralph_abort:  ## Abort all running Ralph loops
+	echo "Aborting all running Ralph loops..."
+	ralph_pids=$$(ps aux | grep "scripts/ralph/ralph.sh" | grep -v grep | awk '{print $$2}' || true)
+	if [ -n "$$ralph_pids" ]; then
+		echo "Found Ralph processes: $$ralph_pids"
+		kill $$ralph_pids 2>/dev/null || true
+		sleep 1
+		# Force kill if still running
+		kill -9 $$ralph_pids 2>/dev/null || true
+		echo "Ralph loops terminated"
+	else
+		echo "No running Ralph loops found"
 	fi
-	@VERSION_ARG=""
-	if [ -n "$(VERSION)" ]; then
-		VERSION_ARG="-v $(VERSION)"
+	# Also kill any orphaned Claude processes spawned by Ralph
+	claude_pids=$$(ps aux | grep "claude -p.*dangerously-skip-permissions" | grep -v grep | awk '{print $$2}' || true)
+	if [ -n "$$claude_pids" ]; then
+		echo "Cleaning up orphaned Claude processes: $$claude_pids"
+		kill $$claude_pids 2>/dev/null || true
 	fi
-	bash scripts/ralph/reorganize_prd.sh $$VERSION_ARG $(NEW_PRD)
 
 
 # MARK: help

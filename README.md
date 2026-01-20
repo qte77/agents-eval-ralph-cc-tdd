@@ -1,6 +1,9 @@
 # agents-eval-ralph-cc-tdd
 
-A Multi-Agent System (MAS) evaluation framework using PydanticAI that generates and evaluates scientific paper reviews through a three-tiered assessment approach: traditional metrics, LLM-as-a-Judge, and graph-based complexity analysis.
+A Multi-Agent System (MAS) evaluation framework using PydanticAI that
+generates and evaluates scientific paper reviews through a three-tiered
+assessment approach: traditional metrics, LLM-as-a-Judge, and graph-based
+complexity analysis.
 
 ![Version](https://img.shields.io/badge/version-0.0.0-58f4c2.svg)
 [![License](https://img.shields.io/badge/license-BSD3Clause-58f4c2.svg)](LICENSE.md)
@@ -15,13 +18,20 @@ A Multi-Agent System (MAS) evaluation framework using PydanticAI that generates 
 ## Features
 
 - **Ralph Loop** - Autonomous development using a shell loop
-- **Claude Code** - Pre-configured skills, plugins, rules, and commands for AI-assisted development
+- **Claude Code** - Pre-configured skills, plugins, rules, and commands for
+  AI-assisted development
 - **Makefile** - Build automation, Ralph orchestration, and validation commands
-- **Python Tooling** - ruff (linting/formatting), pyright (type checking), pytest (testing)
+- **Python Tooling** - ruff (linting/formatting), pyright (type checking),
+  pytest (testing)
 - **MkDocs** - Auto-generated documentation with GitHub Pages deployment
-- **GitHub Actions** - CI/CD workflows (CodeQL, ruff, pyright, pytest, link checking, docs deployment)
-- **DevContainers** - Template (Alpine ~10MB) and actual project (Python/Node/Docker ~1GB+)
-- **VS Code** - Workspace settings, tasks, and extensions for optimal Python development
+- **GitHub Actions** - CI/CD workflows (CodeQL, ruff, pyright, pytest, link
+  checking, docs deployment)
+- **DevContainers** - Template (Alpine ~10MB) and actual project
+  (Python/Node/Docker ~1GB+)
+- **VS Code** - Workspace settings, tasks, and extensions for optimal Python
+  development
+- **Configurable Model routing** - Use different models for hard or easy tasks.
+  See [Ralph README.md](./docs/ralph/README.md#model-selection).
 
 ## Quick Start
 
@@ -38,7 +48,7 @@ make ralph_userstory            # Interactive User Story using CC
 make ralph_prd                  # Generate PRD.md from UserStory.md 
 
 # 3. Write requirements in docs/PRD.md, then run Ralph
-make ralph_init                 # Initialize (creates prd.json)
+make ralph_init_loop                 # Initialize (creates prd.json)
 make ralph_run [ITERATIONS=25]  # Run autonomous development
 make ralph_status               # Check progress
 
@@ -49,7 +59,9 @@ make ralph_clean
 make ralph_reorganize NEW_PRD=docs/PRD-v2.md [VERSION=2]
 ```
 
-For detailed setup and usage, see [docs/TEMPLATE_USAGE.md](docs/TEMPLATE_USAGE.md).
+For detailed setup and usage, see
+[docs/TEMPLATE_USAGE.md](docs/TEMPLATE_USAGE.md). For Ralph Loop details see
+[Ralph README.md](./docs/ralph/README.md).
 
 ## Workflow
 
@@ -58,13 +70,13 @@ Document Flow:
   UserStory.md (Why) → PRD.md (What) → prd.json → Implementation → progress.txt
 
 Human Workflow (Manual):
-  Write PRD.md → make ralph_init → make ralph_run
+  Write PRD.md → make ralph_init_loop → make ralph_run
 
 Human Workflow (Assisted - Optional):
-  make ralph_userstory → make ralph_prd → make ralph_init → make ralph_run
+  make ralph_userstory → make ralph_prd → make ralph_init_loop → make ralph_run
 
 Agent Workflow:
-  PRD.md → prd.json (generating-prd skill) → Ralph Loop → src/ + tests/
+  PRD.md → prd.json (generate-prd-json-from-md command) → Ralph Loop → src/ + tests/
   Uses: .claude/skills/, .claude/rules/
 
 Mandatory for Both:
@@ -75,4 +87,5 @@ Mandatory for Both:
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for development workflow, core principles, and contribution guidelines.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development workflow, core
+principles, and contribution guidelines.
