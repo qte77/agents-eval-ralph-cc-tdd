@@ -88,6 +88,16 @@ In `ralph.sh`:
 - `PROGRESS_FILE="docs/ralph/progress.txt"` - Execution log
 - `PROMPT_FILE="docs/ralph/templates/prompt.md"` - Agent instructions
 
+### Model Selection
+
+Ralph uses smart model routing to optimize cost/speed:
+
+- `DEFAULT_MODEL="sonnet"` - Complex stories (features, refactoring)
+- `SIMPLE_MODEL="haiku"` - Simple tasks
+- `FIX_MODEL="haiku"` - Validation fix attempts
+- `SIMPLE_PATTERNS` - Regex patterns that trigger simple model
+- `DOCS_PATTERNS` - Regex patterns for documentation tasks
+
 ## Output Files
 
 - `prd.json` - Updated with completion timestamps

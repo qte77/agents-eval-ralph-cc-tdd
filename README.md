@@ -30,6 +30,7 @@ complexity analysis.
   (Python/Node/Docker ~1GB+)
 - **VS Code** - Workspace settings, tasks, and extensions for optimal Python
   development
+- **Configurable Model routing** - Use different models for hard or easy tasks. See [Ralph README.md](./docs/ralph/README.md#model-selection).
 
 ## Quick Start
 

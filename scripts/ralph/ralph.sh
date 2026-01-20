@@ -42,6 +42,14 @@ PROGRESS_FILE="docs/ralph/progress.txt"
 PROMPT_FILE="docs/ralph/templates/prompt.md"
 BRANCH_PREFIX="ralph/story-"
 
+# Model Configuration
+DEFAULT_MODEL="sonnet"    # Model for complex stories
+SIMPLE_MODEL="haiku"      # Model for simple tasks (5x cheaper, 2x faster)
+FIX_MODEL="haiku"         # Model for validation fixes
+# Patterns that trigger SIMPLE_MODEL (case-insensitive grep -E regex)
+SIMPLE_PATTERNS="fix|typo|update.*doc|small.*change|minor|format|style|cleanup|remove.*unused"
+DOCS_PATTERNS="^(docs|documentation|readme|comment)"
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -54,26 +62,26 @@ log_warn() { echo -e "${YELLOW}[WARN]${NC} $1" >&2; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1" >&2; }
 
 # Smart model selection router - classify story complexity
-# Returns "haiku" for simple tasks, "sonnet" for complex tasks
+# Returns model based on configuration (DEFAULT_MODEL or SIMPLE_MODEL)
 classify_story() {
     local title="$1"
     local description="$2"
     local combined="$title $description"
 
-    # Use haiku (5x cheaper, 2x faster) for simple tasks
-    if echo "$combined" | grep -qiE "fix|typo|update.*doc|small.*change|minor|format|style|cleanup|remove.*unused"; then
-        echo "haiku"
+    # Use SIMPLE_MODEL for simple tasks
+    if echo "$combined" | grep -qiE "$SIMPLE_PATTERNS"; then
+        echo "$SIMPLE_MODEL"
         return 0
     fi
 
-    # Use haiku for documentation-only changes
-    if echo "$combined" | grep -qiE "^(docs|documentation|readme|comment)"; then
-        echo "haiku"
+    # Use SIMPLE_MODEL for documentation-only changes
+    if echo "$combined" | grep -qiE "$DOCS_PATTERNS"; then
+        echo "$SIMPLE_MODEL"
         return 0
     fi
 
-    # Use sonnet for everything else (new features, refactoring, tests)
-    echo "sonnet"
+    # Use DEFAULT_MODEL for everything else (new features, refactoring, tests)
+    echo "$DEFAULT_MODEL"
 }
 
 # Validate environment
@@ -262,8 +270,8 @@ fix_validation_errors() {
     while [ $attempt -le $max_attempts ]; do
         log_info "Fix attempt $attempt/$max_attempts"
 
-        # Use haiku for fixes (usually simpler than initial implementation)
-        local model="haiku"
+        # Use FIX_MODEL for fixes (usually simpler than initial implementation)
+        local model="$FIX_MODEL"
         log_info "Using model: $model (validation fix)"
 
         # Reuse main prompt with story details + validation errors

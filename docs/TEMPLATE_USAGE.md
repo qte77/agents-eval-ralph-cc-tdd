@@ -44,7 +44,8 @@ make ralph_run ITERATIONS=10 # Run autonomous development
 make ralph_status            # Check progress
 ```
 
-To generate prd.json: Run `claude -p` then use `generating-prd` skill.
+- To generate prd.json: Run `claude -p '/generating-prd'` skill.
+- For model routing configuration see [Ralph README.md](./docs/ralph/README.md#model-selection).
 
 ### Starting New Product Iteration
 
