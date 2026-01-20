@@ -7,6 +7,7 @@ Tests validate shared data models: Paper, Review, Evaluation, Metrics, Report.
 from datetime import datetime
 
 import pytest
+from pydantic import ValidationError
 
 from agenteval.models.data import Paper, Review
 from agenteval.models.evaluation import Evaluation, Metrics, Report
@@ -44,8 +45,8 @@ class TestPaperModel:
 
     def test_paper_requires_id(self):
         """Test that Paper requires an id field."""
-        with pytest.raises(ValueError):
-            Paper(
+        with pytest.raises(ValidationError):
+            Paper(  # type: ignore[call-arg]
                 title="Test",
                 abstract="Abstract",
                 authors=["Author"],
@@ -173,8 +174,8 @@ class TestReportModel:
 
     def test_report_requires_run_id(self):
         """Test that Report requires a run_id field."""
-        with pytest.raises(ValueError):
-            Report(
+        with pytest.raises(ValidationError):
+            Report(  # type: ignore[call-arg]
                 timestamp=datetime.now(),
                 metrics=Metrics(
                     execution_time_seconds=10.0,
