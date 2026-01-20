@@ -31,6 +31,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Source libraries
+source "$SCRIPT_DIR/lib/colors.sh"
 source "$SCRIPT_DIR/lib/generate_app_docs.sh"
 
 # Configuration
@@ -42,6 +43,14 @@ PROGRESS_FILE="docs/ralph/progress.txt"
 PROMPT_FILE="docs/ralph/templates/prompt.md"
 BRANCH_PREFIX="ralph/story-"
 
+# Timeout configuration
+VALIDATION_TIMEOUT=${VALIDATION_TIMEOUT:-300}  # 5 minutes
+FIX_TIMEOUT=${FIX_TIMEOUT:-600}                # 10 minutes
+
+# Log rotation
+LOG_DIR="/tmp/ralph_logs"
+MAX_LOG_FILES=20
+
 # Model Configuration
 DEFAULT_MODEL="sonnet"    # Model for complex stories
 SIMPLE_MODEL="haiku"      # Model for simple tasks
@@ -50,16 +59,41 @@ FIX_MODEL="haiku"         # Model for validation fixes
 SIMPLE_PATTERNS="fix|typo|update.*doc|small.*change|minor|format|style|cleanup|remove.*unused"
 DOCS_PATTERNS="^(docs|documentation|readme|comment)"
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+# Initialize log directory
+init_log_dir() {
+    mkdir -p "$LOG_DIR"
+    # Rotate old logs (keep last MAX_LOG_FILES)
+    local old_logs=$(ls -t "$LOG_DIR"/validate_*.log 2>/dev/null | tail -n +$((MAX_LOG_FILES + 1)))
+    if [ -n "$old_logs" ]; then
+        rm -f $old_logs
+    fi
+}
 
-# Logging functions
-log_info() { echo -e "${GREEN}[INFO]${NC} $1" >&2; }
-log_warn() { echo -e "${YELLOW}[WARN]${NC} $1" >&2; }
-log_error() { echo -e "${RED}[ERROR]${NC} $1" >&2; }
+# Generate timestamped log filename
+get_log_filename() {
+    local story_id="$1"
+    local phase="$2"  # "validate" or "fix_N"
+    echo "$LOG_DIR/${story_id}_${phase}_$(date +%Y%m%d_%H%M%S).log"
+}
+
+# Extract error count from validation log (tool-specific parsing)
+count_validation_errors() {
+    local log_file="$1"
+    local type_errors=0
+    local test_failures=0
+
+    # Pyright format: "506 errors, 0 warnings, 0 informations"
+    if grep -q "errors.*warnings.*informations" "$log_file" 2>/dev/null; then
+        type_errors=$(grep -oE "^[0-9]+ errors" "$log_file" | grep -oE "[0-9]+" | tail -1)
+    fi
+
+    # Pytest format: "X failed" or "FAILED" markers
+    if grep -q "FAILED\|failed" "$log_file" 2>/dev/null; then
+        test_failures=$(grep -cE "^FAILED |pytest.*failed" "$log_file" || echo 0)
+    fi
+
+    echo "$((${type_errors:-0} + ${test_failures:-0}))"
+}
 
 # Smart model selection router - classify story complexity
 # Returns model based on configuration (DEFAULT_MODEL or SIMPLE_MODEL)
@@ -242,13 +276,19 @@ execute_story() {
 # Run quality checks
 run_quality_checks() {
     local error_log="${1:-/tmp/ralph_validate.log}"
-    log_info "Running quality checks (make validate)..."
+    > "$error_log"  # Truncate file first (defensive)
+    log_info "Running quality checks (timeout: ${VALIDATION_TIMEOUT}s)..."
 
-    if make validate 2>&1 | tee "$error_log"; then
+    if timeout "$VALIDATION_TIMEOUT" make validate 2>&1 | tee "$error_log"; then
         log_info "Quality checks passed"
         return 0
     else
-        log_error "Quality checks failed"
+        local exit_code=$?
+        if [ "$exit_code" -eq 124 ]; then
+            log_error "Validation timed out after ${VALIDATION_TIMEOUT}s"
+        else
+            log_error "Quality checks failed (exit code: $exit_code)"
+        fi
         cat "$error_log"
         return 1
     fi
@@ -266,13 +306,22 @@ fix_validation_errors() {
     local title=$(echo "$details" | cut -d'|' -f1)
     local description=$(echo "$details" | cut -d'|' -f2)
 
+    # Track error count for trend monitoring
+    local prev_error_count=$(count_validation_errors "$error_log")
+    log_info "Initial error count: $prev_error_count"
+
     local attempt=1
     while [ $attempt -le $max_attempts ]; do
         log_info "Fix attempt $attempt/$max_attempts"
 
-        # Use FIX_MODEL for fixes (usually simpler than initial implementation)
+        # Smart model selection: use sonnet for complex fixes (>50 errors)
         local model="$FIX_MODEL"
-        log_info "Using model: $model (validation fix)"
+        if [ "$prev_error_count" -gt 50 ]; then
+            model="$DEFAULT_MODEL"
+            log_info "Using $model for complex fixes (error count: $prev_error_count)"
+        else
+            log_info "Using model: $model (validation fix)"
+        fi
 
         # Reuse main prompt with story details + validation errors
         local fix_prompt=$(mktemp)
@@ -295,8 +344,8 @@ fix_validation_errors() {
             echo "Fix all errors and run \`make validate\` to verify."
         } >> "$fix_prompt"
 
-        # Execute fix via Claude Code with haiku model
-        if cat "$fix_prompt" | claude -p --model "$model" --dangerously-skip-permissions 2>&1 | tee "/tmp/ralph_fix_${story_id}_${attempt}.log"; then
+        # Execute fix via Claude Code with timeout
+        if timeout "$FIX_TIMEOUT" bash -c "cat \"$fix_prompt\" | claude -p --model \"$model\" --dangerously-skip-permissions" 2>&1 | tee "/tmp/ralph_fix_${story_id}_${attempt}.log"; then
             log_info "Fix attempt log saved: /tmp/ralph_fix_${story_id}_${attempt}.log"
             rm "$fix_prompt"
 
@@ -312,6 +361,12 @@ fix_validation_errors() {
                     fi
                 else
                     log_warn "Quick validation still failing after fix attempt $attempt"
+                    # Check error trend
+                    local current_errors=$(count_validation_errors "$retry_log")
+                    if [ "$current_errors" -ge "$prev_error_count" ]; then
+                        log_warn "Errors not decreasing ($prev_error_count -> $current_errors)"
+                    fi
+                    prev_error_count=$current_errors
                     error_log="$retry_log"  # Use new errors for next attempt
                 fi
             else
@@ -427,6 +482,7 @@ main() {
     log_info "Starting Ralph Loop (max iterations: $MAX_ITERATIONS)"
 
     validate_environment
+    init_log_dir
 
     local iteration=0
 

@@ -89,13 +89,3 @@ Mandatory for Both:
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for development workflow, core
 principles, and contribution guidelines.
-
-## TODO
-
-- **Parallel Story Execution**: Current story breakdown executes
-  sequentially. Future optimization: implement parallel execution support in
-  Ralph Loop for independent stories.
-- **Memory for Lessons Learned**: Use simple mechanism with an
-  `AGENT_LEARNINGS.md`
-- **Bi-directional Communication**: Use simple `AGENT_REQUESTS.md` for
-  session-spanning communication between humans and agents

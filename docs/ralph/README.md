@@ -160,3 +160,13 @@ main()
 - **TDD verification failed**: Missing [RED] or [GREEN] markers, story retries
 - **Quality checks failed**: Fix loop invoked (3 attempts), then marked FAIL
 - **Max iterations reached**: Loop stops, check progress.txt for failures
+
+## TODO
+
+- **Parallel Story Execution**: Current story breakdown executes
+  sequentially. Future optimization: implement parallel execution support in
+  Ralph Loop for independent stories.
+- **Memory for Lessons Learned**: Use simple mechanism with an
+  `AGENT_LEARNINGS.md`
+- **Bi-directional Communication**: Use simple `AGENT_REQUESTS.md` for
+  session-spanning communication between humans and agents

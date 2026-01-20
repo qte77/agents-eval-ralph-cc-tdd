@@ -68,9 +68,10 @@ test_coverage:  ## Run tests with coverage threshold ($(MIN_TEST_COVERAGE)%)
 	uv run pytest --cov --cov-fail-under=$(MIN_TEST_COVERAGE)
 
 type_check:  ## Check for static typing errors
-	uv run pyright src
+	uv run pyright
 
 validate:  ## Complete pre-commit validation sequence
+	set -e
 	echo "Running complete validation sequence..."
 	$(MAKE) -s ruff
 	$(MAKE) -s type_check
@@ -78,6 +79,7 @@ validate:  ## Complete pre-commit validation sequence
 	echo "Validation completed successfully"
 
 validate_quick:  ## Quick validation for fix iterations (no coverage check)
+	set -e
 	echo "Running quick validation (no coverage check)..."
 	$(MAKE) -s ruff
 	$(MAKE) -s type_check
