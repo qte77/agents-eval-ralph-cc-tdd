@@ -1,5 +1,5 @@
 ---
-name: generating-prd-from-userstory
+name: generate-prd-md-from-userstory
 description: Transforms UserStory.md into PRD.md by extracting features and converting user stories into functional requirements.
 ---
 
@@ -9,7 +9,8 @@ Converts `docs/UserStory.md` into `docs/PRD.md` with structured functional requi
 
 ## Purpose
 
-Bridges the gap between user-focused stories and implementation-ready requirements by converting narrative descriptions into technical requirements.
+Bridges the gap between user-focused stories and implementation-ready
+requirements by converting narrative descriptions into technical requirements.
 
 ## Workflow
 
@@ -32,17 +33,21 @@ Bridges the gap between user-focused stories and implementation-ready requiremen
 4. **Save and next steps**
    - Check for existing PRD.md (backup as `PRD.md.bak` if overwriting)
    - Write to `docs/PRD.md`
-   - Suggest: `make ralph_init` to generate prd.json
+   - Suggest: `make ralph_init_loop` to generate prd.json
 
 ## Conversion Examples
 
 **User Story → Functional Requirement**:
+
 - "As a developer, I want to add tasks from CLI" → "CLI command: `task add "description"`"
 
 **Success Criteria → Non-Functional**:
-- "Operations in < 5 seconds" → "Performance: All CLI operations complete in < 5 seconds"
+
+- "Operations in < 5 seconds" → "Performance: All CLI operations complete
+  in < 5 seconds"
 
 **Constraints → Non-Functional**:
+
 - "Must work on Linux, macOS, Windows" → "Platform Support: Cross-platform compatibility"
 
 ## Template
@@ -58,6 +63,6 @@ make ralph_prd
 ## Next Steps
 
 ```bash
-make ralph_init    # Generate prd.json from PRD.md
+make ralph_init_loop    # Generate prd.json from PRD.md
 make ralph_run     # Start Ralph loop
 ```

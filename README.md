@@ -30,7 +30,8 @@ complexity analysis.
   (Python/Node/Docker ~1GB+)
 - **VS Code** - Workspace settings, tasks, and extensions for optimal Python
   development
-- **Configurable Model routing** - Use different models for hard or easy tasks. See [Ralph README.md](./docs/ralph/README.md#model-selection).
+- **Configurable Model routing** - Use different models for hard or easy tasks.
+  See [Ralph README.md](./docs/ralph/README.md#model-selection).
 
 ## Quick Start
 
@@ -47,7 +48,7 @@ make ralph_userstory            # Interactive User Story using CC
 make ralph_prd                  # Generate PRD.md from UserStory.md 
 
 # 3. Write requirements in docs/PRD.md, then run Ralph
-make ralph_init                 # Initialize (creates prd.json)
+make ralph_init_loop                 # Initialize (creates prd.json)
 make ralph_run [ITERATIONS=25]  # Run autonomous development
 make ralph_status               # Check progress
 
@@ -69,13 +70,13 @@ Document Flow:
   UserStory.md (Why) → PRD.md (What) → prd.json → Implementation → progress.txt
 
 Human Workflow (Manual):
-  Write PRD.md → make ralph_init → make ralph_run
+  Write PRD.md → make ralph_init_loop → make ralph_run
 
 Human Workflow (Assisted - Optional):
-  make ralph_userstory → make ralph_prd → make ralph_init → make ralph_run
+  make ralph_userstory → make ralph_prd → make ralph_init_loop → make ralph_run
 
 Agent Workflow:
-  PRD.md → prd.json (generating-prd skill) → Ralph Loop → src/ + tests/
+  PRD.md → prd.json (generate-prd-json-from-md command) → Ralph Loop → src/ + tests/
   Uses: .claude/skills/, .claude/rules/
 
 Mandatory for Both:

@@ -1,5 +1,5 @@
 ---
-name: generating-prd
+name: generate-prd-json-from-md
 description: Generates prd.json task tracking file from PRD.md requirements document. Use when initializing Ralph loop or when the user asks to convert PRD to JSON format for autonomous execution.
 ---
 
@@ -25,6 +25,7 @@ prd.json format.
 See `docs/ralph/templates/prd.json.template` for the complete schema and structure.
 
 Required fields:
+
 - `project`: The current project name
 - `desciption`: A concise project description
 - `source`: 'docs/PRD.md'
@@ -70,6 +71,7 @@ Before saving prd.json:
 ## Example Story Conversion
 
 **From PRD.md**:
+
 ```markdown
 ## Functional Requirements
 ### CLI
@@ -78,6 +80,7 @@ Before saving prd.json:
 ```
 
 **To prd.json story**:
+
 ```json
 {
   "id": "STORY-001",
@@ -94,7 +97,8 @@ Before saving prd.json:
 }
 ```
 
-Use `docs/ralph/templates/prd.json.template` as the base structure and populate the stories array.
+Use `docs/ralph/templates/prd.json.template` as the base structure and populate
+the stories array.
 
 ## Usage
 

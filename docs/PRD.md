@@ -23,7 +23,7 @@ analysis.
 
 **Design Philosophy**: Plugin-based evaluation framework powered by OpenTelemetry observability data.
 
-```
+```text
 ┌─────────────────────────────────────────────────┐
 │         PRIMARY: OpenTelemetry Traces           │
 │    (Logfire recommended, any OTel backend)      │
@@ -46,6 +46,7 @@ analysis.
 ```
 
 **Key Principles**:
+
 - **OpenTelemetry Standard**: Not locked to specific vendor - any OTel backend works
 - **Logfire Recommended**: Ease of use with PydanticAI + Logfire MCP for debugging
 - **Local Development**: Opik or other OTel tools for local development
@@ -89,11 +90,13 @@ analysis.
 | weave   | >=0.51  | W&B integration (optional)                      |
 
 **Why Logfire (Recommended)**:
+
 - Native PydanticAI integration: `logfire.instrument_pydantic_ai()`
 - Logfire MCP for AI-assisted debugging
 - Same vendor as PydanticAI (Pydantic team)
 
 **Alternative OTel Backends**:
+
 - **Opik**: For local development with built-in evaluation metrics
 - **Jaeger**: Open-source distributed tracing
 - **Any OpenTelemetry-compatible backend**: Framework is not vendor-locked
@@ -326,12 +329,12 @@ perform structural complexity analysis using NetworkX formalization.
 
 All plugins operate independently with no inter-plugin dependencies.
 
-| Plugin         | Input           | Output              | Notes                                    |
-| -------------- | --------------- | ------------------- | ---------------------------------------- |
-| Graph Plugin   | OTel Traces     | Graph structures    | Extracts graphs from traces using NetworkX |
-| Text Metrics   | Reviews         | Similarity scores   | Levenshtein, Jaro-Winkler, Cosine sim   |
-| Perf Metrics   | Traces          | Timing metrics      | Execution time, success rate, coordination |
-| LLM-as-a-Judge | ANY plugin output | Semantic scores   | Multi-mode: can analyze output from any plugin |
+| Plugin         | Input             | Output            | Notes                                       |
+| -------------- | ----------------- | ----------------- | ------------------------------------------- |
+| Graph Plugin   | OTel Traces       | Graph structures  | Extracts graphs from traces using NetworkX  |
+| Text Metrics   | Reviews           | Similarity scores | Levenshtein, Jaro-Winkler, Cosine sim      |
+| Perf Metrics   | Traces            | Timing metrics    | Execution time, success rate, coordination  |
+| LLM-as-a-Judge | ANY plugin output | Semantic scores   | Multi-mode: analyzes output from any plugin |
 
 ---
 
@@ -443,7 +446,7 @@ with integrated observability for debugging and monitoring.
 
 ## Notes for Ralph Loop
 
-When using the `generating-prd` skill to convert this PRD to `docs/ralph/prd.json`:
+When using the `/generate-prd-json-from-md` command to convert this PRD to `docs/ralph/prd.json`:
 
 1. Each feature becomes a separate sprint/phase
 2. Stories should be implementable in a single context window

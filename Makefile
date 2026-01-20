@@ -5,7 +5,7 @@
 
 .SILENT:
 .ONESHELL:
-.PHONY: setup_dev setup_claude_code setup_markdownlint setup_project run_markdownlint ruff test_all test_quick test_coverage type_check validate validate_quick quick_validate ralph_validate_json ralph_userstory ralph_prd ralph_full_init ralph_init ralph_run ralph_status ralph_clean ralph_reorganize ralph_abort help
+.PHONY: setup_dev setup_claude_code setup_markdownlint setup_project run_markdownlint ruff test_all test_quick test_coverage type_check validate validate_quick quick_validate ralph_validate_json ralph_userstory ralph_prd ralph_full_init ralph_init_loop ralph_run ralph_status ralph_clean ralph_reorganize ralph_abort help
 .DEFAULT_GOAL := help
 
 # Ralph configuration - Quality thresholds
@@ -106,15 +106,16 @@ ralph_validate_json:  ## Internal: Validate prd.json syntax
 
 ralph_userstory:  ## [Optional] Create UserStory.md interactively. Usage: make ralph_userstory
 	echo "Creating UserStory.md through interactive Q&A ..."
-	claude /building-userstory
+	claude /build-userstory
 
 ralph_prd:  ## [Optional] Generate PRD.md from UserStory.md
 	echo "Generating PRD.md from UserStory.md ..."
-	claude /generating-prd-from-userstory
+	claude /generate-prd-md-from-userstory
 
-ralph_init:  ## Initialize Ralph loop environment
+ralph_init_loop:  ## Initialize Ralph loop environment
 	echo "Initializing Ralph loop environment ..."
 	bash scripts/ralph/init.sh
+	claude -p '/generate-prd-json-from-md'
 	$(MAKE) -s ralph_validate_json
 
 ralph_run:  ## Run Ralph autonomous development loop (use ITERATIONS=N to set max iterations)
@@ -134,7 +135,7 @@ ralph_status:  ## Show Ralph loop progress and status
 		echo "Incomplete stories:"
 		jq -r '.stories[] | select(.passes == false) | "  - [\(.id)] \(.title)"' docs/ralph/prd.json
 	else
-		echo "prd.json not found. Run 'make ralph_init' first."
+		echo "prd.json not found. Run 'make ralph_init_loop' first."
 	fi
 
 ralph_clean:  ## Reset Ralph state (WARNING: removes prd.json and progress.txt)
@@ -142,7 +143,7 @@ ralph_clean:  ## Reset Ralph state (WARNING: removes prd.json and progress.txt)
 	echo "Press Ctrl+C to cancel, Enter to continue..."
 	read
 	rm -f docs/ralph/prd.json docs/ralph/progress.txt
-	echo "Ralph state cleaned. Run 'make ralph_init' to reinitialize."
+	echo "Ralph state cleaned. Run 'make ralph_init_loop' to reinitialize."
 
 ralph_reorganize:  ## Archive current PRD and start new iteration. Usage: make ralph_reorganize NEW_PRD=path/to/new.md [VERSION=2]
 	@if [ -z "$(NEW_PRD)" ]; then

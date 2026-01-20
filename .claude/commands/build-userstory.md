@@ -1,5 +1,5 @@
 ---
-name: building-userstory
+name: build-userstory
 description: Interactive Q&A to build UserStory.md from user input. Use when the user wants to create a user story document or start the assisted workflow.
 ---
 
@@ -9,7 +9,8 @@ Interactively builds `docs/UserStory.md` through structured Q&A with the user.
 
 ## Purpose
 
-Guides users through creating a user story document that can be transformed into PRD.md using the `generating-prd-from-userstory` skill.
+Guides users through creating a user story document that can be transformed
+into PRD.md using the `/generate-prd-md-from-userstory` command.
 
 ## Workflow
 

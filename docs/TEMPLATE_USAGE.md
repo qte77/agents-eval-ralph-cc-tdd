@@ -39,12 +39,12 @@ make ralph_prd        # Generate PRD.md from UserStory.md
 ### 3. Run Ralph Loop
 
 ```bash
-make ralph_init              # Initialize (creates prd.json)
+make ralph_init_loop              # Initialize (creates prd.json)
 make ralph_run ITERATIONS=10 # Run autonomous development
 make ralph_status            # Check progress
 ```
 
-- To generate prd.json: Run `claude -p '/generating-prd'` skill.
+- To generate prd.json: Run `claude -p '/generate-prd-json-from-md'` command.
 - For model routing configuration see [Ralph README.md](./docs/ralph/README.md#model-selection).
 
 ### Starting New Product Iteration
@@ -55,11 +55,13 @@ When PRD.md changes significantly, reorganize and archive:
 make ralph_reorganize NEW_PRD=docs/PRD-v2.md VERSION=2
 ```
 
-Archives current PRD, prd.json, and progress to `docs/ralph/archive/`, then activates new PRD.
+Archives current PRD, prd.json, and progress to `docs/ralph/archive/`, then
+activates new PRD.
 
 ## Optional: MCP Servers
 
-Template includes `context7` and `exa` MCP servers. Remove from `.claude/settings.json` if not needed.
+Template includes `context7` and `exa` MCP servers. Remove from
+`.claude/settings.json` if not needed.
 
 ## Directory Structure
 
@@ -91,7 +93,7 @@ make ralph_userstory   # [Optional] Create UserStory.md interactively
 make ralph_prd         # [Optional] Generate PRD.md from UserStory.md
 
 # Ralph (Core workflow)
-make ralph_init        # Initialize Ralph (creates prd.json)
+make ralph_init_loop        # Initialize Ralph (creates prd.json)
 make ralph_run         # Run autonomous dev
 make ralph_status      # Check progress
 make ralph_clean       # Reset state (removes prd.json, progress.txt)
