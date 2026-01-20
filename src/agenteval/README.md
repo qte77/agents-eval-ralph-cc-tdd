@@ -7,6 +7,8 @@ Application description
 ## Why
 
 - Create JSON config loader and define core Pydantic models (Paper, Review, Evaluation, Metrics, Report) to prevent duplication across evaluation modules.
+- Download PeerRead dataset from source and persist locally with versioning for reproducibility and offline use.
+- Load and parse PeerRead dataset from local storage into structured Pydantic models for downstream processing.
 
 ## Quick Start
 
@@ -29,14 +31,22 @@ src/agenteval
 │   ├── config.py
 │   ├── default.json
 │   └── __init__.py
+├── data
+│   ├── downloader.py
+│   ├── __init__.py
+│   └── peerread.py
+├── example.py
 ├── __init__.py
-└── models
-    ├── data.py
-    ├── evaluation.py
-    └── __init__.py
+├── models
+│   ├── data.py
+│   ├── evaluation.py
+│   └── __init__.py
+└── README.md
 tests/
 ├── test_config.py
-└── test_models.py
+├── test_downloader.py
+├── test_models.py
+└── test_peerread.py
 ```
 
 ## Development

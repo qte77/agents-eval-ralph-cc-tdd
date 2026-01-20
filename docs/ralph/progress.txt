@@ -43,3 +43,14 @@ Story: STORY-001
 Status: PASS
 Notes: Completed with TDD commits (RED: dcb76a9, GREEN: e1575dd)
 
+## Iteration 4 - Tue Jan 20 07:06:06 PM UTC 2026
+Story: STORY-001
+Status: FAIL
+Notes: TDD verification failed: Missing [RED] or [GREEN] markers in commits: 7af72a5 docs(STORY-001): update state and documentation after completion
+dcb76a9 test(STORY-001): add failing tests for dataset downloader [RED]
+
+## Iteration 5 - Tue Jan 20 07:10:02 PM UTC 2026
+Story: STORY-002
+Status: PASS
+Notes: Completed successfully with TDD commits
+
