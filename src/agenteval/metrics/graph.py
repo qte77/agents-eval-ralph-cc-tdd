@@ -4,6 +4,8 @@ This module provides NetworkX-based graph analysis of agent interactions,
 calculating complexity metrics and identifying coordination patterns.
 """
 
+import json
+from io import BytesIO
 from typing import Any
 
 import networkx as nx
@@ -130,7 +132,7 @@ def identify_coordination_patterns(graph: nx.DiGraph) -> dict[str, Any]:
     # Hierarchical: Multiple levels (detect through graph structure)
     # Simplification: If we have moderate connectivity but not hub-and-spoke
     # Add hub_nodes for hierarchical pattern too
-    hub_nodes = [node for node, cent in sorted_nodes[: min(2, len(sorted_nodes))]]
+    hub_nodes = [node for node, _cent in sorted_nodes[: min(2, len(sorted_nodes))]]
     return {"pattern_type": "hierarchical", "hub_nodes": hub_nodes}
 
 
@@ -153,8 +155,6 @@ def export_to_json(graph: nx.DiGraph) -> str:
     data = nx.node_link_data(graph)
 
     # Convert to JSON string
-    import json
-
     return json.dumps(data)
 
 
@@ -174,8 +174,6 @@ def export_to_graphml(graph: nx.DiGraph) -> str:
         raise ValueError("Graph cannot be empty")
 
     # Use BytesIO to capture the output and decode to string
-    from io import BytesIO
-
     output = BytesIO()
     nx.write_graphml(graph, output)
     return output.getvalue().decode("utf-8")
