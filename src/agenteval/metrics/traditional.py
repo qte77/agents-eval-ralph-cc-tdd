@@ -112,14 +112,12 @@ def evaluate_batch(runs: list[dict[str, Any]]) -> list[Metrics]:
     if not runs:
         raise ValueError("Batch cannot be empty")
 
-    results = []
-    for run in runs:
-        metrics = TraditionalMetrics(
+    return [
+        TraditionalMetrics(
             start_time=run["start_time"],
             end_time=run["end_time"],
             task_results=run["task_results"],
             coordination_events=run["coordination_events"],
-        )
-        results.append(metrics.calculate())
-
-    return results
+        ).calculate()
+        for run in runs
+    ]
