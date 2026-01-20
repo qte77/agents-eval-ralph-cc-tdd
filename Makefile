@@ -114,8 +114,8 @@ ralph_prd:  ## [Optional] Generate PRD.md from UserStory.md
 
 ralph_init_loop:  ## Initialize Ralph loop environment
 	echo "Initializing Ralph loop environment ..."
-	bash scripts/ralph/init.sh
 	claude -p '/generate-prd-json-from-md'
+	bash scripts/ralph/init.sh
 	$(MAKE) -s ralph_validate_json
 
 ralph_run:  ## Run Ralph autonomous development loop (use ITERATIONS=N to set max iterations)
