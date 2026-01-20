@@ -37,19 +37,31 @@ while getopts "hl" opt; do
 done
 shift $((OPTIND-1))
 
+# Configuration
+SRC_DIR="src/agenteval"
+TESTS_DIR="tests"
+DOCS_DIR="docs"
+RALPH_DIR="docs/ralph"
+ARCHIVE_BASE="src_archive"
+ARCHIVE_PREFIX="agentseval_ralph_run"
+DOC_FILES=("PRD.md" "UserStory.md")
+STATE_FILES=("prd.json" "progress.txt")
+LOG_DIR="/tmp"
+LOG_PATTERN="ralph_*.log"
+
 # Auto-detect next run number based on existing archives
-NEXT_RUN=$(ls -d src_archive/agentseval_ralph_run* 2>/dev/null | wc -l)
+NEXT_RUN=$(ls -d "$ARCHIVE_BASE/${ARCHIVE_PREFIX}"* 2>/dev/null | wc -l)
 NEXT_RUN=$((NEXT_RUN + 1))
 
 # Create archive directory following existing pattern
-ARCHIVE_DIR="src_archive/agentseval_ralph_run${NEXT_RUN}"
+ARCHIVE_DIR="$ARCHIVE_BASE/${ARCHIVE_PREFIX}${NEXT_RUN}"
 log_info "Creating archive: $ARCHIVE_DIR"
-mkdir -p "$ARCHIVE_DIR/docs"
+mkdir -p "$ARCHIVE_DIR/$DOCS_DIR"
 
 # Archive source and tests
-for dir in src/agenteval tests; do
+for dir in "$SRC_DIR" "$TESTS_DIR"; do
     [ ! -d "$dir" ] && continue
-    if [ "$dir" = "src/agenteval" ]; then
+    if [ "$dir" = "$SRC_DIR" ]; then
         mv "$dir"/* "$ARCHIVE_DIR/" 2>/dev/null && rmdir "$dir"
     else
         mv "$dir" "$ARCHIVE_DIR/"
@@ -58,28 +70,36 @@ for dir in src/agenteval tests; do
 done
 
 # Copy docs to archive (keep originals)
-for doc in PRD.md UserStory.md; do
-    if [ -f "docs/$doc" ]; then
-        cp "docs/$doc" "$ARCHIVE_DIR/docs/$doc"
-        log_info "Archived docs/$doc"
+for doc in "${DOC_FILES[@]}"; do
+    if [ -f "$DOCS_DIR/$doc" ]; then
+        cp "$DOCS_DIR/$doc" "$ARCHIVE_DIR/$DOCS_DIR/$doc"
+        log_info "Archived $DOCS_DIR/$doc"
     fi
 done
 
-# Move ralph state to archive
-[ -d "docs/ralph" ] && mv docs/ralph "$ARCHIVE_DIR/docs/" && log_info "Archived docs/ralph/"
-mkdir -p docs/ralph
+# Archive ralph directory (copy templates, move state files)
+if [ -d "$RALPH_DIR" ]; then
+    mkdir -p "$ARCHIVE_DIR/$RALPH_DIR"
+    # Copy all files first
+    cp -r "$RALPH_DIR"/* "$ARCHIVE_DIR/$RALPH_DIR/" 2>/dev/null || true
+    # Remove only state files from source
+    for file in "${STATE_FILES[@]}"; do
+        rm -f "$RALPH_DIR/$file"
+    done
+    log_info "Archived $RALPH_DIR/"
+fi
 
-# Handle ralph logs from /tmp
+# Handle ralph logs
 if [ "$ARCHIVE_LOGS" = true ]; then
     mkdir -p "$ARCHIVE_DIR/logs"
-    mv /tmp/ralph_*.log "$ARCHIVE_DIR/logs/" 2>/dev/null && log_info "Archived logs/" || true
+    mv "$LOG_DIR/$LOG_PATTERN" "$ARCHIVE_DIR/logs/" 2>/dev/null && log_info "Archived logs/" || true
 else
     log_info "Cleaning up ralph logs..."
-    rm -f /tmp/ralph_*.log
+    rm -f "$LOG_DIR/$LOG_PATTERN"
 fi
 
 log_info "Reorganization complete!"
 echo ""
 log_info "Archived to: $ARCHIVE_DIR"
 echo ""
-log_info "Next step: Create a new docs/PRD.md, then run 'make ralph_init_loop'"
+log_info "Next step: Create a new $DOCS_DIR/PRD.md, then run 'make ralph_init_loop'"
