@@ -21,12 +21,14 @@ advancing multi-agent AI research.
 
 ## Value Proposition
 
-AgentEvals provides objective benchmarking through a three-tiered evaluation
-framework that combines traditional performance metrics, LLM-as-a-Judge
-semantic assessment, and graph-based complexity analysis. This enables
-researchers and engineers to compare multi-agent system performance across
-implementations using standardized, reproducible metrics, accelerating
-research and development of autonomous agent teams.
+AgentEvals provides objective benchmarking through a fully composable plugin-based
+evaluation framework built on OpenTelemetry observability data. ALL modules are
+independent plugins (Graph extraction, Text metrics, Performance metrics,
+LLM-as-a-Judge) that operate without inter-plugin dependencies, enabling flexible
+mix-and-match evaluation strategies. The framework reads from any
+OpenTelemetry-compatible backend (Logfire recommended for PydanticAI integration,
+Opik/Jaeger for local development), and LLM-as-a-Judge can analyze outputs from
+ANY plugin for multi-dimensional semantic assessment.
 
 ## User Stories
 
@@ -38,9 +40,9 @@ research and development of autonomous agent teams.
    evaluate semantic review quality beyond traditional metrics and understand
    how agent-generated content compares to human baselines.
 
-3. **As a data scientist**, I want graph-based structural analysis so that I
-   can understand agent interaction patterns, coordination complexity, and
-   emergent behaviors in multi-agent systems.
+3. **As a data scientist**, I want graph extraction from OpenTelemetry traces
+   (using NetworkX formalization) so I can understand real agent interaction
+   patterns, coordination complexity, and emergent behaviors in multi-agent systems.
 
 ## Success Criteria
 

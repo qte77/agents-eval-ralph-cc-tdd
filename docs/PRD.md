@@ -19,6 +19,40 @@ analysis.
 
 **Target Users**: AI Researchers and ML Engineers working with multi-agent systems
 
+## Architecture
+
+**Design Philosophy**: Plugin-based evaluation framework powered by OpenTelemetry observability data.
+
+```
+┌─────────────────────────────────────────────────┐
+│         PRIMARY: OpenTelemetry Traces           │
+│    (Logfire recommended, any OTel backend)      │
+└─────────────────────────────────────────────────┘
+                      ▼
+┌─────────────────────────────────────────────────┐
+│      INDEPENDENT PLUGIN MODULES                 │
+│      (No dependencies between plugins)          │
+├────────────┬────────────┬────────────┬──────────┤
+│   Graph    │   Text     │    Perf    │  LLM-as  │
+│  Plugin    │  Metrics   │  Metrics   │  -Judge  │
+│            │  Plugin    │  Plugin    │  Plugin  │
+├────────────┼────────────┼────────────┼──────────┤
+│ - Extract  │ - Leven.   │ - Exec time│ - Can    │
+│   graphs   │ - Jaro-W.  │ - Success  │   analyze│
+│ - NetworkX │ - Cosine   │ - Coord.   │   ANY    │
+│   formal.  │            │            │   plugin │
+│            │            │            │   output │
+└────────────┴────────────┴────────────┴──────────┘
+```
+
+**Key Principles**:
+- **OpenTelemetry Standard**: Not locked to specific vendor - any OTel backend works
+- **Logfire Recommended**: Ease of use with PydanticAI + Logfire MCP for debugging
+- **Local Development**: Opik or other OTel tools for local development
+- **Plugin Architecture**: ALL modules are independent plugins with no inter-plugin dependencies
+- **LLM-as-a-Judge Multi-Mode**: Special plugin that can analyze outputs from ANY other plugin
+- **Composable Design**: Mix and match plugins based on evaluation needs
+
 ## Technical Requirements
 
 ### Core Dependencies
@@ -42,13 +76,33 @@ analysis.
 | rapidfuzz    | >=3.0   | Fast string similarity (Levenshtein, Jaro-W.)  |
 | scikit-learn | >=1.7   | ML metrics (F1, precision, recall, cosine sim) |
 
-### Observability (Layered Approach)
+### Observability (OpenTelemetry-Based)
 
-| Package | Version | Purpose                                    |
-| ------- | ------- | ------------------------------------------ |
-| loguru  | >=0.7   | Local structured logging                   |
-| logfire | >=3.16  | PydanticAI tracing (optional cloud export) |
-| weave   | >=0.51  | W&B integration (optional)                 |
+**Standard**: OpenTelemetry traces/spans for capturing agent interactions.
+
+**Goal**: Extract graph structures from OTel traces and formalize with NetworkX.
+
+| Package | Version | Purpose                                         |
+| ------- | ------- | ----------------------------------------------- |
+| loguru  | >=0.7   | Local structured logging                        |
+| logfire | >=3.16  | **Recommended** OTel backend (PydanticAI native)|
+| weave   | >=0.51  | W&B integration (optional)                      |
+
+**Why Logfire (Recommended)**:
+- Native PydanticAI integration: `logfire.instrument_pydantic_ai()`
+- Logfire MCP for AI-assisted debugging
+- Same vendor as PydanticAI (Pydantic team)
+
+**Alternative OTel Backends**:
+- **Opik**: For local development with built-in evaluation metrics
+- **Jaeger**: Open-source distributed tracing
+- **Any OpenTelemetry-compatible backend**: Framework is not vendor-locked
+
+#### Developer Tooling
+
+- [Logfire MCP](https://github.com/pydantic/logfire-mcp) - AI-assisted trace debugging (requires Logfire)
+
+Install: `claude mcp add logfire -e LOGFIRE_READ_TOKEN="..." -- uvx logfire-mcp@latest`
 
 ### Data Processing
 
@@ -231,8 +285,12 @@ LLM-based assessment against human baseline reviews from PeerRead dataset.
 
 #### Feature 5: Graph-Based Complexity Analysis
 
-**Description**: Analyze provided agent interaction data through graph-based
-structural analysis to understand coordination complexity.
+**Data Source**: OpenTelemetry traces (any OTel-compatible backend)
+
+**Goal**: Extract graph structures from OTel trace spans and formalize using NetworkX.
+
+**Description**: Extract agent interaction graphs from OpenTelemetry traces and
+perform structural complexity analysis using NetworkX formalization.
 
 **User Stories**:
 
@@ -261,6 +319,19 @@ structural analysis to understand coordination complexity.
 
 - `src/agenteval/metrics/graph.py` - Graph-based metrics
 - `tests/test_graph.py` - Tests for graph metrics
+
+---
+
+### Analyzer Plugins
+
+All plugins operate independently with no inter-plugin dependencies.
+
+| Plugin         | Input           | Output              | Notes                                    |
+| -------------- | --------------- | ------------------- | ---------------------------------------- |
+| Graph Plugin   | OTel Traces     | Graph structures    | Extracts graphs from traces using NetworkX |
+| Text Metrics   | Reviews         | Similarity scores   | Levenshtein, Jaro-Winkler, Cosine sim   |
+| Perf Metrics   | Traces          | Timing metrics      | Execution time, success rate, coordination |
+| LLM-as-a-Judge | ANY plugin output | Semantic scores   | Multi-mode: can analyze output from any plugin |
 
 ---
 
