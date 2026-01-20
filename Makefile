@@ -152,24 +152,7 @@ ralph_reorganize:  ## Archive current PRD and ralph state. Usage: make ralph_reo
 	bash scripts/ralph/reorganize_prd.sh $(if $(filter 1,$(ARCHIVE_LOGS)),-l)
 
 ralph_abort:  ## Abort all running Ralph loops
-	echo "Aborting all running Ralph loops..."
-	ralph_pids=$$(ps aux | grep "scripts/ralph/ralph.sh" | grep -v grep | awk '{print $$2}' || true)
-	if [ -n "$$ralph_pids" ]; then
-		echo "Found Ralph processes: $$ralph_pids"
-		kill $$ralph_pids 2>/dev/null || true
-		sleep 1
-		# Force kill if still running
-		kill -9 $$ralph_pids 2>/dev/null || true
-		echo "Ralph loops terminated"
-	else
-		echo "No running Ralph loops found"
-	fi
-	# Also kill any orphaned Claude processes spawned by Ralph
-	claude_pids=$$(ps aux | grep "claude -p.*dangerously-skip-permissions" | grep -v grep | awk '{print $$2}' || true)
-	if [ -n "$$claude_pids" ]; then
-		echo "Cleaning up orphaned Claude processes: $$claude_pids"
-		kill $$claude_pids 2>/dev/null || true
-	fi
+	bash scripts/ralph/abort.sh
 
 
 # MARK: help
