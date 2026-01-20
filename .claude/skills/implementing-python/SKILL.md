@@ -18,7 +18,7 @@ See `docs/python-best-practices.md` for comprehensive Python guidelines.
 2. **Validate scope** - Simple (100-200 lines) vs Complex (500+ lines)
 3. **Study existing patterns** in `src/` structure
 4. **Implement minimal solution** matching stated functionality
-5. **Run `make quick_validate`** after writing code - fix formatting/type errors immediately
+5. **Run `make validate_quick`** after writing code - fix formatting/type errors immediately
 6. **Create focused tests** matching task complexity
 7. **Run `make validate`** for full validation - fix all remaining issues
 
@@ -43,7 +43,7 @@ necessary dependencies, full test coverage
 **During development** (after writing code):
 
 ```bash
-make quick_validate  # Fast check: formatting + types
+make validate_quick  # Fast check: formatting + types + tests
 ```
 
 **Before completing** any task:

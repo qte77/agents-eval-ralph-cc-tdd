@@ -53,6 +53,29 @@ log_info() { echo -e "${GREEN}[INFO]${NC} $1" >&2; }
 log_warn() { echo -e "${YELLOW}[WARN]${NC} $1" >&2; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1" >&2; }
 
+# Smart model selection router - classify story complexity
+# Returns "haiku" for simple tasks, "sonnet" for complex tasks
+classify_story() {
+    local title="$1"
+    local description="$2"
+    local combined="$title $description"
+
+    # Use haiku (5x cheaper, 2x faster) for simple tasks
+    if echo "$combined" | grep -qiE "fix|typo|update.*doc|small.*change|minor|format|style|cleanup|remove.*unused"; then
+        echo "haiku"
+        return 0
+    fi
+
+    # Use haiku for documentation-only changes
+    if echo "$combined" | grep -qiE "^(docs|documentation|readme|comment)"; then
+        echo "haiku"
+        return 0
+    fi
+
+    # Use sonnet for everything else (new features, refactoring, tests)
+    echo "sonnet"
+}
+
 # Validate environment
 validate_environment() {
     log_info "Validating environment..."
@@ -178,6 +201,10 @@ execute_story() {
 
     log_info "Executing story: $story_id - $title"
 
+    # Smart model selection based on story complexity
+    local model=$(classify_story "$title" "$description")
+    log_info "Using model: $model (based on story complexity)"
+
     # Create prompt for this iteration
     local iteration_prompt=$(mktemp)
     cat "$PROMPT_FILE" > "$iteration_prompt"
@@ -191,9 +218,9 @@ execute_story() {
         echo "Read prd.json for full acceptance criteria and expected files."
     } >> "$iteration_prompt"
 
-    # Execute via Claude Code
+    # Execute via Claude Code with selected model
     log_info "Running Claude Code with story context..."
-    if cat "$iteration_prompt" | claude -p --dangerously-skip-permissions 2>&1 | tee "/tmp/ralph_execute_${story_id}.log"; then
+    if cat "$iteration_prompt" | claude -p --model "$model" --dangerously-skip-permissions 2>&1 | tee "/tmp/ralph_execute_${story_id}.log"; then
         log_info "Execution log saved: /tmp/ralph_execute_${story_id}.log"
         rm "$iteration_prompt"
         return 0
@@ -235,6 +262,10 @@ fix_validation_errors() {
     while [ $attempt -le $max_attempts ]; do
         log_info "Fix attempt $attempt/$max_attempts"
 
+        # Use haiku for fixes (usually simpler than initial implementation)
+        local model="haiku"
+        log_info "Using model: $model (validation fix)"
+
         # Reuse main prompt with story details + validation errors
         local fix_prompt=$(mktemp)
         cat "$PROMPT_FILE" > "$fix_prompt"
@@ -256,19 +287,35 @@ fix_validation_errors() {
             echo "Fix all errors and run \`make validate\` to verify."
         } >> "$fix_prompt"
 
-        # Execute fix via Claude Code
-        if cat "$fix_prompt" | claude -p --dangerously-skip-permissions 2>&1 | tee "/tmp/ralph_fix_${story_id}_${attempt}.log"; then
+        # Execute fix via Claude Code with haiku model
+        if cat "$fix_prompt" | claude -p --model "$model" --dangerously-skip-permissions 2>&1 | tee "/tmp/ralph_fix_${story_id}_${attempt}.log"; then
             log_info "Fix attempt log saved: /tmp/ralph_fix_${story_id}_${attempt}.log"
             rm "$fix_prompt"
 
-            # Re-run validation
+            # Use quick validation (no coverage) for intermediate attempts to save time, full validation on last attempt
             local retry_log="/tmp/ralph_validate_fix_${attempt}.log"
-            if run_quality_checks "$retry_log"; then
-                log_info "Validation passed after fix attempt $attempt"
-                return 0
+            if [ $attempt -lt $max_attempts ]; then
+                log_info "Running quick validation (attempt $attempt/$max_attempts)..."
+                if make validate_quick 2>&1 | tee "$retry_log"; then
+                    # Quick validation passed, run full validation to confirm
+                    if run_quality_checks "$retry_log"; then
+                        log_info "Full validation passed after fix attempt $attempt"
+                        return 0
+                    fi
+                else
+                    log_warn "Quick validation still failing after fix attempt $attempt"
+                    error_log="$retry_log"  # Use new errors for next attempt
+                fi
             else
-                log_warn "Validation still failing after fix attempt $attempt"
-                error_log="$retry_log"  # Use new errors for next attempt
+                # Last attempt - run full validation directly
+                log_info "Running full validation (final attempt)..."
+                if run_quality_checks "$retry_log"; then
+                    log_info "Validation passed after fix attempt $attempt"
+                    return 0
+                else
+                    log_warn "Validation still failing after fix attempt $attempt"
+                    error_log="$retry_log"  # Use new errors for next attempt
+                fi
             fi
         else
             log_error "Fix execution failed, log saved: /tmp/ralph_fix_${story_id}_${attempt}.log"
