@@ -7,10 +7,9 @@ integrated observability for debugging and monitoring.
 from datetime import datetime
 from pathlib import Path
 
+from agenteval.pipeline import PipelineResult
 from loguru import logger
 from pydantic import BaseModel
-
-from agenteval.pipeline import PipelineResult
 
 
 class ReportConfig(BaseModel):

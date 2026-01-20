@@ -7,11 +7,11 @@ loguru console logging and optional Logfire/Weave cloud export.
 import json
 from pathlib import Path
 
+from agenteval.pipeline import PipelineResult
 from loguru import logger
 
 from agenteval.config import Config
 from agenteval.models.evaluation import Evaluation, Metrics, Report
-from agenteval.pipeline import PipelineResult
 
 # Optional cloud observability imports (fail gracefully if not installed)
 try:

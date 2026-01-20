@@ -212,9 +212,8 @@ class TestObservabilityIntegration:
 
     def test_observability_config_integration(self):
         """Test observability respects configuration settings."""
-        from agenteval.report import generate_report_with_config
-
         from agenteval.config.config import Config
+        from agenteval.report import generate_report_with_config
 
         config = Config(
             observability={
@@ -274,9 +273,8 @@ class TestObservabilityIntegration:
     @patch("agenteval.report.export_to_logfire")
     def test_optional_logfire_export(self, mock_export):
         """Test optional Logfire cloud export when enabled."""
-        from agenteval.report import generate_report_with_config
-
         from agenteval.config.config import Config
+        from agenteval.report import generate_report_with_config
 
         config = Config(
             observability={
@@ -306,9 +304,8 @@ class TestObservabilityIntegration:
     @patch("agenteval.report.export_to_weave")
     def test_optional_weave_export(self, mock_export):
         """Test optional Weave cloud export when enabled."""
-        from agenteval.report import generate_report_with_config
-
         from agenteval.config.config import Config
+        from agenteval.report import generate_report_with_config
 
         config = Config(
             observability={
