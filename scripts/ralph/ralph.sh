@@ -44,7 +44,7 @@ BRANCH_PREFIX="ralph/story-"
 
 # Model Configuration
 DEFAULT_MODEL="sonnet"    # Model for complex stories
-SIMPLE_MODEL="haiku"      # Model for simple tasks (5x cheaper, 2x faster)
+SIMPLE_MODEL="haiku"      # Model for simple tasks
 FIX_MODEL="haiku"         # Model for validation fixes
 # Patterns that trigger SIMPLE_MODEL (case-insensitive grep -E regex)
 SIMPLE_PATTERNS="fix|typo|update.*doc|small.*change|minor|format|style|cleanup|remove.*unused"
