@@ -7,6 +7,9 @@ against human baseline reviews using LLM-based assessment.
 from agenteval.models.data import Review
 from agenteval.models.evaluation import Evaluation
 
+# Default evaluation criteria
+DEFAULT_CRITERIA = ["relevance", "clarity", "depth"]
+
 
 def evaluate_review(
     agent_review: Review,
@@ -24,7 +27,7 @@ def evaluate_review(
         Evaluation: Evaluation result with semantic score and justification
     """
     if criteria is None:
-        criteria = ["relevance", "clarity", "depth"]
+        criteria = DEFAULT_CRITERIA
 
     # Calculate semantic similarity (mock implementation)
     # In production, this would use an actual LLM to judge quality
@@ -122,16 +125,14 @@ def evaluate_review_batch(
     if not pairs:
         raise ValueError("Batch cannot be empty")
 
-    results = []
-    for pair in pairs:
-        evaluation = evaluate_review(
+    return [
+        evaluate_review(
             agent_review=pair["agent_review"],
             baseline_review=pair["baseline_review"],
             criteria=criteria,
         )
-        results.append(evaluation)
-
-    return results
+        for pair in pairs
+    ]
 
 
 class LLMJudge:
@@ -148,7 +149,7 @@ class LLMJudge:
             criteria: List of evaluation criteria (default: relevance, clarity, depth)
         """
         if criteria is None:
-            criteria = ["relevance", "clarity", "depth"]
+            criteria = DEFAULT_CRITERIA
         self.criteria = criteria
 
     def evaluate(
