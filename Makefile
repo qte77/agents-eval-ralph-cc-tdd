@@ -147,18 +147,8 @@ ralph_clean:  ## Reset Ralph state (WARNING: removes prd.json and progress.txt)
 	rm -f docs/ralph/prd.json docs/ralph/progress.txt
 	echo "Ralph state cleaned. Run 'make ralph_init_loop' to reinitialize."
 
-ralph_reorganize:  ## Archive current PRD and start new iteration. Usage: make ralph_reorganize NEW_PRD=path/to/new.md [VERSION=2]
-	@if [ -z "$(NEW_PRD)" ]; then
-		echo "Error: NEW_PRD parameter required"
-		echo "Usage: make ralph_reorganize NEW_PRD=docs/PRD-New.md [VERSION=2]"
-		exit 1
-	fi
-	@VERSION_ARG=""
-	if [ -n "$(VERSION)" ]; then
-		VERSION_ARG="-v $(VERSION)"
-	fi
-	bash scripts/ralph/reorganize_prd.sh $$VERSION_ARG $(NEW_PRD)
-	$(MAKE) -s ralph_validate_json
+ralph_reorganize:  ## Archive current PRD and optionally activate new one. Usage: make ralph_reorganize [NEW_PRD=path/to/new.md]
+	bash scripts/ralph/reorganize_prd.sh $(NEW_PRD)
 
 ralph_abort:  ## Abort all running Ralph loops
 	echo "Aborting all running Ralph loops..."
