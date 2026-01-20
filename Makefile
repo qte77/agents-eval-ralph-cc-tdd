@@ -1,6 +1,7 @@
 # This Makefile automates the build, test, and clean processes for the project.
 # It provides a convenient way to run common tasks using the 'make' command.
 # It is designed to work with the 'uv' tool for managing Python environments and dependencies.
+# Note: UV_LINK_MODE could be configured in .devcontainer/project/devcontainer.json
 # Run `make help` to see all available recipes.
 
 .SILENT:
@@ -147,8 +148,8 @@ ralph_clean:  ## Reset Ralph state (WARNING: removes prd.json and progress.txt)
 	rm -f docs/ralph/prd.json docs/ralph/progress.txt
 	echo "Ralph state cleaned. Run 'make ralph_init_loop' to reinitialize."
 
-ralph_reorganize:  ## Archive current PRD and optionally activate new one. Usage: make ralph_reorganize [NEW_PRD=path/to/new.md]
-	bash scripts/ralph/reorganize_prd.sh $(NEW_PRD)
+ralph_reorganize:  ## Archive current PRD and ralph state. Usage: make ralph_reorganize [ARCHIVE_LOGS=1]
+	bash scripts/ralph/reorganize_prd.sh $(if $(filter 1,$(ARCHIVE_LOGS)),-l)
 
 ralph_abort:  ## Abort all running Ralph loops
 	echo "Aborting all running Ralph loops..."
