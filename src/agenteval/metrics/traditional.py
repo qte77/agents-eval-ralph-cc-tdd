@@ -27,7 +27,9 @@ def calculate_execution_time(start_time: float, end_time: float) -> float:
     Raises:
         ValueError: If end_time is before start_time
     """
-    raise NotImplementedError("RED phase - not implemented yet")
+    if end_time < start_time:
+        raise ValueError("End time must be after start time")
+    return end_time - start_time
 
 
 def calculate_success_rate(task_results: list[bool]) -> float:
@@ -42,7 +44,9 @@ def calculate_success_rate(task_results: list[bool]) -> float:
     Raises:
         ValueError: If task_results is empty
     """
-    raise NotImplementedError("RED phase - not implemented yet")
+    if not task_results:
+        raise ValueError("Task results cannot be empty")
+    return sum(task_results) / len(task_results)
 
 
 def calculate_coordination_quality(coordination_events: list[dict[str, Any]]) -> float:
@@ -57,7 +61,10 @@ def calculate_coordination_quality(coordination_events: list[dict[str, Any]]) ->
     Raises:
         ValueError: If coordination_events is empty
     """
-    raise NotImplementedError("RED phase - not implemented yet")
+    if not coordination_events:
+        raise ValueError("Coordination events cannot be empty")
+    successful_events = sum(1 for event in coordination_events if event["success"])
+    return successful_events / len(coordination_events)
 
 
 class TraditionalMetrics(BaseModel):
@@ -78,7 +85,15 @@ class TraditionalMetrics(BaseModel):
         Returns:
             Metrics model with execution_time_seconds, success_rate, and coordination_quality
         """
-        raise NotImplementedError("RED phase - not implemented yet")
+        execution_time = calculate_execution_time(self.start_time, self.end_time)
+        success_rate = calculate_success_rate(self.task_results)
+        coordination_quality = calculate_coordination_quality(self.coordination_events)
+
+        return Metrics(
+            execution_time_seconds=execution_time,
+            success_rate=success_rate,
+            coordination_quality=coordination_quality,
+        )
 
 
 def evaluate_batch(runs: list[dict[str, Any]]) -> list[Metrics]:
@@ -94,4 +109,17 @@ def evaluate_batch(runs: list[dict[str, Any]]) -> list[Metrics]:
     Raises:
         ValueError: If runs is empty
     """
-    raise NotImplementedError("RED phase - not implemented yet")
+    if not runs:
+        raise ValueError("Batch cannot be empty")
+
+    results = []
+    for run in runs:
+        metrics = TraditionalMetrics(
+            start_time=run["start_time"],
+            end_time=run["end_time"],
+            task_results=run["task_results"],
+            coordination_events=run["coordination_events"],
+        )
+        results.append(metrics.calculate())
+
+    return results
