@@ -29,11 +29,13 @@ src/agenteval
 │   ├── config.py
 │   ├── default.json
 │   └── __init__.py
+├── example.py
 ├── __init__.py
-└── models
-    ├── data.py
-    ├── evaluation.py
-    └── __init__.py
+├── models
+│   ├── data.py
+│   ├── evaluation.py
+│   └── __init__.py
+└── README.md
 tests/
 ├── __init__.py
 ├── test_config.py
