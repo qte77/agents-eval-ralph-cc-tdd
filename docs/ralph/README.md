@@ -195,15 +195,20 @@ make ralph_clean                # Clean worktrees + local state (requires double
 ```
 
 **Safety Features:**
+
 - `ralph_clean` requires double confirmation:
   1. Type `'yes'` to confirm
   2. Type `'YES'` (uppercase) to proceed
 - Shows what will be deleted before asking for confirmation
 - Cannot be undone - use with caution
 
-**Scoring** (N_WT>1 only): `(stories × 100) + test_count + validation_bonus`
+**Scoring:**
 
-**Config:** `RALPH_PARALLEL_*` variables in `scripts/ralph/lib/config.sh`
+(N_WT>1 only): `(stories × 100) + test_count + validation_bonus`
+
+**Config:**
+
+`RALPH_PARALLEL_*` variables in `scripts/ralph/lib/config.sh`
 
 ## Execution Flow Details
 
@@ -236,11 +241,33 @@ make ralph [N_WT=1] [ITERATIONS=25]
 
 ## TODO
 
+### High Priority (High ROI)
+
+- **Claude Judge for Parallel Runs**: Replace simple scoring `(stories × 100) + test_count` with AI-based evaluation. Claude evaluates code quality, design, test coverage across worktrees. Can recommend "winner" or "cherry-pick" best modules from each worktree into hybrid codebase. Add `templates/judge.md` prompt and `lib/judge.sh`.
+- **Directory Consolidation**: Consolidate `scripts/ralph/` and `docs/ralph/` into single `ralph/` root directory for cleaner ownership. Structure: `ralph/{scripts,templates,state,docs}`. Add symlinks for backward compatibility.
 - **Clean up intermediate files**: Remove `*_green.py`, `*_red.py`, `*_stub` after story completion
 - **E2E tests**: Add end-to-end test coverage for full application paths
-- **Smart Story Distribution**: Analyze dependency graph, distribute independent stories across worktrees
+
+### Medium Priority
+
+- **Smart Story Distribution**: Analyze dependency graph, run independent stories in parallel by spinning up a new worktree
 - **Memory/Lessons Learned**: Simple `AGENT_LEARNINGS.md` mechanism
 - **Bi-directional Communication**: `AGENT_REQUESTS.md` for human-agent communication
-- **Real-time Dashboard**: Live monitoring UI for parallel worktrees
 - **Auto-resolve Conflicts**: Programmatic merge conflict resolution
 - **Plugin Integration**: Ralph commands as Claude Code skills
+- **Vibe Kanban UI Exploration**: Evaluate [Vibe Kanban](https://github.com/BloopAI/vibe-kanban) (9.4k stars, Apache 2.0) as visual UI layer. Provides Kanban board for parallel agents, git worktree isolation, built-in diff review. Install: `npx vibe-kanban`. Compatible with Claude Code.
+
+### Low Priority (Future Exploration)
+
+- **Real-time Dashboard**: Live monitoring UI for parallel worktrees
+- **JSON Status API Output** (Team/Enterprise quick win): Add `ralph --status --json` for structured output. Foundation for dashboards, CI/CD hooks, monitoring. Enables Grafana, Datadog, custom UIs.
+- **Slack/Teams Notifications** (Team/Enterprise quick win): Post completion/failure alerts to team channels. Hook into `parallel_ralph.sh` completion. Example: "Ralph completed STORY-005 ✅" → `#dev-alerts`.
+- **Rippletide Eval Integration**: Add hallucination detection for generated docs/comments using [Rippletide Eval CLI](https://docs.rippletide.com). Scores agent outputs 1-4, flags unsupported claims.
+- **Conductor.build Integration** (macOS only): Evaluate [Conductor](https://conductor.build) for visual parallel agent orchestration. Uses same git worktree pattern as Ralph. Main value: visual dashboard, code review UI. Consider if team uses macOS; otherwise Vibe Kanban (cross-platform, open source) covers similar needs.
+- **Omnara.com Integration**: Mobile/voice interface for Claude Code. Available SDKs (no custom HTTP layer needed):
+  - **Python SDK**: `pip install omnara` - log events, request user input programmatically
+  - **NPM CLI**: `@omnara/cli` - CLI wrapper
+  - **n8n nodes**: `n8n-nodes-omnara` - workflow automation with "Human in the Loop" node
+  - **New platform**: `curl -fsSL https://omnara.com/install/install.sh | bash` (built on Claude Agent SDK)
+  - **Devcontainer note**: No explicit devcontainer/remote container support. Designed for local machine agents. Workaround: run Omnara inside the container, mount `.claude` folder for persistence.
+  - Potential use: push notifications on Ralph completion, mobile approval for cherry-pick decisions, remote status monitoring. See [GitHub](https://github.com/omnara-ai/omnara), [PyPI](https://pypi.org/project/omnara/).
