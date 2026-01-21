@@ -32,7 +32,7 @@ def test_paper_model_validation_requires_id():
             abstract="Abstract",
             authors=["Alice"],
             content="Content"
-        )
+        )  # type: ignore[call-arg]
 
 
 def test_review_model_creation():
