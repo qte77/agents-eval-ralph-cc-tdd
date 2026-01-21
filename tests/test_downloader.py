@@ -4,7 +4,10 @@ from pathlib import Path
 from unittest.mock import AsyncMock, patch
 
 import pytest
+
 from agenteval.data.downloader import DatasetDownloader
+
+pytestmark = pytest.mark.anyio
 
 
 def test_downloader_initialization():
@@ -17,7 +20,6 @@ def test_downloader_initialization():
     assert downloader.local_path == Path("data/peerread")
 
 
-@pytest.mark.asyncio
 async def test_download_dataset_creates_directory(tmp_path):
     """Test that download creates local directory structure."""
     downloader = DatasetDownloader(
@@ -27,7 +29,7 @@ async def test_download_dataset_creates_directory(tmp_path):
     with patch("agenteval.data.downloader.httpx.AsyncClient") as mock_client:
         mock_response = AsyncMock()
         mock_response.status_code = 200
-        mock_response.json.return_value = {"files": []}
+        mock_response.content = b"test content"
         mock_client.return_value.__aenter__.return_value.get.return_value = mock_response
 
         await downloader.download()
@@ -35,7 +37,6 @@ async def test_download_dataset_creates_directory(tmp_path):
     assert downloader.local_path.exists()
 
 
-@pytest.mark.asyncio
 async def test_download_dataset_saves_files(tmp_path):
     """Test that download saves dataset files locally."""
     downloader = DatasetDownloader(
@@ -57,7 +58,6 @@ async def test_download_dataset_saves_files(tmp_path):
     assert any(downloader.local_path.rglob("*.json"))
 
 
-@pytest.mark.asyncio
 async def test_download_generates_checksum_file(tmp_path):
     """Test that download generates checksums for integrity verification."""
     downloader = DatasetDownloader(
@@ -77,7 +77,6 @@ async def test_download_generates_checksum_file(tmp_path):
     assert checksum_file.exists()
 
 
-@pytest.mark.asyncio
 async def test_verify_dataset_integrity(tmp_path):
     """Test that verify checks dataset integrity using checksums."""
     downloader = DatasetDownloader(
@@ -100,7 +99,6 @@ async def test_verify_dataset_integrity(tmp_path):
     assert result is True
 
 
-@pytest.mark.asyncio
 async def test_verify_fails_on_corrupted_data(tmp_path):
     """Test that verify detects corrupted dataset files."""
     downloader = DatasetDownloader(
@@ -120,7 +118,6 @@ async def test_verify_fails_on_corrupted_data(tmp_path):
     assert result is False
 
 
-@pytest.mark.asyncio
 async def test_download_creates_version_metadata(tmp_path):
     """Test that download creates version metadata file."""
     downloader = DatasetDownloader(
@@ -146,7 +143,6 @@ async def test_download_creates_version_metadata(tmp_path):
     assert "source_url" in version_data
 
 
-@pytest.mark.asyncio
 async def test_download_handles_network_errors():
     """Test that download handles network errors gracefully."""
     downloader = DatasetDownloader(
