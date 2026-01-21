@@ -16,7 +16,7 @@ def test_paper_model_creation():
         title="Test Paper",
         abstract="This is a test abstract.",
         authors=["Alice", "Bob"],
-        content="Full paper content here."
+        content="Full paper content here.",
     )
 
     assert paper.id == "paper-123"
@@ -27,12 +27,7 @@ def test_paper_model_creation():
 def test_paper_model_validation_requires_id():
     """Test Paper model validation fails without required id field."""
     with pytest.raises(ValidationError):
-        Paper(
-            title="Test Paper",
-            abstract="Abstract",
-            authors=["Alice"],
-            content="Content"
-        )  # type: ignore[call-arg]
+        Paper(title="Test Paper", abstract="Abstract", authors=["Alice"], content="Content")  # type: ignore[call-arg]
 
 
 def test_review_model_creation():
@@ -45,7 +40,7 @@ def test_review_model_creation():
         summary="Good paper with minor issues.",
         strengths=["Clear methodology", "Novel approach"],
         weaknesses=["Limited scope"],
-        confidence=4
+        confidence=4,
     )
 
     assert review.id == "review-456"
@@ -65,7 +60,7 @@ def test_review_model_rating_validation():
             summary="Summary",
             strengths=["strength"],
             weaknesses=["weakness"],
-            confidence=4
+            confidence=4,
         )
 
 
@@ -76,7 +71,7 @@ def test_metrics_model_creation():
         success_rate=0.95,
         coordination_quality=0.87,
         graph_density=0.42,
-        graph_centrality={"node1": 0.8, "node2": 0.6}
+        graph_centrality={"node1": 0.8, "node2": 0.6},
     )
 
     assert metrics.execution_time == 45.2
@@ -93,7 +88,7 @@ def test_evaluation_model_creation():
         human_baseline_id="review-111",
         semantic_score=8.2,
         justification="Agent review demonstrates good understanding.",
-        evaluated_at=datetime.now()
+        evaluated_at=datetime.now(),
     )
 
     assert evaluation.id == "eval-789"
@@ -108,7 +103,7 @@ def test_report_model_creation():
         success_rate=0.95,
         coordination_quality=0.87,
         graph_density=0.42,
-        graph_centrality={"node1": 0.8}
+        graph_centrality={"node1": 0.8},
     )
 
     evaluation = Evaluation(
@@ -118,7 +113,7 @@ def test_report_model_creation():
         human_baseline_id="review-111",
         semantic_score=8.2,
         justification="Good review.",
-        evaluated_at=datetime.now()
+        evaluated_at=datetime.now(),
     )
 
     report = Report(
@@ -127,7 +122,7 @@ def test_report_model_creation():
         created_at=datetime.now(),
         metrics=metrics,
         evaluations=[evaluation],
-        summary="Evaluation completed successfully."
+        summary="Evaluation completed successfully.",
     )
 
     assert report.id == "report-001"
@@ -142,7 +137,7 @@ def test_report_model_allows_empty_evaluations():
         success_rate=0.0,
         coordination_quality=0.0,
         graph_density=0.0,
-        graph_centrality={}
+        graph_centrality={},
     )
 
     report = Report(
@@ -151,7 +146,7 @@ def test_report_model_allows_empty_evaluations():
         created_at=datetime.now(),
         metrics=metrics,
         evaluations=[],
-        summary="No evaluations yet."
+        summary="No evaluations yet.",
     )
 
     assert report.id == "report-002"
@@ -165,7 +160,7 @@ def test_models_are_json_serializable():
         title="Test Paper",
         abstract="Abstract",
         authors=["Alice"],
-        content="Content"
+        content="Content",
     )
 
     review = Review(
@@ -176,7 +171,7 @@ def test_models_are_json_serializable():
         summary="Summary",
         strengths=["strength"],
         weaknesses=["weakness"],
-        confidence=4
+        confidence=4,
     )
 
     # Test JSON serialization

@@ -2,7 +2,7 @@
 
 import hashlib
 import json
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 
 import httpx
@@ -40,10 +40,10 @@ class DatasetDownloader:
             data_file.write_bytes(response.content)
 
         # Generate checksums for all downloaded files
-        await self._generate_checksums()
+        self._generate_checksums()
 
         # Create version metadata
-        await self._create_version_metadata()
+        self._create_version_metadata()
 
     async def verify(self) -> bool:
         """Verify dataset integrity using checksums.
@@ -83,7 +83,7 @@ class DatasetDownloader:
 
         return json.loads(version_file.read_text())
 
-    async def _generate_checksums(self) -> None:
+    def _generate_checksums(self) -> None:
         """Generate SHA256 checksums for all dataset files."""
         checksums = {}
 
@@ -99,11 +99,11 @@ class DatasetDownloader:
         checksum_file = self.local_path / "checksums.json"
         checksum_file.write_text(json.dumps(checksums, indent=2))
 
-    async def _create_version_metadata(self) -> None:
+    def _create_version_metadata(self) -> None:
         """Create version metadata file for reproducibility."""
         metadata = {
             "source_url": self.source_url,
-            "downloaded_at": datetime.now().isoformat(),
+            "downloaded_at": datetime.now(UTC).isoformat(),
             "version": "1.0.0",
         }
 
