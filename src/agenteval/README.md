@@ -9,6 +9,7 @@ Application description
 - Establish foundation with JSON configuration management and shared Pydantic data models to prevent duplication across evaluation modules.
 - Download PeerRead dataset and persist locally with versioning for reproducibility and offline use.
 - Load and parse PeerRead dataset from local storage into structured Pydantic models.
+- Measure agent system performance with standard metrics for objective comparison of implementations.
 
 ## Quick Start
 
@@ -37,6 +38,9 @@ src/agenteval
 │   └── peerread.py
 ├── example.py
 ├── __init__.py
+├── metrics
+│   ├── __init__.py
+│   └── traditional.py
 ├── models
 │   ├── data.py
 │   ├── evaluation.py
@@ -46,7 +50,8 @@ tests/
 ├── test_config.py
 ├── test_downloader.py
 ├── test_models.py
-└── test_peerread.py
+├── test_peerread.py
+└── test_traditional.py
 ```
 
 ## Development
