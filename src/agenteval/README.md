@@ -7,6 +7,7 @@ Application description
 ## Why
 
 - Establish foundation with JSON configuration management and shared Pydantic data models to prevent duplication across evaluation modules.
+- Download PeerRead dataset and persist locally with versioning for reproducibility and offline use.
 
 ## Quick Start
 
@@ -29,13 +30,19 @@ src/agenteval
 │   ├── config.py
 │   ├── default.json
 │   └── __init__.py
+├── data
+│   ├── downloader.py
+│   └── __init__.py
+├── example.py
 ├── __init__.py
-└── models
-    ├── data.py
-    ├── evaluation.py
-    └── __init__.py
+├── models
+│   ├── data.py
+│   ├── evaluation.py
+│   └── __init__.py
+└── README.md
 tests/
 ├── test_config.py
+├── test_downloader.py
 └── test_models.py
 ```
 
