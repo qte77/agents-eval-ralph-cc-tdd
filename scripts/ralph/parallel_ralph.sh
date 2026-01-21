@@ -170,13 +170,25 @@ init_worktree_state() {
         cp "$RALPH_PRD_JSON" "$worktree_path/$RALPH_PRD_JSON"
     fi
 
-    # Create fresh progress.txt
+    # Copy or create progress.txt (append mode - preserves history)
     mkdir -p "$worktree_path/$RALPH_DOCS_DIR"
-    cat > "$worktree_path/$RALPH_PROGRESS_FILE" <<EOF
+    if [ -f "$RALPH_PROGRESS_FILE" ]; then
+        # Copy existing progress (preserves history)
+        cp "$RALPH_PROGRESS_FILE" "$worktree_path/$RALPH_PROGRESS_FILE"
+        # Append resume marker
+        cat >> "$worktree_path/$RALPH_PROGRESS_FILE" <<EOF
+
+## Resumed: $(date)
+
+EOF
+    else
+        # Create new progress file
+        cat > "$worktree_path/$RALPH_PROGRESS_FILE" <<EOF
 # Ralph Loop Progress - Worktree $i
 Started: $(date)
 
 EOF
+    fi
 
     log_info "Worktree $i state initialized"
 }
