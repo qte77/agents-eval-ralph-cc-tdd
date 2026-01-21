@@ -137,8 +137,8 @@
         "src/agenteval/metrics/graph.py",
         "tests/test_graph.py"
       ],
-      "passes": false,
-      "completed_at": null
+      "passes": true,
+      "completed_at": "2026-01-21T10:10:46.060603+00:00"
     },
     {
       "id": "STORY-006",
