@@ -3,6 +3,8 @@
 from datetime import datetime
 
 import pytest
+from pydantic import ValidationError
+
 from agenteval.models.data import Paper, Review
 from agenteval.models.evaluation import Evaluation, Metrics, Report
 
@@ -118,28 +120,33 @@ def test_report_model_creation():
 
 def test_paper_model_validates_required_fields():
     """Test that Paper model validates required fields."""
-    with pytest.raises(Exception):  # Pydantic ValidationError
-        Paper()  # type: ignore[call-arg]
+    with pytest.raises(ValidationError):
+        Paper()  # pyright: ignore[reportCallIssue]
 
 
 def test_review_model_validates_required_fields():
     """Test that Review model validates required fields."""
-    with pytest.raises(Exception):  # Pydantic ValidationError
-        Review()  # type: ignore[call-arg]
+    with pytest.raises(ValidationError):
+        Review()  # pyright: ignore[reportCallIssue]
 
 
 def test_metrics_model_has_optional_fields():
     """Test that Metrics model allows optional fields."""
-    # Create with minimal required fields
-    metrics = Metrics(  # type: ignore[call-arg]
+    # Create with minimal required fields (optional fields default to None)
+    metrics = Metrics(
         execution_time_seconds=10.0,
         task_success_rate=0.9,
+        coordination_quality=None,
+        semantic_similarity=None,
+        graph_density=None,
+        graph_centrality=None,
     )
 
     assert metrics.execution_time_seconds == 10.0
     assert metrics.task_success_rate == 0.9
-    # Optional fields should be None or have defaults
-    assert hasattr(metrics, "coordination_quality")
+    # Optional fields should be None
+    assert metrics.coordination_quality is None
+    assert metrics.semantic_similarity is None
 
 
 def test_models_are_json_serializable():
