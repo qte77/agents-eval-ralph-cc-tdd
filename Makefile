@@ -6,7 +6,7 @@
 
 .SILENT:
 .ONESHELL:
-.PHONY: setup_dev setup_claude_code setup_markdownlint setup_project run_markdownlint ruff test_all test_quick test_coverage type_check validate validate_quick quick_validate ralph_validate_json ralph_userstory ralph_prd ralph_full_init ralph_init_loop ralph_run ralph_status ralph_clean ralph_reorganize ralph_abort help
+.PHONY: setup_dev setup_claude_code setup_markdownlint setup_project run_markdownlint ruff test_all test_quick test_coverage test_e2e type_check validate validate_quick quick_validate ralph_validate_json ralph_userstory ralph_prd ralph_full_init ralph_init_loop ralph_run ralph_status ralph_clean ralph_reorganize ralph_abort ralph_parallel ralph_parallel_abort ralph_parallel_clean ralph_parallel_status ralph_parallel_watch ralph_parallel_log help
 .DEFAULT_GOAL := help
 
 # Ralph configuration - Quality thresholds
@@ -58,7 +58,7 @@ ruff:  ## Lint: Format and check with ruff
 	uv run ruff format --exclude tests
 	uv run ruff check --fix --exclude tests
 
-test_all:  ## Run all tests
+test_all:  ## Run all tests (excludes E2E tests by default)
 	uv run pytest
 
 test_quick:  ## Quick test - rerun only failed tests (use during fix iterations)
@@ -67,6 +67,11 @@ test_quick:  ## Quick test - rerun only failed tests (use during fix iterations)
 test_coverage:  ## Run tests with coverage threshold ($(MIN_TEST_COVERAGE)%)
 	echo "Running tests with $(MIN_TEST_COVERAGE)% coverage gate..."
 	uv run pytest --cov --cov-fail-under=$(MIN_TEST_COVERAGE)
+
+test_e2e:  ## Run E2E tests only (Ralph parallel loop tests)
+	echo "Running E2E tests..."
+	bash scripts/ralph/tests/test_parallel_ralph.sh
+	uv run pytest -m e2e -v
 
 type_check:  ## Check for static typing errors
 	uv run pyright
@@ -153,6 +158,32 @@ ralph_reorganize:  ## Archive current PRD and ralph state. Usage: make ralph_reo
 
 ralph_abort:  ## Abort all running Ralph loops
 	bash scripts/ralph/abort.sh
+
+# Parallel Ralph execution (git worktrees) - N=1 for isolation, N>1 for true parallelism
+# Flags: USE_LOCK=true (default), USE_NO_TRACK=true (default)
+ralph_parallel:  ## Run Ralph loop(s) (N=1 default, up to 10 parallel)
+	echo "Starting parallel Ralph loop (N=$${N:-1}, iterations=$${ITERATIONS:-25}) ..."
+	$(MAKE) -s ralph_validate_json
+	N=$${N:-1}
+	ITERATIONS=$${ITERATIONS:-25}
+	USE_LOCK=$${USE_LOCK:-true}
+	USE_NO_TRACK=$${USE_NO_TRACK:-true}
+	bash scripts/ralph/parallel_ralph.sh $$N $$ITERATIONS
+
+ralph_parallel_abort:  ## Abort all parallel loops and cleanup
+	bash scripts/ralph/parallel_ralph.sh abort
+
+ralph_parallel_clean:  ## Remove all worktrees without aborting
+	bash scripts/ralph/parallel_ralph.sh clean
+
+ralph_parallel_status:  ## Show summary status of all parallel worktrees
+	bash scripts/ralph/parallel_ralph.sh status
+
+ralph_parallel_watch:  ## Live-watch all parallel loop outputs (tail -f)
+	bash scripts/ralph/parallel_ralph.sh watch
+
+ralph_parallel_log:  ## Show output of specific worktree (WT=1)
+	bash scripts/ralph/parallel_ralph.sh log $${WT:-1}
 
 
 # MARK: help

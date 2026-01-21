@@ -1,0 +1,432 @@
+#!/bin/bash
+#
+# Parallel Ralph Loop - Orchestrator for parallel execution
+#
+# Usage: ./scripts/ralph/parallel_ralph.sh [N] [MAX_ITERATIONS]
+#        make ralph_parallel N=2 ITERATIONS=10
+#
+# Environment variables:
+#   USE_LOCK=true (default) - Lock worktrees to prevent pruning
+#   USE_NO_TRACK=true (default) - Create local-only branches
+#   LOCK_REASON="..." - Custom lock reason message
+#   WORKTREE_QUIET=false (default) - Suppress worktree output
+#   MERGE_VERIFY_SIGNATURES=false (default) - Verify GPG signatures
+#   MERGE_LOG=true (default) - Include commit descriptions in merge
+#
+# Examples:
+#   make ralph_parallel N=3 ITERATIONS=25
+#   USE_LOCK=false make ralph_parallel N=1
+#   MERGE_VERIFY_SIGNATURES=true make ralph_parallel N=2
+#
+# This script orchestrates parallel Ralph loop execution by:
+# 1. Creating N git worktrees (default=1, max=10)
+# 2. Running ralph.sh in each worktree SIMULTANEOUSLY (background jobs)
+# 3. Waiting for all to complete and scoring results
+# 4. Merging the best result back to original branch
+# 5. Cleaning up worktrees and branches
+#
+# Architecture:
+# - N=1: Single worktree isolation (security)
+# - N>1: True parallel execution via bash background jobs
+# - Worktrees default to --lock (prevents pruning) and --no-track (local branches)
+#   Both flags configurable via USE_LOCK and USE_NO_TRACK env vars
+# - Best result selected by scoring algorithm
+# - Merge via --no-ff --no-commit (dry-run test, then commit)
+#
+
+set -euo pipefail
+
+# Get script directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Source libraries
+source "$SCRIPT_DIR/lib/colors.sh"
+source "$SCRIPT_DIR/lib/config.sh"
+
+# Configuration
+N=${1:-1}                        # Number of parallel worktrees (default=1, max=10)
+MAX_ITERATIONS=${2:-10}          # Iterations per worktree
+WORKTREE_PREFIX="../agents-eval-ralph-wt"
+BRANCH_PREFIX="ralph/parallel"
+
+# Worktree flags (configurable but MANDATORY for safety)
+USE_LOCK=${USE_LOCK:-true}       # Prevents pruning during execution (STRONGLY RECOMMENDED)
+USE_NO_TRACK=${USE_NO_TRACK:-true}  # Local-only branches, no remote tracking (STRONGLY RECOMMENDED)
+LOCK_REASON=${LOCK_REASON:-"Parallel Ralph Loop execution"}  # Reason for locking worktree
+WORKTREE_QUIET=${WORKTREE_QUIET:-false}  # Suppress worktree creation output
+
+# Merge flags (configurable for advanced use cases)
+MERGE_VERIFY_SIGNATURES=${MERGE_VERIFY_SIGNATURES:-false}  # Verify GPG signatures before merge
+MERGE_LOG=${MERGE_LOG:-true}     # Include commit descriptions in merge commit
+
+# Validate N
+if [ "$N" -lt 1 ] || [ "$N" -gt 10 ]; then
+    log_error "N must be between 1 and 10 (got: $N)"
+    exit 1
+fi
+
+# PID tracking
+declare -a WORKTREE_PIDS=()
+declare -a WORKTREE_EXIT_CODES=()
+
+# Create worktree with optimized flags
+create_worktree() {
+    local i="$1"
+    local worktree_path="${WORKTREE_PREFIX}-${i}"
+    local branch_name="${BRANCH_PREFIX}-${i}"
+
+    log_info "Creating worktree $i at $worktree_path..."
+
+    # Build worktree command with optional flags (defaults: both enabled)
+    local wt_flags="-b $branch_name"
+
+    # --no-track: Creates local-only branch (no remote tracking = cleaner, no push conflicts)
+    [ "$USE_NO_TRACK" = "true" ] && wt_flags="--no-track $wt_flags"
+
+    # --lock: Prevents 'git worktree prune' from removing active worktrees during long runs
+    if [ "$USE_LOCK" = "true" ]; then
+        wt_flags="--lock --reason \"$LOCK_REASON\" $wt_flags"
+    fi
+
+    # --quiet: Suppress feedback messages
+    [ "$WORKTREE_QUIET" = "true" ] && wt_flags="--quiet $wt_flags"
+
+    git worktree add $wt_flags "$worktree_path" HEAD
+
+    log_info "Worktree $i created $([ "$USE_LOCK" = "true" ] && echo "and locked" || echo "")"
+}
+
+# Initialize worktree state (reset prd.json, fresh progress.txt)
+init_worktree_state() {
+    local i="$1"
+    local worktree_path="${WORKTREE_PREFIX}-${i}"
+
+    log_info "Initializing state for worktree $i..."
+
+    # Reset prd.json to original state (all stories incomplete)
+    if [ -f "prd.json" ]; then
+        # Reset all passes to false and clear completed_at
+        jq '(.stories[] | .passes) = false | (.stories[] | .completed_at) = null' \
+            "prd.json" > "$worktree_path/prd.json"
+    fi
+
+    # Create fresh progress.txt
+    mkdir -p "$worktree_path/docs/ralph"
+    cat > "$worktree_path/docs/ralph/progress.txt" <<EOF
+# Ralph Loop Progress - Worktree $i
+Started: $(date)
+
+EOF
+
+    log_info "Worktree $i state initialized"
+}
+
+# Start parallel ralph.sh execution
+start_parallel() {
+    local i="$1"
+    local worktree_path="${WORKTREE_PREFIX}-${i}"
+    local log_file="$worktree_path/ralph.log"
+
+    log_info "Starting ralph.sh in worktree $i (background)..."
+
+    (
+        cd "$worktree_path"
+        ./scripts/ralph/ralph.sh "$MAX_ITERATIONS" > "$log_file" 2>&1
+    ) &
+
+    WORKTREE_PIDS[$i]=$!
+    log_info "Worktree $i running (PID: ${WORKTREE_PIDS[$i]})"
+}
+
+# Wait for all worktrees and monitor completion
+wait_and_monitor() {
+    log_info "Waiting for all $N worktrees to complete..."
+
+    for i in $(seq 1 $N); do
+        local pid=${WORKTREE_PIDS[$i]}
+        log_info "Waiting for worktree $i (PID: $pid)..."
+
+        if wait "$pid"; then
+            WORKTREE_EXIT_CODES[$i]=0
+            log_info "Worktree $i completed successfully"
+        else
+            WORKTREE_EXIT_CODES[$i]=$?
+            log_warn "Worktree $i exited with code: ${WORKTREE_EXIT_CODES[$i]}"
+        fi
+    done
+
+    log_info "All worktrees completed"
+}
+
+# Score worktree results
+score_worktree() {
+    local i="$1"
+    local worktree_path="${WORKTREE_PREFIX}-${i}"
+    local prd_json="$worktree_path/prd.json"
+
+    if [ ! -f "$prd_json" ]; then
+        echo 0
+        return
+    fi
+
+    # Scoring: (stories_passed * 100) + test_count + (validation_pass ? 50 : 0)
+    local stories_passed=$(jq '[.stories[] | select(.passes == true)] | length' "$prd_json" 2>/dev/null || echo 0)
+
+    # Count test files in worktree
+    local test_count=$(find "$worktree_path" -name "test_*.py" -type f 2>/dev/null | wc -l)
+
+    # Check if last validation passed (exit code 0)
+    local validation_bonus=0
+    if [ "${WORKTREE_EXIT_CODES[$i]}" -eq 0 ]; then
+        validation_bonus=50
+    fi
+
+    local score=$((stories_passed * 100 + test_count + validation_bonus))
+    echo "$score"
+}
+
+# Select best worktree
+select_best() {
+    log_info "Scoring all worktrees..."
+
+    local best_wt=1
+    local best_score=$(score_worktree 1)
+
+    for i in $(seq 2 $N); do
+        local score=$(score_worktree $i)
+        log_info "Worktree $i score: $score (best: $best_score)"
+
+        if [ "$score" -gt "$best_score" ]; then
+            best_wt=$i
+            best_score=$score
+        fi
+    done
+
+    log_info "Best worktree: $best_wt (score: $best_score)"
+    echo "$best_wt"
+}
+
+# Merge best worktree back to original branch
+merge_best() {
+    local best_wt="$1"
+    local branch_name="${BRANCH_PREFIX}-${best_wt}"
+
+    log_info "Merging best result from worktree $best_wt..."
+
+    # Build merge command with configurable flags
+    local merge_flags="--no-ff --no-commit"
+
+    # --verify-signatures: Verify GPG signatures (security)
+    [ "$MERGE_VERIFY_SIGNATURES" = "true" ] && merge_flags="$merge_flags --verify-signatures"
+
+    # --log: Include commit descriptions in merge commit
+    [ "$MERGE_LOG" = "true" ] && merge_flags="$merge_flags --log"
+
+    # Test merge (dry-run with --no-commit)
+    if git merge $merge_flags "$branch_name" 2>/dev/null; then
+        log_info "Merge succeeded - committing..."
+
+        git commit -m "feat: merge best parallel ralph result (worktree $best_wt)
+
+Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+
+        log_info "Merge completed successfully"
+        return 0
+    else
+        # Conflicts detected
+        git merge --abort 2>/dev/null || true
+
+        log_error "Merge conflicts detected!"
+        log_info "Best worktree: ${WORKTREE_PREFIX}-${best_wt}/"
+        log_info "Manual merge required: git merge --no-ff $branch_name"
+        return 1
+    fi
+}
+
+# Cleanup worktrees
+cleanup_worktrees() {
+    log_info "Cleaning up worktrees..."
+
+    for i in $(seq 1 $N); do
+        local worktree_path="${WORKTREE_PREFIX}-${i}"
+        local branch_name="${BRANCH_PREFIX}-${i}"
+
+        # Unlock worktree first (only if we locked it during creation)
+        if [ "$USE_LOCK" = "true" ]; then
+            log_info "Unlocking worktree $i..."
+            git worktree unlock "$worktree_path" 2>/dev/null || true
+        fi
+
+        # Remove worktree
+        log_info "Removing worktree $i..."
+        git worktree remove "$worktree_path" --force 2>/dev/null || true
+
+        # Delete branch
+        log_info "Deleting branch $branch_name..."
+        git branch -D "$branch_name" 2>/dev/null || true
+    done
+
+    log_info "Cleanup completed"
+}
+
+# Show status of all worktrees
+show_all_status() {
+    log_info "Parallel Ralph Status:"
+    echo ""
+
+    for i in $(seq 1 $N); do
+        local worktree_path="${WORKTREE_PREFIX}-${i}"
+        local prd_json="$worktree_path/prd.json"
+        local progress_file="$worktree_path/docs/ralph/progress.txt"
+
+        echo "=== Worktree $i ==="
+
+        if [ -f "$prd_json" ]; then
+            local total=$(jq '.stories | length' "$prd_json" 2>/dev/null || echo 0)
+            local passed=$(jq '[.stories[] | select(.passes == true)] | length' "$prd_json" 2>/dev/null || echo 0)
+            echo "Stories: $passed/$total passed"
+        fi
+
+        if [ -f "$progress_file" ]; then
+            local current_story=$(tail -10 "$progress_file" | grep "Story:" | tail -1 || echo "N/A")
+            echo "Current: $current_story"
+        fi
+
+        # Check if still running
+        if [ -n "${WORKTREE_PIDS[$i]:-}" ]; then
+            if ps -p "${WORKTREE_PIDS[$i]}" > /dev/null 2>&1; then
+                echo "Status: Running (PID: ${WORKTREE_PIDS[$i]})"
+            else
+                echo "Status: Completed"
+            fi
+        fi
+
+        echo ""
+    done
+}
+
+# Watch all logs live
+watch_all_logs() {
+    log_info "Watching all parallel logs (Ctrl+C to exit)..."
+
+    local log_files=""
+    for i in $(seq 1 $N); do
+        local log_file="${WORKTREE_PREFIX}-${i}/ralph.log"
+        if [ -f "$log_file" ]; then
+            log_files="$log_files $log_file"
+        fi
+    done
+
+    if [ -n "$log_files" ]; then
+        tail -f $log_files
+    else
+        log_warn "No log files found yet"
+    fi
+}
+
+# Show specific worktree log
+show_worktree_log() {
+    local wt_num="${1:-1}"
+    local log_file="${WORKTREE_PREFIX}-${wt_num}/ralph.log"
+
+    if [ -f "$log_file" ]; then
+        cat "$log_file"
+    else
+        log_error "Log file not found: $log_file"
+        exit 1
+    fi
+}
+
+# Abort all parallel loops
+abort_parallel() {
+    log_warn "Aborting all parallel loops..."
+
+    for i in $(seq 1 $N); do
+        if [ -n "${WORKTREE_PIDS[$i]:-}" ]; then
+            if ps -p "${WORKTREE_PIDS[$i]}" > /dev/null 2>&1; then
+                log_info "Killing worktree $i (PID: ${WORKTREE_PIDS[$i]})..."
+                kill -TERM "${WORKTREE_PIDS[$i]}" 2>/dev/null || true
+            fi
+        fi
+    done
+
+    # Wait briefly for graceful shutdown
+    sleep 2
+
+    # Force kill if still running
+    for i in $(seq 1 $N); do
+        if [ -n "${WORKTREE_PIDS[$i]:-}" ]; then
+            if ps -p "${WORKTREE_PIDS[$i]}" > /dev/null 2>&1; then
+                log_warn "Force killing worktree $i..."
+                kill -KILL "${WORKTREE_PIDS[$i]}" 2>/dev/null || true
+            fi
+        fi
+    done
+
+    cleanup_worktrees
+    log_info "All loops aborted"
+}
+
+# Main orchestration
+main() {
+    log_info "Starting Parallel Ralph Loop (N=$N, iterations=$MAX_ITERATIONS)"
+
+    # Validate environment
+    if [ ! -f "prd.json" ]; then
+        log_error "prd.json not found in current directory"
+        exit 1
+    fi
+
+    # Setup trap for cleanup on exit
+    trap cleanup_worktrees EXIT
+
+    # Create and initialize all worktrees
+    for i in $(seq 1 $N); do
+        create_worktree "$i"
+        init_worktree_state "$i"
+    done
+
+    # Start all ralph.sh instances in parallel
+    for i in $(seq 1 $N); do
+        start_parallel "$i"
+    done
+
+    log_info "All $N worktrees started in parallel"
+
+    # Wait for completion
+    wait_and_monitor
+
+    # Select and merge best result
+    local best_wt=$(select_best)
+
+    if merge_best "$best_wt"; then
+        log_info "Success! Best result merged from worktree $best_wt"
+    else
+        log_error "Merge failed - manual intervention required"
+        exit 1
+    fi
+
+    # Cleanup happens via trap
+}
+
+# Handle command-line actions
+case "${1:-run}" in
+    status)
+        show_all_status
+        ;;
+    watch)
+        watch_all_logs
+        ;;
+    log)
+        show_worktree_log "${2:-1}"
+        ;;
+    abort)
+        abort_parallel
+        ;;
+    clean)
+        cleanup_worktrees
+        ;;
+    *)
+        main
+        ;;
+esac

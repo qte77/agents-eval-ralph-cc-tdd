@@ -163,10 +163,22 @@ main()
 
 ## TODO
 
+- **Only Keep final code files**: Currently files like `*_green.py`, `*_red.py` and `*_stub` are sometimes kept instead of only `*`
+- **Integration and e2e tests**: At least one code path should be creted to test the App end-to-end and per integration. If not possible, e.g., because of UI this should be documented
 - **Parallel Story Execution**: Current story breakdown executes
-  sequentially. Future optimization: implement parallel execution support in
+  sequentially. Future optimization: implement parallel execution support in each
   Ralph Loop for independent stories.
 - **Memory for Lessons Learned**: Use simple mechanism with an
   `AGENT_LEARNINGS.md`
 - **Bi-directional Communication**: Use simple `AGENT_REQUESTS.md` for
   session-spanning communication between humans and agents
+- **Smart Story Distribution**: Analyze depends_on graph, assign story
+  subsets to different worktrees (divide & conquer parallelism)
+- **Real-time Progress Dashboard**: Monitor all parallel worktrees with live
+  updates and visual progress indicators
+- **Automatic Merge Conflict Resolution**: Handle conflicts programmatically
+  using conflict resolution strategies
+- **Plugin/Skill Integration**: Add ralph-loop commands to Claude plugins
+  for easier invocation and control
+- **Template Structure Switch**: Option for package (__init__.py) vs flat
+  files when generating application structure
