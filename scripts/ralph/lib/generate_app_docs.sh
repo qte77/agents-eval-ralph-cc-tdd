@@ -4,6 +4,12 @@
 # Generates README.md and example.py for the application
 # NOTE: This file is sourced, not executed. Requires config.sh to be loaded first.
 
+# Safety check: Verify config.sh is loaded
+if [ -z "$RALPH_PRD_JSON" ] || [ -z "$SRC_BASE_DIR" ] || [ -z "$TESTS_BASE_DIR" ]; then
+    echo "Error: config.sh not loaded. Source config.sh before sourcing this file." >&2
+    return 1 2>/dev/null || exit 1
+fi
+
 # Generate/update README.md in src directory
 # Returns the path to the generated README (empty if not generated)
 generate_app_readme() {

@@ -51,7 +51,13 @@ docs/ralph/
 
 scripts/ralph/
 ├── ralph.sh              # Main orchestrator (autonomous loop)
+├── parallel_ralph.sh     # Parallel execution via git worktrees
+├── init.sh              # Environment initialization
+├── reorganize_prd.sh    # Archive current PRD state
+├── abort.sh             # Terminate running loops
 └── lib/
+    ├── config.sh        # Centralized configuration
+    ├── colors.sh        # Logging utilities
     └── generate_app_docs.sh  # README/example generation
 ```
 
@@ -80,23 +86,28 @@ scripts/ralph/
 
 ## Configuration
 
-In `ralph.sh`:
+Centralized in `scripts/ralph/lib/config.sh`:
 
-- `MAX_ITERATIONS=10` - Maximum loop iterations
-- `MAX_FIX_ATTEMPTS=3` - Maximum validation fix attempts
-- `PRD_JSON="docs/ralph/prd.json"` - Story definitions
-- `PROGRESS_FILE="docs/ralph/progress.txt"` - Execution log
-- `PROMPT_FILE="docs/ralph/templates/prompt.md"` - Agent instructions
+**Execution:**
 
-### Model Selection
+- `RALPH_MAX_ITERATIONS=10` - Loop iterations
+- `RALPH_MAX_FIX_ATTEMPTS=3` - Fix attempts
+- `RALPH_VALIDATION_TIMEOUT=300` - Validation timeout (5 min)
+- `RALPH_FIX_TIMEOUT=600` - Fix timeout (10 min)
 
-Ralph uses smart model routing to optimize cost/speed:
+**Models:**
 
-- `DEFAULT_MODEL="sonnet"` - Complex stories (features, refactoring)
-- `SIMPLE_MODEL="haiku"` - Simple tasks
-- `FIX_MODEL="haiku"` - Validation fix attempts
-- `SIMPLE_PATTERNS` - Regex patterns that trigger simple model
-- `DOCS_PATTERNS` - Regex patterns for documentation tasks
+- `RALPH_DEFAULT_MODEL="sonnet"` - Complex stories
+- `RALPH_SIMPLE_MODEL="haiku"` - Simple tasks
+- `RALPH_FIX_MODEL="haiku"` - Fix attempts
+
+**Override hierarchy:**
+
+1. CLI: `./ralph.sh 50`
+2. Env: `VALIDATION_TIMEOUT=600 ./ralph.sh`
+3. Config: `scripts/ralph/lib/config.sh`
+
+See `config.sh` header for complete list.
 
 ## Output Files
 
@@ -135,6 +146,26 @@ Runs without human approval:
 - Auto-pushes to remote at completion
 - No interactive prompts
 
+## Parallel Execution
+
+Run multiple loops simultaneously via git worktrees:
+
+```bash
+make ralph_parallel N=5 ITERATIONS=25  # 5 parallel loops
+make ralph_parallel_status             # Monitor progress
+make ralph_parallel_watch              # Live tail all logs
+```
+
+**How it works:**
+
+1. Creates N isolated git worktrees
+2. Runs ralph.sh in each simultaneously
+3. Scores: `(stories × 100) + tests + validation_bonus`
+4. Merges best result to main branch
+5. Cleans up worktrees
+
+**Config:** `RALPH_PARALLEL_*` variables in `config.sh`
+
 ## Execution Flow Details
 
 ```text
@@ -163,22 +194,11 @@ main()
 
 ## TODO
 
-- **Only Keep final code files**: Currently files like `*_green.py`, `*_red.py` and `*_stub` are sometimes kept instead of only `*`
-- **Integration and e2e tests**: At least one code path should be creted to test the App end-to-end and per integration. If not possible, e.g., because of UI this should be documented
-- **Parallel Story Execution**: Current story breakdown executes
-  sequentially. Future optimization: implement parallel execution support in each
-  Ralph Loop for independent stories.
-- **Memory for Lessons Learned**: Use simple mechanism with an
-  `AGENT_LEARNINGS.md`
-- **Bi-directional Communication**: Use simple `AGENT_REQUESTS.md` for
-  session-spanning communication between humans and agents
-- **Smart Story Distribution**: Analyze depends_on graph, assign story
-  subsets to different worktrees (divide & conquer parallelism)
-- **Real-time Progress Dashboard**: Monitor all parallel worktrees with live
-  updates and visual progress indicators
-- **Automatic Merge Conflict Resolution**: Handle conflicts programmatically
-  using conflict resolution strategies
-- **Plugin/Skill Integration**: Add ralph-loop commands to Claude plugins
-  for easier invocation and control
-- **Template Structure Switch**: Option for package (__init__.py) vs flat
-  files when generating application structure
+- **Clean up intermediate files**: Remove `*_green.py`, `*_red.py`, `*_stub` after story completion
+- **E2E tests**: Add end-to-end test coverage for full application paths
+- **Smart Story Distribution**: Analyze dependency graph, distribute independent stories across worktrees
+- **Memory/Lessons Learned**: Simple `AGENT_LEARNINGS.md` mechanism
+- **Bi-directional Communication**: `AGENT_REQUESTS.md` for human-agent communication
+- **Real-time Dashboard**: Live monitoring UI for parallel worktrees
+- **Auto-resolve Conflicts**: Programmatic merge conflict resolution
+- **Plugin Integration**: Ralph commands as Claude Code skills

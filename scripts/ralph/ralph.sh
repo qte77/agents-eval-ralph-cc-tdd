@@ -36,15 +36,20 @@ source "$SCRIPT_DIR/lib/config.sh"
 source "$SCRIPT_DIR/lib/generate_app_docs.sh"
 
 # Configuration (import from config.sh with CLI/env overrides)
-MAX_ITERATIONS=${1:-$RALPH_MAX_ITERATIONS}  # CLI arg or config default
-PRD_JSON="$RALPH_PRD_JSON"  # Convenience alias (used 16x)
-PROGRESS_FILE="$RALPH_PROGRESS_FILE"  # Convenience alias (used 9x)
-PROMPT_FILE="$RALPH_PROMPT_FILE"  # Convenience alias (used 2x)
+MAX_ITERATIONS=${1:-$RALPH_MAX_ITERATIONS}
+MAX_FIX_ATTEMPTS="$RALPH_MAX_FIX_ATTEMPTS"
+VALIDATION_TIMEOUT=${VALIDATION_TIMEOUT:-$RALPH_VALIDATION_TIMEOUT}
+FIX_TIMEOUT=${FIX_TIMEOUT:-$RALPH_FIX_TIMEOUT}
+MAX_LOG_FILES="$RALPH_MAX_LOG_FILES"
+
+# Convenience aliases (used frequently: PRD_JSON 16x, PROGRESS_FILE 9x, PROMPT_FILE 2x)
+PRD_JSON="$RALPH_PRD_JSON"
+PROGRESS_FILE="$RALPH_PROGRESS_FILE"
+PROMPT_FILE="$RALPH_PROMPT_FILE"
 BRANCH_PREFIX="$RALPH_STORY_BRANCH_PREFIX"
 LOG_DIR="$RALPH_LOOP_LOG_DIR"
 
-# Timeouts and model config inherited from config.sh (VALIDATION_TIMEOUT, FIX_TIMEOUT already set)
-# Model Configuration (local aliases for readability)
+# Model configuration (local aliases for readability)
 DEFAULT_MODEL="$RALPH_DEFAULT_MODEL"
 SIMPLE_MODEL="$RALPH_SIMPLE_MODEL"
 FIX_MODEL="$RALPH_FIX_MODEL"
