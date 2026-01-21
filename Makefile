@@ -96,7 +96,7 @@ quick_validate:  ## Fast development cycle validation
 # MARK: ralph
 
 ralph_validate_json:  ## Internal: Validate prd.json syntax
-	@bash scripts/ralph/lib/validate_json.sh && echo "✓ prd.json validated"
+	bash scripts/ralph/lib/validate_json.sh
 
 ralph_userstory:  ## [Optional] Create UserStory.md interactively. Usage: make ralph_userstory
 	echo "Creating UserStory.md through interactive Q&A ..."
@@ -112,12 +112,10 @@ ralph_init_loop:  ## Initialize Ralph loop environment
 	bash scripts/ralph/init.sh
 	$(MAKE) -s ralph_validate_json
 
-ralph:  ## Run Ralph loop - Usage: make ralph [N_WT=1] [ITERATIONS=25]
-	echo "Starting Ralph loop (N_WT=$${N_WT:-1}, iterations=$${ITERATIONS:-25}) ..."
+ralph:  ## Run Ralph loop - Usage: make ralph [N_WT=<value>] [ITERATIONS=<value>]
+	echo "Starting Ralph loop (N_WT=$${N_WT:-default}, iterations=$${ITERATIONS:-default}) ..."
 	$(MAKE) -s ralph_validate_json
-	N_WT=$${N_WT:-1}
-	ITERATIONS=$${ITERATIONS:-25}
-	bash scripts/ralph/parallel_ralph.sh $$N_WT $$ITERATIONS
+	bash scripts/ralph/parallel_ralph.sh "$${N_WT}" "$${ITERATIONS}"
 
 ralph_status:  ## Show Ralph loop progress
 	@if ls ../agents-eval-ralph-wt-*/ralph.log 2>/dev/null | head -1 > /dev/null; then \

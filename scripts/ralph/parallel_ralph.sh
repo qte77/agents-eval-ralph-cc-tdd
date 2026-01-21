@@ -26,8 +26,8 @@
 # 5. Cleaning up worktrees and branches
 #
 # Architecture:
-# - N=1: Single worktree isolation (security)
-# - N>1: True parallel execution via bash background jobs
+# - N_WT=1: Single worktree isolation (security)
+# - N_WT>1: True parallel execution via bash background jobs
 # - Worktrees default to --lock (prevents pruning) and --no-track (local branches)
 #   Both flags configurable via USE_LOCK and USE_NO_TRACK env vars
 # - Best result selected by scoring algorithm
@@ -60,9 +60,9 @@ WORKTREE_QUIET="$RALPH_PARALLEL_WORKTREE_QUIET"
 MERGE_VERIFY_SIGNATURES="$RALPH_PARALLEL_MERGE_VERIFY_SIGNATURES"
 MERGE_LOG="$RALPH_PARALLEL_MERGE_LOG"
 
-# Validate N
-if [ "$N" -lt 1 ] || [ "$N" -gt 10 ]; then
-    log_error "N must be between 1 and 10 (got: $N)"
+# Validate N_WT
+if [ "$N_WT" -lt 1 ] || [ "$N_WT" -gt 10 ]; then
+    log_error "N_WT must be between 1 and 10 (got: $N_WT)"
     exit 1
 fi
 
@@ -89,20 +89,20 @@ create_worktree() {
     log_info "Creating worktree $i at $worktree_path..."
 
     # Build worktree command with optional flags (defaults: both enabled)
-    local wt_flags="-b $branch_name"
+    local wt_flags=()
 
     # --no-track: Creates local-only branch (no remote tracking = cleaner, no push conflicts)
-    [ "$USE_NO_TRACK" = "true" ] && wt_flags="--no-track $wt_flags"
+    [ "$USE_NO_TRACK" = "true" ] && wt_flags+=(--no-track)
 
     # --lock: Prevents 'git worktree prune' from removing active worktrees during long runs
     if [ "$USE_LOCK" = "true" ]; then
-        wt_flags="--lock --reason \"$LOCK_REASON\" $wt_flags"
+        wt_flags+=(--lock --reason "$LOCK_REASON")
     fi
 
     # --quiet: Suppress feedback messages
-    [ "$WORKTREE_QUIET" = "true" ] && wt_flags="--quiet $wt_flags"
+    [ "$WORKTREE_QUIET" = "true" ] && wt_flags+=(--quiet)
 
-    git worktree add $wt_flags "$worktree_path" HEAD
+    git worktree add "${wt_flags[@]}" -b "$branch_name" "$worktree_path" HEAD
 
     log_info "Worktree $i created $([ "$USE_LOCK" = "true" ] && echo "and locked" || echo "")"
 }
@@ -151,7 +151,7 @@ start_parallel() {
 
 # Wait for all worktrees and monitor completion
 wait_and_monitor() {
-    log_info "Waiting for all $N worktrees to complete..."
+    log_info "Waiting for all $N_WT worktrees to complete..."
 
     for i in $(seq 1 $N_WT); do
         local pid=${WORKTREE_PIDS[$i]}
@@ -383,7 +383,7 @@ main() {
     log_info "Starting Parallel Ralph Loop (N_WT=$N_WT, iterations=$MAX_ITERATIONS)"
 
     # Validate environment
-    if ! validate_prd_json "prd.json"; then
+    if ! validate_prd_json "$RALPH_PRD_JSON"; then
         exit 1
     fi
 

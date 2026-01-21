@@ -88,8 +88,8 @@ RALPH_PARALLEL_WORKTREE_QUIET=${RALPH_PARALLEL_WORKTREE_QUIET:-false}
 # ==============================================================================
 # Source package configuration
 # ==============================================================================
-SRC_DIR="$SRC_BASE_DIR/$SRC_PACKAGE_DIR"
 SRC_PACKAGE_DIR="agenteval"
+SRC_DIR="$SRC_BASE_DIR/$SRC_PACKAGE_DIR"
 
 # ==============================================================================
 # State files

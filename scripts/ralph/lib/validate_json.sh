@@ -4,7 +4,7 @@
 #
 
 # Get script directory for sourcing dependencies
-if [ -z "$RALPH_LIB_DIR" ]; then
+if [ -z "${RALPH_LIB_DIR:-}" ]; then
     RALPH_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 fi
 

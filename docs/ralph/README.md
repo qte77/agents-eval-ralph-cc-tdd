@@ -52,8 +52,8 @@ parallel_ralph.sh (orchestrator - always used, even N_WT=1)
   │       ├─> commits state: prd.json, progress.txt, docs
   │       └─> repeats until no incomplete stories or max iterations
   ├─> waits for all worktrees to complete
-  ├─> N=1: merges result (no scoring overhead)
-  ├─> N>1: scores all, merges best result
+  ├─> N_WT=1: merges result (no scoring overhead)
+  ├─> N_WT>1: scores all, merges best result
   └─> cleans up worktrees
 ```
 
@@ -175,7 +175,7 @@ Runs without human approval:
 
 ## Execution Modes
 
-**All execution uses git worktrees** (even N=1) for safety and isolation.
+**All execution uses git worktrees** (even N_WT=1) for safety and isolation.
 
 ```bash
 # Single loop (N_WT=1, default)
