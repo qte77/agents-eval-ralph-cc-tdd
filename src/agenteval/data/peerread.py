@@ -22,11 +22,11 @@ class PeerReadLoader:
         """
         self.dataset_path = Path(dataset_path)
 
-    def load(self) -> list[Paper]:
-        """Load dataset from local storage and parse into Paper models.
+    def _load_raw_data(self) -> list[dict]:
+        """Load raw JSON data from dataset file.
 
         Returns:
-            List of Paper objects
+            List of raw data dictionaries
 
         Raises:
             FileNotFoundError: If dataset file doesn't exist
@@ -38,20 +38,58 @@ class PeerReadLoader:
             raise FileNotFoundError(f"Dataset file not found: {data_file}")
 
         data_content = data_file.read_text()
-        raw_data = json.loads(data_content)
+        return json.loads(data_content)
 
-        papers = []
-        for item in raw_data:
-            paper = Paper(
-                paper_id=item["id"],
-                title=item["title"],
-                abstract=item["abstract"],
-                content=item["content"],
-                metadata=item.get("metadata", {}),
-            )
-            papers.append(paper)
+    def _parse_paper(self, item: dict) -> Paper:
+        """Parse raw paper data into Paper model.
 
-        return papers
+        Args:
+            item: Raw paper data dictionary
+
+        Returns:
+            Paper object
+        """
+        return Paper(
+            paper_id=item["id"],
+            title=item["title"],
+            abstract=item["abstract"],
+            content=item["content"],
+            metadata=item.get("metadata", {}),
+        )
+
+    def _parse_review(self, review_data: dict) -> Review:
+        """Parse raw review data into Review model.
+
+        Args:
+            review_data: Raw review data dictionary
+
+        Returns:
+            Review object
+        """
+        return Review(
+            review_id=review_data["id"],
+            paper_id=review_data["paper_id"],
+            rating=review_data["rating"],
+            confidence=review_data["confidence"],
+            summary=review_data["summary"],
+            strengths=review_data["strengths"],
+            weaknesses=review_data["weaknesses"],
+            detailed_comments=review_data["detailed_comments"],
+            is_agent_generated=review_data["is_agent_generated"],
+        )
+
+    def load(self) -> list[Paper]:
+        """Load dataset from local storage and parse into Paper models.
+
+        Returns:
+            List of Paper objects
+
+        Raises:
+            FileNotFoundError: If dataset file doesn't exist
+            json.JSONDecodeError: If dataset file contains invalid JSON
+        """
+        raw_data = self._load_raw_data()
+        return [self._parse_paper(item) for item in raw_data]
 
     def load_with_reviews(self) -> tuple[list[Paper], list[Review]]:
         """Load dataset with reviews from local storage.
@@ -63,40 +101,16 @@ class PeerReadLoader:
             FileNotFoundError: If dataset file doesn't exist
             json.JSONDecodeError: If dataset file contains invalid JSON
         """
-        data_file = self.dataset_path / "reviews.json"
-
-        if not data_file.exists():
-            raise FileNotFoundError(f"Dataset file not found: {data_file}")
-
-        data_content = data_file.read_text()
-        raw_data = json.loads(data_content)
+        raw_data = self._load_raw_data()
 
         papers = []
         reviews = []
 
         for item in raw_data:
-            paper = Paper(
-                paper_id=item["id"],
-                title=item["title"],
-                abstract=item["abstract"],
-                content=item["content"],
-                metadata=item.get("metadata", {}),
-            )
-            papers.append(paper)
+            papers.append(self._parse_paper(item))
 
             for review_data in item.get("reviews", []):
-                review = Review(
-                    review_id=review_data["id"],
-                    paper_id=review_data["paper_id"],
-                    rating=review_data["rating"],
-                    confidence=review_data["confidence"],
-                    summary=review_data["summary"],
-                    strengths=review_data["strengths"],
-                    weaknesses=review_data["weaknesses"],
-                    detailed_comments=review_data["detailed_comments"],
-                    is_agent_generated=review_data["is_agent_generated"],
-                )
-                reviews.append(review)
+                reviews.append(self._parse_review(review_data))
 
         return papers, reviews
 
