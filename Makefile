@@ -118,16 +118,7 @@ ralph:  ## Run Ralph loop - Usage: make ralph [N_WT=<value>] [ITERATIONS=<value>
 	bash scripts/ralph/parallel_ralph.sh "$${N_WT}" "$${ITERATIONS}"
 
 ralph_status:  ## Show Ralph loop progress
-	@if ls ../agents-eval-ralph-wt-*/ralph.log 2>/dev/null | head -1 > /dev/null; then \
-		bash scripts/ralph/parallel_ralph.sh status; \
-	else \
-		echo "No active Ralph loops found."; \
-		if [ -f docs/ralph/prd.json ]; then \
-			echo "Hint: Run 'make ralph' to start loop with existing state"; \
-		else \
-			echo "Hint: Run 'make ralph_init_loop' to initialize"; \
-		fi \
-	fi
+	@bash scripts/ralph/parallel_ralph.sh status
 
 ralph_abort:  ## Abort all running Ralph loops
 	bash scripts/ralph/abort.sh

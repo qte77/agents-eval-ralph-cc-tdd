@@ -33,6 +33,14 @@
 # - Best result selected by scoring algorithm
 # - Merge via --no-ff --no-commit (dry-run test, then commit)
 #
+# Worktree Naming:
+# - N_WT=1: ${PREFIX}-${RUN_ID}        (e.g., ../agenteval-ralph-wt-a3f5e2)
+# - N_WT>1: ${PREFIX}-${RUN_ID}-${NUM} (e.g., ../agenteval-ralph-wt-b9c4d1-1)
+# - PREFIX: Dynamic, defaults to ../${SRC_PACKAGE_DIR}-ralph-wt (configurable)
+# - RUN_ID: Unique 6-char alphanumeric ID generated per run
+# - NUM: Worktree index (1 to N_WT)
+# - Purpose: Distinguish different Ralph runs, prevent collisions
+#
 
 set -euo pipefail
 
@@ -45,10 +53,12 @@ source "$SCRIPT_DIR/lib/config.sh"
 source "$SCRIPT_DIR/lib/validate_json.sh"
 
 # Configuration (import from config.sh with CLI/env overrides)
-N_WT=${1:-$RALPH_PARALLEL_N_WT}  # CLI arg or config default (1-10)
-MAX_ITERATIONS=${2:-$RALPH_MAX_ITERATIONS}  # CLI arg or config default
+# Note: N_WT and MAX_ITERATIONS are parsed in main() to avoid conflicts with subcommands
 WORKTREE_PREFIX="$RALPH_PARALLEL_WORKTREE_PREFIX"
 BRANCH_PREFIX="$RALPH_PARALLEL_BRANCH_PREFIX"
+
+# System limit for parallel worktrees (validated in main)
+MAX_WORKTREES=10
 
 # Worktree flags (inherited from config.sh with env override support)
 USE_LOCK="$RALPH_PARALLEL_USE_LOCK"
@@ -60,19 +70,35 @@ WORKTREE_QUIET="$RALPH_PARALLEL_WORKTREE_QUIET"
 MERGE_VERIFY_SIGNATURES="$RALPH_PARALLEL_MERGE_VERIFY_SIGNATURES"
 MERGE_LOG="$RALPH_PARALLEL_MERGE_LOG"
 
-# Validate N_WT
-if [ "$N_WT" -lt 1 ] || [ "$N_WT" -gt 10 ]; then
-    log_error "N_WT must be between 1 and 10 (got: $N_WT)"
-    exit 1
-fi
-
 # PID tracking
 declare -a WORKTREE_PIDS=()
 declare -a WORKTREE_EXIT_CODES=()
 
-# Helper: Get worktree path for given index
+# Generate unique 6-char alphanumeric run ID
+generate_run_id() {
+    # Use timestamp + random for uniqueness
+    local timestamp=$(date +%s%N)
+    echo "${timestamp}" | md5sum | cut -c1-6
+}
+
+# Helper: Get worktree path for given index, run ID, and total count
 get_worktree_path() {
-    echo "${WORKTREE_PREFIX}-${1}"
+    local wt_num="$1"
+    local run_id="${2:-}"
+    local n_wt="${3:-}"
+
+    if [ -n "$run_id" ]; then
+        # If N_WT=1, omit the worktree number (cleaner, less confusing)
+        if [ "$n_wt" = "1" ]; then
+            echo "${WORKTREE_PREFIX}-${run_id}"
+        else
+            echo "${WORKTREE_PREFIX}-${run_id}-${wt_num}"
+        fi
+    else
+        # For utility functions scanning existing worktrees
+        # Match both patterns: with and without number suffix
+        echo "${WORKTREE_PREFIX}-*"
+    fi
 }
 
 # Helper: Get branch name for given index
@@ -80,10 +106,30 @@ get_branch_name() {
     echo "${BRANCH_PREFIX}-${1}"
 }
 
+# Helper: Find all worktrees for a given index (across all run IDs)
+find_worktree_by_index() {
+    local wt_num="$1"
+
+    # For index 1, check both patterns: with number (N_WT>1) and without (N_WT=1)
+    if [ "$wt_num" = "1" ]; then
+        # Try pattern without number first (N_WT=1 case)
+        local wt=$(compgen -G "${WORKTREE_PREFIX}-*" 2>/dev/null | grep -v -- "-[0-9]$" | head -1)
+        if [ -n "$wt" ]; then
+            echo "$wt"
+            return
+        fi
+    fi
+
+    # Standard pattern with number (N_WT>1 case, or fallback for index 1)
+    compgen -G "${WORKTREE_PREFIX}-*-${wt_num}" 2>/dev/null | head -1
+}
+
 # Create worktree with optimized flags
 create_worktree() {
     local i="$1"
-    local worktree_path=$(get_worktree_path "$i")
+    local run_id="$2"
+    local n_wt="$3"
+    local worktree_path=$(get_worktree_path "$i" "$run_id" "$n_wt")
     local branch_name=$(get_branch_name "$i")
 
     log_info "Creating worktree $i at $worktree_path..."
@@ -110,7 +156,9 @@ create_worktree() {
 # Initialize worktree state (reset prd.json, fresh progress.txt)
 init_worktree_state() {
     local i="$1"
-    local worktree_path=$(get_worktree_path "$i")
+    local run_id="$2"
+    local n_wt="$3"
+    local worktree_path=$(get_worktree_path "$i" "$run_id" "$n_wt")
 
     log_info "Initializing state for worktree $i..."
 
@@ -135,7 +183,9 @@ EOF
 # Start parallel ralph.sh execution
 start_parallel() {
     local i="$1"
-    local worktree_path=$(get_worktree_path "$i")
+    local run_id="$2"
+    local n_wt="$3"
+    local worktree_path=$(get_worktree_path "$i" "$run_id" "$n_wt")
     local log_file="$worktree_path/ralph.log"
 
     log_info "Starting ralph.sh in worktree $i (background)..."
@@ -172,7 +222,9 @@ wait_and_monitor() {
 # Score worktree results
 score_worktree() {
     local i="$1"
-    local worktree_path=$(get_worktree_path "$i")
+    local run_id="$2"
+    local n_wt="$3"
+    local worktree_path=$(get_worktree_path "$i" "$run_id" "$n_wt")
     local prd_json="$worktree_path/$RALPH_PRD_JSON"
 
     if [ ! -f "$prd_json" ]; then
@@ -198,13 +250,15 @@ score_worktree() {
 
 # Select best worktree
 select_best() {
+    local run_id="$1"
+    local n_wt="$2"
     log_info "Scoring all worktrees..."
 
     local best_wt=1
-    local best_score=$(score_worktree 1)
+    local best_score=$(score_worktree 1 "$run_id" "$n_wt")
 
-    for i in $(seq 2 $N_WT); do
-        local score=$(score_worktree $i)
+    for i in $(seq 2 $n_wt); do
+        local score=$(score_worktree $i "$run_id" "$n_wt")
         log_info "Worktree $i score: $score (best: $best_score)"
 
         if [ "$score" -gt "$best_score" ]; then
@@ -220,6 +274,8 @@ select_best() {
 # Merge best worktree back to original branch
 merge_best() {
     local best_wt="$1"
+    local n_wt="$2"
+    local run_id="$3"
     local branch_name="${BRANCH_PREFIX}-${best_wt}"
 
     log_info "Merging best result from worktree $best_wt..."
@@ -237,9 +293,30 @@ merge_best() {
     if git merge $merge_flags "$branch_name" 2>/dev/null; then
         log_info "Merge succeeded - committing..."
 
-        git commit -m "feat: merge best parallel ralph result (worktree $best_wt)
+        # Get story completion stats for commit message
+        local worktree_path=$(get_worktree_path "$best_wt" "$run_id" "$n_wt")
+        local prd_json="$worktree_path/$RALPH_PRD_JSON"
+        local stories_passed=0
+        local total_stories=0
 
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+        if [ -f "$prd_json" ]; then
+            stories_passed=$(jq '[.stories[] | select(.passes == true)] | length' "$prd_json" 2>/dev/null || echo 0)
+            total_stories=$(jq '.stories | length' "$prd_json" 2>/dev/null || echo 0)
+        fi
+
+        # Generate commit message based on N_WT
+        local commit_msg
+        if [ "$n_wt" -eq 1 ]; then
+            # Single worktree - simpler message
+            commit_msg="feat: complete Ralph loop ($stories_passed/$total_stories stories) [run:$run_id]"
+        else
+            # Parallel worktrees - mention which one was selected
+            commit_msg="feat: merge best Ralph result from worktree $best_wt ($stories_passed/$total_stories stories) [run:$run_id]"
+        fi
+
+        git commit -m "$commit_msg
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
 
         log_info "Merge completed successfully"
         return 0
@@ -258,8 +335,12 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 cleanup_worktrees() {
     log_info "Cleaning up worktrees..."
 
-    for i in $(seq 1 $N_WT); do
-        local worktree_path=$(get_worktree_path "$i")
+    # Scan up to system max to find all existing worktrees
+    # Works for both: trap calls from main() and direct 'clean' subcommand
+    for i in $(seq 1 $MAX_WORKTREES); do
+        local worktree_path=$(find_worktree_by_index "$i")
+        [ -z "$worktree_path" ] && continue  # No worktree found for this index
+
         local branch_name=$(get_branch_name "$i")
 
         # Unlock worktree first (only if we locked it during creation)
@@ -285,8 +366,13 @@ show_all_status() {
     log_info "Parallel Ralph Status:"
     echo ""
 
-    for i in $(seq 1 $N_WT); do
-        local worktree_path=$(get_worktree_path "$i")
+    # Scan up to system max to find all existing worktrees
+    # Subcommand must auto-detect since it doesn't know what N_WT was used
+    local found_any=false
+    for i in $(seq 1 $MAX_WORKTREES); do
+        local worktree_path=$(find_worktree_by_index "$i")
+        [ -z "$worktree_path" ] && continue
+        found_any=true
         local prd_json="$worktree_path/$RALPH_PRD_JSON"
         local progress_file="$worktree_path/$RALPH_PROGRESS_FILE"
 
@@ -314,6 +400,11 @@ show_all_status() {
 
         echo ""
     done
+
+    if [ "$found_any" = false ]; then
+        echo "No active Ralph worktrees found."
+        echo "Hint: Run 'make ralph' to start a new loop"
+    fi
 }
 
 # Watch all logs live
@@ -321,8 +412,12 @@ watch_all_logs() {
     log_info "Watching all parallel logs (Ctrl+C to exit)..."
 
     local log_files=""
-    for i in $(seq 1 $N_WT); do
-        local log_file="${WORKTREE_PREFIX}-${i}/ralph.log"
+    # Scan up to system max to find all log files
+    for i in $(seq 1 $MAX_WORKTREES); do
+        local worktree_path=$(find_worktree_by_index "$i")
+        [ -z "$worktree_path" ] && continue
+
+        local log_file="$worktree_path/ralph.log"
         if [ -f "$log_file" ]; then
             log_files="$log_files $log_file"
         fi
@@ -338,8 +433,14 @@ watch_all_logs() {
 # Show specific worktree log
 show_worktree_log() {
     local wt_num="${1:-1}"
-    local log_file="${WORKTREE_PREFIX}-${wt_num}/ralph.log"
+    local worktree_path=$(find_worktree_by_index "$wt_num")
 
+    if [ -z "$worktree_path" ]; then
+        log_error "No worktree found for index: $wt_num"
+        exit 1
+    fi
+
+    local log_file="$worktree_path/ralph.log"
     if [ -f "$log_file" ]; then
         cat "$log_file"
     else
@@ -352,7 +453,8 @@ show_worktree_log() {
 abort_parallel() {
     log_warn "Aborting all parallel loops..."
 
-    for i in $(seq 1 $N_WT); do
+    # Scan up to system max to find all running worktrees
+    for i in $(seq 1 $MAX_WORKTREES); do
         if [ -n "${WORKTREE_PIDS[$i]:-}" ]; then
             if ps -p "${WORKTREE_PIDS[$i]}" > /dev/null 2>&1; then
                 log_info "Killing worktree $i (PID: ${WORKTREE_PIDS[$i]})..."
@@ -365,7 +467,7 @@ abort_parallel() {
     sleep 2
 
     # Force kill if still running
-    for i in $(seq 1 $N_WT); do
+    for i in $(seq 1 $MAX_WORKTREES); do
         if [ -n "${WORKTREE_PIDS[$i]:-}" ]; then
             if ps -p "${WORKTREE_PIDS[$i]}" > /dev/null 2>&1; then
                 log_warn "Force killing worktree $i..."
@@ -380,7 +482,19 @@ abort_parallel() {
 
 # Main orchestration
 main() {
-    log_info "Starting Parallel Ralph Loop (N_WT=$N_WT, iterations=$MAX_ITERATIONS)"
+    # Parse CLI arguments (or use config defaults)
+    local N_WT=${1:-$RALPH_PARALLEL_N_WT}  # CLI arg or config default (1-10)
+    local MAX_ITERATIONS=${2:-$RALPH_MAX_ITERATIONS}  # CLI arg or config default
+
+    # Validate N_WT
+    if [ "$N_WT" -lt 1 ] || [ "$N_WT" -gt 10 ]; then
+        log_error "N_WT must be between 1 and 10 (got: $N_WT)"
+        exit 1
+    fi
+
+    # Generate unique run ID for this execution
+    local RUN_ID=$(generate_run_id)
+    log_info "Starting Parallel Ralph Loop (run_id=$RUN_ID, N_WT=$N_WT, iterations=$MAX_ITERATIONS)"
 
     # Validate environment
     if ! validate_prd_json "$RALPH_PRD_JSON"; then
@@ -392,13 +506,13 @@ main() {
 
     # Create and initialize all worktrees
     for i in $(seq 1 $N_WT); do
-        create_worktree "$i"
-        init_worktree_state "$i"
+        create_worktree "$i" "$RUN_ID" "$N_WT"
+        init_worktree_state "$i" "$RUN_ID" "$N_WT"
     done
 
     # Start all ralph.sh instances in parallel
     for i in $(seq 1 $N_WT); do
-        start_parallel "$i"
+        start_parallel "$i" "$RUN_ID" "$N_WT"
     done
 
     log_info "All $N_WT worktrees started in parallel"
@@ -414,10 +528,10 @@ main() {
         best_wt=1
     else
         # N_WT>1: Score all and select best
-        best_wt=$(select_best)
+        best_wt=$(select_best "$RUN_ID" "$N_WT")
     fi
 
-    if merge_best "$best_wt"; then
+    if merge_best "$best_wt" "$N_WT" "$RUN_ID"; then
         log_info "Success! Best result merged from worktree $best_wt"
     else
         log_error "Merge failed - manual intervention required"
@@ -445,6 +559,6 @@ case "${1:-run}" in
         cleanup_worktrees
         ;;
     *)
-        main
+        main "$1" "$2"
         ;;
 esac
