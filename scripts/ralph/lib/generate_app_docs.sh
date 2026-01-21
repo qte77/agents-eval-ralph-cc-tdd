@@ -21,8 +21,8 @@ generate_app_readme() {
     local readme_path="$src_dir/README.md"
 
     # Extract metadata from prd.json
-    local title=$(jq -r '.title // "Application"' "$PRD_JSON")
-    local description=$(jq -r '.description // "Application description"' "$PRD_JSON")
+    local title=$(jq -r '.title // "Application"' "$RALPH_PRD_JSON")
+    local description=$(jq -r '.description // "Application description"' "$RALPH_PRD_JSON")
 
     # Build actual architecture from filesystem
     local architecture=""
@@ -45,7 +45,7 @@ $description
 
 ## Why
 
-$(jq -r '.stories[] | select(.passes == true) | .description' "$PRD_JSON" | head -5 | sed 's/^/- /')
+$(jq -r '.stories[] | select(.passes == true) | .description' "$RALPH_PRD_JSON" | head -5 | sed 's/^/- /')
 
 ## Quick Start
 

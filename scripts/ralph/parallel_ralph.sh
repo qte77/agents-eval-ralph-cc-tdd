@@ -43,21 +43,21 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib/colors.sh"
 source "$SCRIPT_DIR/lib/config.sh"
 
-# Configuration
-N=${1:-1}                        # Number of parallel worktrees (default=1, max=10)
-MAX_ITERATIONS=${2:-10}          # Iterations per worktree
-WORKTREE_PREFIX="../agents-eval-ralph-wt"
-BRANCH_PREFIX="ralph/parallel"
+# Configuration (import from config.sh with CLI/env overrides)
+N=${1:-$RALPH_PARALLEL_N}  # CLI arg or config default (1-10)
+MAX_ITERATIONS=${2:-$RALPH_MAX_ITERATIONS}  # CLI arg or config default
+WORKTREE_PREFIX="$RALPH_PARALLEL_WORKTREE_PREFIX"
+BRANCH_PREFIX="$RALPH_PARALLEL_BRANCH_PREFIX"
 
-# Worktree flags (configurable but MANDATORY for safety)
-USE_LOCK=${USE_LOCK:-true}       # Prevents pruning during execution (STRONGLY RECOMMENDED)
-USE_NO_TRACK=${USE_NO_TRACK:-true}  # Local-only branches, no remote tracking (STRONGLY RECOMMENDED)
-LOCK_REASON=${LOCK_REASON:-"Parallel Ralph Loop execution"}  # Reason for locking worktree
-WORKTREE_QUIET=${WORKTREE_QUIET:-false}  # Suppress worktree creation output
+# Worktree flags (inherited from config.sh with env override support)
+USE_LOCK="$RALPH_PARALLEL_USE_LOCK"
+USE_NO_TRACK="$RALPH_PARALLEL_USE_NO_TRACK"
+LOCK_REASON="$RALPH_PARALLEL_LOCK_REASON"
+WORKTREE_QUIET="$RALPH_PARALLEL_WORKTREE_QUIET"
 
-# Merge flags (configurable for advanced use cases)
-MERGE_VERIFY_SIGNATURES=${MERGE_VERIFY_SIGNATURES:-false}  # Verify GPG signatures before merge
-MERGE_LOG=${MERGE_LOG:-true}     # Include commit descriptions in merge commit
+# Merge flags (inherited from config.sh with env override support)
+MERGE_VERIFY_SIGNATURES="$RALPH_PARALLEL_MERGE_VERIFY_SIGNATURES"
+MERGE_LOG="$RALPH_PARALLEL_MERGE_LOG"
 
 # Validate N
 if [ "$N" -lt 1 ] || [ "$N" -gt 10 ]; then
@@ -69,11 +69,21 @@ fi
 declare -a WORKTREE_PIDS=()
 declare -a WORKTREE_EXIT_CODES=()
 
+# Helper: Get worktree path for given index
+get_worktree_path() {
+    echo "${WORKTREE_PREFIX}-${1}"
+}
+
+# Helper: Get branch name for given index
+get_branch_name() {
+    echo "${BRANCH_PREFIX}-${1}"
+}
+
 # Create worktree with optimized flags
 create_worktree() {
     local i="$1"
-    local worktree_path="${WORKTREE_PREFIX}-${i}"
-    local branch_name="${BRANCH_PREFIX}-${i}"
+    local worktree_path=$(get_worktree_path "$i")
+    local branch_name=$(get_branch_name "$i")
 
     log_info "Creating worktree $i at $worktree_path..."
 
@@ -99,20 +109,20 @@ create_worktree() {
 # Initialize worktree state (reset prd.json, fresh progress.txt)
 init_worktree_state() {
     local i="$1"
-    local worktree_path="${WORKTREE_PREFIX}-${i}"
+    local worktree_path=$(get_worktree_path "$i")
 
     log_info "Initializing state for worktree $i..."
 
     # Reset prd.json to original state (all stories incomplete)
-    if [ -f "prd.json" ]; then
+    if [ -f "$RALPH_PRD_JSON" ]; then
         # Reset all passes to false and clear completed_at
         jq '(.stories[] | .passes) = false | (.stories[] | .completed_at) = null' \
-            "prd.json" > "$worktree_path/prd.json"
+            "$RALPH_PRD_JSON" > "$worktree_path/$RALPH_PRD_JSON"
     fi
 
     # Create fresh progress.txt
-    mkdir -p "$worktree_path/docs/ralph"
-    cat > "$worktree_path/docs/ralph/progress.txt" <<EOF
+    mkdir -p "$worktree_path/$RALPH_DOCS_DIR"
+    cat > "$worktree_path/$RALPH_PROGRESS_FILE" <<EOF
 # Ralph Loop Progress - Worktree $i
 Started: $(date)
 
@@ -124,7 +134,7 @@ EOF
 # Start parallel ralph.sh execution
 start_parallel() {
     local i="$1"
-    local worktree_path="${WORKTREE_PREFIX}-${i}"
+    local worktree_path=$(get_worktree_path "$i")
     local log_file="$worktree_path/ralph.log"
 
     log_info "Starting ralph.sh in worktree $i (background)..."
@@ -161,8 +171,8 @@ wait_and_monitor() {
 # Score worktree results
 score_worktree() {
     local i="$1"
-    local worktree_path="${WORKTREE_PREFIX}-${i}"
-    local prd_json="$worktree_path/prd.json"
+    local worktree_path=$(get_worktree_path "$i")
+    local prd_json="$worktree_path/$RALPH_PRD_JSON"
 
     if [ ! -f "$prd_json" ]; then
         echo 0
@@ -248,8 +258,8 @@ cleanup_worktrees() {
     log_info "Cleaning up worktrees..."
 
     for i in $(seq 1 $N); do
-        local worktree_path="${WORKTREE_PREFIX}-${i}"
-        local branch_name="${BRANCH_PREFIX}-${i}"
+        local worktree_path=$(get_worktree_path "$i")
+        local branch_name=$(get_branch_name "$i")
 
         # Unlock worktree first (only if we locked it during creation)
         if [ "$USE_LOCK" = "true" ]; then
@@ -275,9 +285,9 @@ show_all_status() {
     echo ""
 
     for i in $(seq 1 $N); do
-        local worktree_path="${WORKTREE_PREFIX}-${i}"
-        local prd_json="$worktree_path/prd.json"
-        local progress_file="$worktree_path/docs/ralph/progress.txt"
+        local worktree_path=$(get_worktree_path "$i")
+        local prd_json="$worktree_path/$RALPH_PRD_JSON"
+        local progress_file="$worktree_path/$RALPH_PROGRESS_FILE"
 
         echo "=== Worktree $i ==="
 

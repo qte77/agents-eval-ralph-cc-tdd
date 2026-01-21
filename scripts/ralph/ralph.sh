@@ -35,30 +35,21 @@ source "$SCRIPT_DIR/lib/colors.sh"
 source "$SCRIPT_DIR/lib/config.sh"
 source "$SCRIPT_DIR/lib/generate_app_docs.sh"
 
-# Configuration
-MAX_ITERATIONS=${1:-10}
-# Maximum attempts to fix validation errors
-MAX_FIX_ATTEMPTS=3
-PRD_JSON="$RALPH_PRD_JSON"
-PROGRESS_FILE="$RALPH_PROGRESS_FILE"
-PROMPT_FILE="$RALPH_PROMPT_FILE"
-BRANCH_PREFIX="ralph/story-"
+# Configuration (import from config.sh with CLI/env overrides)
+MAX_ITERATIONS=${1:-$RALPH_MAX_ITERATIONS}  # CLI arg or config default
+PRD_JSON="$RALPH_PRD_JSON"  # Convenience alias (used 16x)
+PROGRESS_FILE="$RALPH_PROGRESS_FILE"  # Convenience alias (used 9x)
+PROMPT_FILE="$RALPH_PROMPT_FILE"  # Convenience alias (used 2x)
+BRANCH_PREFIX="$RALPH_STORY_BRANCH_PREFIX"
+LOG_DIR="$RALPH_LOOP_LOG_DIR"
 
-# Timeout configuration
-VALIDATION_TIMEOUT=${VALIDATION_TIMEOUT:-300}  # 5 minutes
-FIX_TIMEOUT=${FIX_TIMEOUT:-600}                # 10 minutes
-
-# Log rotation
-LOG_DIR="$RALPH_LOG_DIR/ralph_logs"
-MAX_LOG_FILES=20
-
-# Model Configuration
-DEFAULT_MODEL="sonnet"    # Model for complex stories
-SIMPLE_MODEL="haiku"      # Model for simple tasks
-FIX_MODEL="haiku"         # Model for validation fixes
-# Patterns that trigger SIMPLE_MODEL (case-insensitive grep -E regex)
-SIMPLE_PATTERNS="fix|typo|update.*doc|small.*change|minor|format|style|cleanup|remove.*unused"
-DOCS_PATTERNS="^(docs|documentation|readme|comment)"
+# Timeouts and model config inherited from config.sh (VALIDATION_TIMEOUT, FIX_TIMEOUT already set)
+# Model Configuration (local aliases for readability)
+DEFAULT_MODEL="$RALPH_DEFAULT_MODEL"
+SIMPLE_MODEL="$RALPH_SIMPLE_MODEL"
+FIX_MODEL="$RALPH_FIX_MODEL"
+SIMPLE_PATTERNS="$RALPH_SIMPLE_PATTERNS"
+DOCS_PATTERNS="$RALPH_DOCS_PATTERNS"
 
 # Initialize log directory
 init_log_dir() {
