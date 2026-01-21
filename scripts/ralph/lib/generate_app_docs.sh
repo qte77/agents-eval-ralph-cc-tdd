@@ -4,6 +4,12 @@
 # Generates README.md and example.py for the application
 # NOTE: This file is sourced, not executed. Requires config.sh to be loaded first.
 
+# Safety check: Verify config.sh is loaded
+if [ -z "$RALPH_PRD_JSON" ] || [ -z "$SRC_BASE_DIR" ] || [ -z "$TESTS_BASE_DIR" ]; then
+    echo "Error: config.sh not loaded. Source config.sh before sourcing this file." >&2
+    return 1 2>/dev/null || exit 1
+fi
+
 # Generate/update README.md in src directory
 # Returns the path to the generated README (empty if not generated)
 generate_app_readme() {
@@ -21,8 +27,8 @@ generate_app_readme() {
     local readme_path="$src_dir/README.md"
 
     # Extract metadata from prd.json
-    local title=$(jq -r '.title // "Application"' "$PRD_JSON")
-    local description=$(jq -r '.description // "Application description"' "$PRD_JSON")
+    local title=$(jq -r '.title // "Application"' "$RALPH_PRD_JSON")
+    local description=$(jq -r '.description // "Application description"' "$RALPH_PRD_JSON")
 
     # Build actual architecture from filesystem
     local architecture=""
@@ -45,7 +51,7 @@ $description
 
 ## Why
 
-$(jq -r '.stories[] | select(.passes == true) | .description' "$PRD_JSON" | head -5 | sed 's/^/- /')
+$(jq -r '.stories[] | select(.passes == true) | .description' "$RALPH_PRD_JSON" | head -5 | sed 's/^/- /')
 
 ## Quick Start
 

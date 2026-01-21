@@ -49,14 +49,14 @@ make ralph_prd                  # Generate PRD.md from UserStory.md
 
 # 3. Write requirements in docs/PRD.md, then run Ralph
 make ralph_init_loop                 # Initialize (creates prd.json)
-make ralph_run [ITERATIONS=25]  # Run autonomous development
+make ralph [ITERATIONS=25]  # Run autonomous development
 make ralph_status               # Check progress
 
 # 4. Post-run options
 # Reset state (removes prd.json, progress.txt)
 make ralph_clean
 # Archive and start new iteration
-make ralph_reorganize NEW_PRD=docs/PRD-v2.md [VERSION=2]
+make ralph_archive NEW_PRD=docs/PRD-v2.md [VERSION=2]
 ```
 
 For detailed setup and usage, see
@@ -70,10 +70,10 @@ Document Flow:
   UserStory.md (Why) → PRD.md (What) → prd.json → Implementation → progress.txt
 
 Human Workflow (Manual):
-  Write PRD.md → make ralph_init_loop → make ralph_run
+  Write PRD.md → make ralph_init_loop → make ralph
 
 Human Workflow (Assisted - Optional):
-  make ralph_userstory → make ralph_prd → make ralph_init_loop → make ralph_run
+  make ralph_userstory → make ralph_prd → make ralph_init_loop → make ralph
 
 Agent Workflow:
   PRD.md → prd.json (generate-prd-json-from-md command) → Ralph Loop → src/ + tests/

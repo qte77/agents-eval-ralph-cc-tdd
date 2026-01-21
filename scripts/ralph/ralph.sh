@@ -3,7 +3,7 @@
 # Ralph Loop - Autonomous iteration script
 #
 # Usage: ./scripts/ralph/ralph.sh [MAX_ITERATIONS]
-#        make ralph_run [ITERATIONS=25]
+#        make ralph [ITERATIONS=25]
 #
 # This script orchestrates autonomous task execution by:
 # 1. Reading prd.json for incomplete stories
@@ -33,32 +33,29 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Source libraries
 source "$SCRIPT_DIR/lib/colors.sh"
 source "$SCRIPT_DIR/lib/config.sh"
+source "$SCRIPT_DIR/lib/validate_json.sh"
 source "$SCRIPT_DIR/lib/generate_app_docs.sh"
 
-# Configuration
-MAX_ITERATIONS=${1:-10}
-# Maximum attempts to fix validation errors
-MAX_FIX_ATTEMPTS=3
+# Configuration (import from config.sh with CLI/env overrides)
+MAX_ITERATIONS=${1:-$RALPH_MAX_ITERATIONS}
+MAX_FIX_ATTEMPTS="$RALPH_MAX_FIX_ATTEMPTS"
+VALIDATION_TIMEOUT=${VALIDATION_TIMEOUT:-$RALPH_VALIDATION_TIMEOUT}
+FIX_TIMEOUT=${FIX_TIMEOUT:-$RALPH_FIX_TIMEOUT}
+MAX_LOG_FILES="$RALPH_MAX_LOG_FILES"
+
+# Convenience aliases (used frequently: PRD_JSON 16x, PROGRESS_FILE 9x, PROMPT_FILE 2x)
 PRD_JSON="$RALPH_PRD_JSON"
 PROGRESS_FILE="$RALPH_PROGRESS_FILE"
 PROMPT_FILE="$RALPH_PROMPT_FILE"
-BRANCH_PREFIX="ralph/story-"
+BRANCH_PREFIX="$RALPH_STORY_BRANCH_PREFIX"
+LOG_DIR="$RALPH_LOOP_LOG_DIR"
 
-# Timeout configuration
-VALIDATION_TIMEOUT=${VALIDATION_TIMEOUT:-300}  # 5 minutes
-FIX_TIMEOUT=${FIX_TIMEOUT:-600}                # 10 minutes
-
-# Log rotation
-LOG_DIR="$RALPH_LOG_DIR/ralph_logs"
-MAX_LOG_FILES=20
-
-# Model Configuration
-DEFAULT_MODEL="sonnet"    # Model for complex stories
-SIMPLE_MODEL="haiku"      # Model for simple tasks
-FIX_MODEL="haiku"         # Model for validation fixes
-# Patterns that trigger SIMPLE_MODEL (case-insensitive grep -E regex)
-SIMPLE_PATTERNS="fix|typo|update.*doc|small.*change|minor|format|style|cleanup|remove.*unused"
-DOCS_PATTERNS="^(docs|documentation|readme|comment)"
+# Model configuration (local aliases for readability)
+DEFAULT_MODEL="$RALPH_DEFAULT_MODEL"
+SIMPLE_MODEL="$RALPH_SIMPLE_MODEL"
+FIX_MODEL="$RALPH_FIX_MODEL"
+SIMPLE_PATTERNS="$RALPH_SIMPLE_PATTERNS"
+DOCS_PATTERNS="$RALPH_DOCS_PATTERNS"
 
 # Initialize log directory
 init_log_dir() {
@@ -210,8 +207,7 @@ update_story_status() {
        "$PRD_JSON" > "${PRD_JSON}.tmp"
 
     # Validate JSON before replacing original
-    if ! jq empty "${PRD_JSON}.tmp" 2>/dev/null; then
-        log_error "Generated invalid JSON, keeping original prd.json"
+    if ! validate_prd_json "${PRD_JSON}.tmp"; then
         rm -f "${PRD_JSON}.tmp"
         return 1
     fi

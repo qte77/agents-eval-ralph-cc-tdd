@@ -56,11 +56,26 @@ reportMissingTypeStubs = false
 include = ["src/agenteval", "tests"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+# Test discovery paths (tests/ for app tests, scripts/ralph/tests/ for Ralph E2E tests only)
+testpaths = ["tests", "scripts/ralph/tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-addopts = "-v --tb=short"
+# Exclude E2E tests by default (opt-in with -m e2e)
+addopts = "-v --tb=short -m 'not e2e'"
+# Custom markers for test categorization (e2e tests are slower, can be skipped in quick validation)
+markers = [
+    "e2e: end-to-end tests (run explicitly with '-m e2e')",
+]
+
+[tool.coverage.run]
+source = ["src"]
+omit = ["tests/*", "scripts/*"]
+
+[tool.coverage.report]
+fail_under = 70
+show_missing = true
+skip_covered = false
 
 [tool.bumpversion]
 current_version = "0.0.0"

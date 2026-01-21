@@ -1,9 +1,5 @@
 #!/bin/bash
-#
-# Ralph Loop Abort Script
 # Terminates all running Ralph loops and orphaned Claude processes
-#
-
 set -euo pipefail
 
 # Get script directory
@@ -33,5 +29,8 @@ if [ -n "$claude_pids" ]; then
     log_info "Cleaning up orphaned Claude processes: $claude_pids"
     kill $claude_pids 2>/dev/null || true
 fi
+
+# Clean up worktrees
+bash "$SCRIPT_DIR/parallel_ralph.sh" abort 2>/dev/null || true
 
 log_info "Abort complete"

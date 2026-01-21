@@ -64,5 +64,5 @@ make ralph_prd
 
 ```bash
 make ralph_init_loop    # Generate prd.json from PRD.md
-make ralph_run     # Start Ralph loop
+make ralph     # Start Ralph loop
 ```

@@ -13,6 +13,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Source libraries
 source "$SCRIPT_DIR/lib/colors.sh"
 source "$SCRIPT_DIR/lib/config.sh"
+source "$SCRIPT_DIR/lib/validate_json.sh"
 
 log_info "Initializing Ralph Loop environment..."
 
@@ -153,12 +154,11 @@ check_prd_json() {
         log_success "prd.json found"
 
         # Validate JSON format
-        if jq empty "$RALPH_PRD_JSON" 2>/dev/null; then
+        if validate_prd_json "$RALPH_PRD_JSON"; then
             local total=$(jq '.stories | length' "$RALPH_PRD_JSON")
             local passing=$(jq '[.stories[] | select(.passes == true)] | length' "$RALPH_PRD_JSON")
             log_info "Status: $passing/$total stories completed"
         else
-            log_error "prd.json is invalid JSON"
             return 1
         fi
     fi
@@ -169,7 +169,10 @@ make_executable() {
     log_info "Making scripts executable..."
     chmod +x scripts/ralph/ralph.sh
     chmod +x scripts/ralph/init.sh
-    chmod +x scripts/ralph/reorganize_prd.sh
+    chmod +x scripts/ralph/parallel_ralph.sh
+    chmod +x scripts/ralph/archive.sh
+    chmod +x scripts/ralph/abort.sh
+    chmod +x scripts/ralph/clean.sh
     log_success "Scripts are executable"
 }
 
@@ -192,7 +195,7 @@ main() {
 
     echo ""
     log_info "Ready to run Ralph loop:"
-    log_info "  make ralph_run [ITERATIONS=25]"
+    log_info "  make ralph [ITERATIONS=25]"
     log_info "  or"
     log_info "  ./scripts/ralph/ralph.sh 5"
     echo ""
