@@ -185,7 +185,7 @@ make ralph [ITERATIONS=25]      # Isolated in worktree, no scoring overhead
 make ralph N_WT=5 ITERATIONS=25    # 5 worktrees, scores results, merges best
 
 # Monitoring
-make ralph_status               # Progress summary
+make ralph_status               # Progress summary with timestamp
 make ralph_watch                # Live tail all logs
 make ralph_log WT=2             # View specific worktree
 
@@ -254,7 +254,8 @@ make ralph [N_WT=1] [ITERATIONS=25]
 - **Memory/Lessons Learned**: Simple `AGENT_LEARNINGS.md` mechanism
 - **Bi-directional Communication**: `AGENT_REQUESTS.md` for human-agent communication
 - **Auto-resolve Conflicts**: Programmatic merge conflict resolution
-- **Plugin Integration**: Ralph commands as Claude Code skills
+- **Plugin Integration**: Ralph commands as Claude Code skills on marketplace
+- **Packaging for pypi and npm**: Provide as packages for python and node
 - **Vibe Kanban UI Exploration**: Evaluate [Vibe Kanban](https://github.com/BloopAI/vibe-kanban) (9.4k stars, Apache 2.0) as visual UI layer. Provides Kanban board for parallel agents, git worktree isolation, built-in diff review. Install: `npx vibe-kanban`. Compatible with Claude Code.
 
 ### Low Priority (Future Exploration)

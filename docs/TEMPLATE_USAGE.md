@@ -41,7 +41,7 @@ make ralph_prd        # Generate PRD.md from UserStory.md
 ```bash
 make ralph_init_loop              # Initialize (creates prd.json)
 make ralph ITERATIONS=10 # Run autonomous development
-make ralph_status            # Check progress
+make ralph_status            # Check progress (with timestamp)
 ```
 
 - To generate prd.json: Run `claude -p '/generate-prd-json-from-md'` command.
@@ -95,7 +95,7 @@ make ralph_prd         # [Optional] Generate PRD.md from UserStory.md
 # Ralph (Core workflow)
 make ralph_init_loop        # Initialize Ralph (creates prd.json)
 make ralph         # Run autonomous dev
-make ralph_status      # Check progress
+make ralph_status      # Check progress (with timestamp)
 make ralph_clean       # Reset state (removes prd.json, progress.txt)
 make ralph_archive  # Archive and start new iteration
 
