@@ -72,6 +72,7 @@ def test_assess_coordination_quality():
     coordination_quality = metrics_calculator.assess_coordination_quality(agent_interactions)
 
     # 2 successful out of 3 = 0.667
+    assert coordination_quality is not None
     assert coordination_quality == pytest.approx(0.667, abs=0.01)
     assert 0.0 <= coordination_quality <= 1.0
 
@@ -113,7 +114,12 @@ def test_output_metrics_in_structured_json_format():
 def test_output_metrics_can_be_serialized_to_json():
     """Test that Metrics model can be serialized to JSON."""
     metrics = Metrics(
-        execution_time_seconds=100.0, task_success_rate=0.9, coordination_quality=0.8
+        execution_time_seconds=100.0,
+        task_success_rate=0.9,
+        coordination_quality=0.8,
+        semantic_similarity=None,
+        graph_density=None,
+        graph_centrality=None,
     )
 
     json_data = metrics.model_dump()
