@@ -153,7 +153,7 @@ create_worktree() {
     log_info "Worktree $i created $([ "$USE_LOCK" = "true" ] && echo "and locked" || echo "")"
 }
 
-# Initialize worktree state (reset prd.json, fresh progress.txt)
+# Initialize worktree state (copy current prd.json, fresh progress.txt)
 init_worktree_state() {
     local i="$1"
     local run_id="$2"
@@ -162,11 +162,12 @@ init_worktree_state() {
 
     log_info "Initializing state for worktree $i..."
 
-    # Reset prd.json to original state (all stories incomplete)
+    # Copy prd.json as-is (preserves completed stories)
+    # This allows resuming from current state
+    # Use 'make ralph_clean' to reset state
     if [ -f "$RALPH_PRD_JSON" ]; then
-        # Reset all passes to false and clear completed_at
-        jq '(.stories[] | .passes) = false | (.stories[] | .completed_at) = null' \
-            "$RALPH_PRD_JSON" > "$worktree_path/$RALPH_PRD_JSON"
+        mkdir -p "$worktree_path/$(dirname "$RALPH_PRD_JSON")"
+        cp "$RALPH_PRD_JSON" "$worktree_path/$RALPH_PRD_JSON"
     fi
 
     # Create fresh progress.txt
@@ -500,6 +501,49 @@ main() {
     if ! validate_prd_json "$RALPH_PRD_JSON"; then
         exit 1
     fi
+
+    # Check for existing branches/worktrees from previous runs
+    # Abort if active, otherwise clean up (allows resuming after crash)
+    local found_active=false
+    for i in $(seq 1 $N_WT); do
+        local branch_name=$(get_branch_name "$i")
+        if git show-ref --verify --quiet "refs/heads/$branch_name"; then
+            log_warn "Branch $branch_name already exists from previous run"
+
+            # Check if worktree is locked (indicates active use)
+            local old_wt=$(find_worktree_by_index "$i")
+            if [ -n "$old_wt" ] && [ -d "$old_wt" ]; then
+                # Check if locked (worktree in active use)
+                if git worktree list --porcelain | grep -A 3 "^worktree $old_wt$" | grep -q "^locked"; then
+                    log_error "Worktree $i is locked (active ralph loop running)"
+                    found_active=true
+                fi
+            fi
+        fi
+    done
+
+    # If any active worktrees found, abort
+    if [ "$found_active" = true ]; then
+        log_error "Active Ralph loops detected. Run 'make ralph_abort' to stop them first."
+        exit 1
+    fi
+
+    # Clean up orphaned branches/worktrees from crashed/aborted runs
+    for i in $(seq 1 $N_WT); do
+        local branch_name=$(get_branch_name "$i")
+        if git show-ref --verify --quiet "refs/heads/$branch_name"; then
+            log_info "Cleaning up orphaned branch $branch_name..."
+
+            # Remove associated worktree if it exists
+            local old_wt=$(find_worktree_by_index "$i")
+            if [ -n "$old_wt" ] && [ -d "$old_wt" ]; then
+                git worktree remove "$old_wt" --force 2>/dev/null || true
+            fi
+
+            # Delete the branch
+            git branch -D "$branch_name" 2>/dev/null || true
+        fi
+    done
 
     # Setup trap for cleanup on exit
     trap cleanup_worktrees EXIT
