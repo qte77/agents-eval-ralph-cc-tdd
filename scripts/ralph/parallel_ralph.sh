@@ -514,21 +514,32 @@ main() {
         exit 1
     fi
 
-    # Check for existing branches/worktrees from previous runs
-    # Abort if active, otherwise clean up (allows resuming after crash)
+    # Check for existing worktrees and determine mode: resume or create new
     local found_active=false
-    for i in $(seq 1 $N_WT); do
+    local found_paused=false
+    local existing_worktrees=()
+    local resume_run_id=""
+    local resume_n_wt=0
+
+    for i in $(seq 1 $MAX_WORKTREES); do
         local branch_name=$(get_branch_name "$i")
         if git show-ref --verify --quiet "refs/heads/$branch_name"; then
-            log_warn "Branch $branch_name already exists from previous run"
-
-            # Check if worktree is locked (indicates active use)
             local old_wt=$(find_worktree_by_index "$i")
             if [ -n "$old_wt" ] && [ -d "$old_wt" ]; then
-                # Check if locked (worktree in active use)
+                # Check if locked (active)
                 if git worktree list --porcelain | grep -A 3 "^worktree $old_wt$" | grep -q "^locked"; then
                     log_error "Worktree $i is locked (active ralph loop running)"
                     found_active=true
+                else
+                    # Paused/stopped worktree found
+                    found_paused=true
+                    existing_worktrees+=("$i")
+                    resume_n_wt=$i
+
+                    # Extract run_id from worktree path (e.g., agenteval-ralph-wt-41adf4-1 → 41adf4)
+                    if [ -z "$resume_run_id" ]; then
+                        resume_run_id=$(basename "$old_wt" | grep -oP '(?<=-ralph-wt-)[a-z0-9]+(?=(-[0-9]+)?$)')
+                    fi
                 fi
             fi
         fi
@@ -540,38 +551,59 @@ main() {
         exit 1
     fi
 
-    # Clean up orphaned branches/worktrees from crashed/aborted runs
-    for i in $(seq 1 $N_WT); do
-        local branch_name=$(get_branch_name "$i")
-        if git show-ref --verify --quiet "refs/heads/$branch_name"; then
-            log_info "Cleaning up orphaned branch $branch_name..."
-
-            # Remove associated worktree if it exists
-            local old_wt=$(find_worktree_by_index "$i")
-            if [ -n "$old_wt" ] && [ -d "$old_wt" ]; then
-                git worktree remove "$old_wt" --force 2>/dev/null || true
-            fi
-
-            # Delete the branch
-            git branch -D "$branch_name" 2>/dev/null || true
-        fi
-    done
+    # Determine execution mode
+    local resume_mode=false
+    if [ "$found_paused" = true ] && [ "${#existing_worktrees[@]}" -gt 0 ]; then
+        # Resume mode: existing worktrees found
+        resume_mode=true
+        N_WT=$resume_n_wt
+        RUN_ID="$resume_run_id"
+        log_info "Detected ${#existing_worktrees[@]} paused worktree(s) (run_id=$RUN_ID)"
+        log_info "Resuming existing worktrees (ITERATIONS parameter ignored)"
+    fi
 
     # Setup trap for cleanup on exit
     trap cleanup_worktrees EXIT
 
-    # Create and initialize all worktrees
-    for i in $(seq 1 $N_WT); do
-        create_worktree "$i" "$RUN_ID" "$N_WT"
-        init_worktree_state "$i" "$RUN_ID" "$N_WT"
-    done
+    if [ "$resume_mode" = true ]; then
+        # RESUME MODE: Use existing worktrees
+        log_info "Resume mode: restarting ralph.sh in existing worktrees"
 
-    # Start all ralph.sh instances in parallel
-    for i in $(seq 1 $N_WT); do
-        start_parallel "$i" "$RUN_ID" "$N_WT"
-    done
+        # Update progress.txt in each worktree with resume marker
+        for wt_num in "${existing_worktrees[@]}"; do
+            local worktree_path=$(find_worktree_by_index "$wt_num")
+            if [ -n "$worktree_path" ] && [ -d "$worktree_path" ]; then
+                cat >> "$worktree_path/$RALPH_PROGRESS_FILE" <<EOF
 
-    log_info "All $N_WT worktrees started in parallel"
+## Resumed: $(date)
+
+EOF
+            fi
+        done
+
+        # Start ralph.sh in existing worktrees
+        for wt_num in "${existing_worktrees[@]}"; do
+            start_parallel "$wt_num" "$RUN_ID" "$N_WT"
+        done
+
+        log_info "Resumed ${#existing_worktrees[@]} worktree(s)"
+    else
+        # CREATE NEW MODE: Standard workflow
+        log_info "Create new mode: initializing fresh worktrees"
+
+        # Create and initialize all worktrees
+        for i in $(seq 1 $N_WT); do
+            create_worktree "$i" "$RUN_ID" "$N_WT"
+            init_worktree_state "$i" "$RUN_ID" "$N_WT"
+        done
+
+        # Start all ralph.sh instances in parallel
+        for i in $(seq 1 $N_WT); do
+            start_parallel "$i" "$RUN_ID" "$N_WT"
+        done
+
+        log_info "All $N_WT worktrees started in parallel"
+    fi
 
     # Wait for completion
     wait_and_monitor

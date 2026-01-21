@@ -177,19 +177,45 @@ Runs without human approval:
 
 **All execution uses git worktrees** (even N_WT=1) for safety and isolation.
 
+### Create New Run
+
 ```bash
 # Single loop (N_WT=1, default)
 make ralph [ITERATIONS=25]      # Isolated in worktree, no scoring overhead
 
 # Parallel loops (N_WT>1)
 make ralph N_WT=5 ITERATIONS=25    # 5 worktrees, scores results, merges best
+```
 
-# Monitoring
+### Resume Paused Run
+
+**Automatic resume detection**: If existing worktrees are found (not locked), `make ralph` automatically resumes them:
+
+```bash
+# If paused worktrees exist:
+make ralph                      # Auto-resumes all existing worktrees
+                                # ITERATIONS parameter ignored (uses existing state)
+                                # N_WT detected from existing worktrees
+```
+
+**Behavior:**
+
+- Detects paused worktrees automatically
+- Continues from last completed story
+- Appends "Resumed:" marker to progress.txt
+- Uses existing run_id and state
+
+### Monitoring
+
+```bash
 make ralph_status               # Progress summary with timestamp
 make ralph_watch                # Live tail all logs
 make ralph_log WT=2             # View specific worktree
+```
 
-# Control
+### Control
+
+```bash
 make ralph_abort                # Abort all loops + cleanup
 make ralph_clean                # Clean worktrees + local state (requires double confirmation)
 ```
@@ -201,6 +227,12 @@ make ralph_clean                # Clean worktrees + local state (requires double
   2. Type `'YES'` (uppercase) to proceed
 - Shows what will be deleted before asking for confirmation
 - Cannot be undone - use with caution
+
+**Execution States:**
+
+- **Active (locked)**: Ralph loop running → `make ralph` aborts with error, use `make ralph_abort` first
+- **Paused (unlocked)**: Ralph loop stopped/interrupted → `make ralph` auto-resumes
+- **Clean**: No worktrees exist → `make ralph` creates new run
 
 **Scoring:**
 
