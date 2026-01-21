@@ -40,7 +40,7 @@ make ralph_prd        # Generate PRD.md from UserStory.md
 
 ```bash
 make ralph_init_loop              # Initialize (creates prd.json)
-make ralph_run ITERATIONS=10 # Run autonomous development
+make ralph ITERATIONS=10 # Run autonomous development
 make ralph_status            # Check progress
 ```
 
@@ -52,7 +52,7 @@ make ralph_status            # Check progress
 When PRD.md changes significantly, reorganize and archive:
 
 ```bash
-make ralph_reorganize NEW_PRD=docs/PRD-v2.md VERSION=2
+make ralph_archive NEW_PRD=docs/PRD-v2.md VERSION=2
 ```
 
 Archives current PRD, prd.json, and progress to `docs/ralph/archive/`, then
@@ -94,10 +94,10 @@ make ralph_prd         # [Optional] Generate PRD.md from UserStory.md
 
 # Ralph (Core workflow)
 make ralph_init_loop        # Initialize Ralph (creates prd.json)
-make ralph_run         # Run autonomous dev
+make ralph         # Run autonomous dev
 make ralph_status      # Check progress
 make ralph_clean       # Reset state (removes prd.json, progress.txt)
-make ralph_reorganize  # Archive and start new iteration
+make ralph_archive  # Archive and start new iteration
 
 make help              # Show all commands
 ```
@@ -106,6 +106,6 @@ make help              # Show all commands
 
 1. Delete `TEMPLATE_USAGE.md`
 2. Write requirements in `docs/PRD.md`
-3. Run `make ralph_run` for autonomous implementation
+3. Run `make ralph` for autonomous implementation
 
 See `.claude/skills/` for available skills and `make help` for all commands.

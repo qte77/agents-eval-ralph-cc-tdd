@@ -3,7 +3,7 @@
 # Ralph Loop - Autonomous iteration script
 #
 # Usage: ./scripts/ralph/ralph.sh [MAX_ITERATIONS]
-#        make ralph_run [ITERATIONS=25]
+#        make ralph [ITERATIONS=25]
 #
 # This script orchestrates autonomous task execution by:
 # 1. Reading prd.json for incomplete stories
@@ -33,6 +33,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Source libraries
 source "$SCRIPT_DIR/lib/colors.sh"
 source "$SCRIPT_DIR/lib/config.sh"
+source "$SCRIPT_DIR/lib/validate_json.sh"
 source "$SCRIPT_DIR/lib/generate_app_docs.sh"
 
 # Configuration (import from config.sh with CLI/env overrides)
@@ -206,8 +207,7 @@ update_story_status() {
        "$PRD_JSON" > "${PRD_JSON}.tmp"
 
     # Validate JSON before replacing original
-    if ! jq empty "${PRD_JSON}.tmp" 2>/dev/null; then
-        log_error "Generated invalid JSON, keeping original prd.json"
+    if ! validate_prd_json "${PRD_JSON}.tmp"; then
         rm -f "${PRD_JSON}.tmp"
         return 1
     fi

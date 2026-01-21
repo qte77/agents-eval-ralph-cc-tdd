@@ -1,5 +1,5 @@
 #!/bin/bash
-# Script to reorganize PRD files for ralph-loop
+# Archives current run (source, tests, docs, ralph state)
 set -euo pipefail
 
 # Get script directory
@@ -18,7 +18,7 @@ usage() {
     cat <<EOF
 Usage: $0 [OPTIONS]
 
-Archives current PRD and ralph state.
+Archives current run state (source, tests, docs, ralph state).
 
 Options:
   -h              Show this help message
@@ -109,7 +109,7 @@ else
     rm -f "$RALPH_LOG_DIR/$RALPH_LOG_PATTERN"
 fi
 
-log_info "Reorganization complete!"
+log_info "Archive complete!"
 echo ""
 log_info "Archived to: $ARCHIVE_DIR"
 echo ""

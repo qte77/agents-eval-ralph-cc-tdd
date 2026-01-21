@@ -2,8 +2,8 @@
 #
 # Parallel Ralph Loop - Orchestrator for parallel execution
 #
-# Usage: ./scripts/ralph/parallel_ralph.sh [N] [MAX_ITERATIONS]
-#        make ralph_parallel N=2 ITERATIONS=10
+# Usage: ./scripts/ralph/parallel_ralph.sh [N_WT] [MAX_ITERATIONS]
+#        make ralph N_WT=2 ITERATIONS=10
 #
 # Environment variables:
 #   USE_LOCK=true (default) - Lock worktrees to prevent pruning
@@ -14,12 +14,12 @@
 #   MERGE_LOG=true (default) - Include commit descriptions in merge
 #
 # Examples:
-#   make ralph_parallel N=3 ITERATIONS=25
-#   USE_LOCK=false make ralph_parallel N=1
-#   MERGE_VERIFY_SIGNATURES=true make ralph_parallel N=2
+#   make ralph N_WT=3 ITERATIONS=25
+#   USE_LOCK=false make ralph N_WT=1
+#   MERGE_VERIFY_SIGNATURES=true make ralph N_WT=2
 #
 # This script orchestrates parallel Ralph loop execution by:
-# 1. Creating N git worktrees (default=1, max=10)
+# 1. Creating N_WT git worktrees (default=1, max=10)
 # 2. Running ralph.sh in each worktree SIMULTANEOUSLY (background jobs)
 # 3. Waiting for all to complete and scoring results
 # 4. Merging the best result back to original branch
@@ -42,9 +42,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Source libraries
 source "$SCRIPT_DIR/lib/colors.sh"
 source "$SCRIPT_DIR/lib/config.sh"
+source "$SCRIPT_DIR/lib/validate_json.sh"
 
 # Configuration (import from config.sh with CLI/env overrides)
-N=${1:-$RALPH_PARALLEL_N}  # CLI arg or config default (1-10)
+N_WT=${1:-$RALPH_PARALLEL_N_WT}  # CLI arg or config default (1-10)
 MAX_ITERATIONS=${2:-$RALPH_MAX_ITERATIONS}  # CLI arg or config default
 WORKTREE_PREFIX="$RALPH_PARALLEL_WORKTREE_PREFIX"
 BRANCH_PREFIX="$RALPH_PARALLEL_BRANCH_PREFIX"
@@ -152,7 +153,7 @@ start_parallel() {
 wait_and_monitor() {
     log_info "Waiting for all $N worktrees to complete..."
 
-    for i in $(seq 1 $N); do
+    for i in $(seq 1 $N_WT); do
         local pid=${WORKTREE_PIDS[$i]}
         log_info "Waiting for worktree $i (PID: $pid)..."
 
@@ -202,7 +203,7 @@ select_best() {
     local best_wt=1
     local best_score=$(score_worktree 1)
 
-    for i in $(seq 2 $N); do
+    for i in $(seq 2 $N_WT); do
         local score=$(score_worktree $i)
         log_info "Worktree $i score: $score (best: $best_score)"
 
@@ -257,7 +258,7 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 cleanup_worktrees() {
     log_info "Cleaning up worktrees..."
 
-    for i in $(seq 1 $N); do
+    for i in $(seq 1 $N_WT); do
         local worktree_path=$(get_worktree_path "$i")
         local branch_name=$(get_branch_name "$i")
 
@@ -284,7 +285,7 @@ show_all_status() {
     log_info "Parallel Ralph Status:"
     echo ""
 
-    for i in $(seq 1 $N); do
+    for i in $(seq 1 $N_WT); do
         local worktree_path=$(get_worktree_path "$i")
         local prd_json="$worktree_path/$RALPH_PRD_JSON"
         local progress_file="$worktree_path/$RALPH_PROGRESS_FILE"
@@ -320,7 +321,7 @@ watch_all_logs() {
     log_info "Watching all parallel logs (Ctrl+C to exit)..."
 
     local log_files=""
-    for i in $(seq 1 $N); do
+    for i in $(seq 1 $N_WT); do
         local log_file="${WORKTREE_PREFIX}-${i}/ralph.log"
         if [ -f "$log_file" ]; then
             log_files="$log_files $log_file"
@@ -351,7 +352,7 @@ show_worktree_log() {
 abort_parallel() {
     log_warn "Aborting all parallel loops..."
 
-    for i in $(seq 1 $N); do
+    for i in $(seq 1 $N_WT); do
         if [ -n "${WORKTREE_PIDS[$i]:-}" ]; then
             if ps -p "${WORKTREE_PIDS[$i]}" > /dev/null 2>&1; then
                 log_info "Killing worktree $i (PID: ${WORKTREE_PIDS[$i]})..."
@@ -364,7 +365,7 @@ abort_parallel() {
     sleep 2
 
     # Force kill if still running
-    for i in $(seq 1 $N); do
+    for i in $(seq 1 $N_WT); do
         if [ -n "${WORKTREE_PIDS[$i]:-}" ]; then
             if ps -p "${WORKTREE_PIDS[$i]}" > /dev/null 2>&1; then
                 log_warn "Force killing worktree $i..."
@@ -379,11 +380,10 @@ abort_parallel() {
 
 # Main orchestration
 main() {
-    log_info "Starting Parallel Ralph Loop (N=$N, iterations=$MAX_ITERATIONS)"
+    log_info "Starting Parallel Ralph Loop (N_WT=$N_WT, iterations=$MAX_ITERATIONS)"
 
     # Validate environment
-    if [ ! -f "prd.json" ]; then
-        log_error "prd.json not found in current directory"
+    if ! validate_prd_json "prd.json"; then
         exit 1
     fi
 
@@ -391,23 +391,31 @@ main() {
     trap cleanup_worktrees EXIT
 
     # Create and initialize all worktrees
-    for i in $(seq 1 $N); do
+    for i in $(seq 1 $N_WT); do
         create_worktree "$i"
         init_worktree_state "$i"
     done
 
     # Start all ralph.sh instances in parallel
-    for i in $(seq 1 $N); do
+    for i in $(seq 1 $N_WT); do
         start_parallel "$i"
     done
 
-    log_info "All $N worktrees started in parallel"
+    log_info "All $N_WT worktrees started in parallel"
 
     # Wait for completion
     wait_and_monitor
 
     # Select and merge best result
-    local best_wt=$(select_best)
+    local best_wt
+    if [ "$N_WT" -eq 1 ]; then
+        # N_WT=1: Skip scoring overhead, use the only worktree
+        log_info "Single worktree mode - merging worktree 1..."
+        best_wt=1
+    else
+        # N_WT>1: Score all and select best
+        best_wt=$(select_best)
+    fi
 
     if merge_best "$best_wt"; then
         log_info "Success! Best result merged from worktree $best_wt"

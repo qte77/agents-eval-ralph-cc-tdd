@@ -6,14 +6,8 @@
 
 .SILENT:
 .ONESHELL:
-.PHONY: setup_dev setup_claude_code setup_markdownlint setup_project run_markdownlint ruff test_all test_quick test_coverage test_e2e type_check validate validate_quick quick_validate ralph_validate_json ralph_userstory ralph_prd ralph_full_init ralph_init_loop ralph_run ralph_status ralph_clean ralph_reorganize ralph_abort ralph_parallel ralph_parallel_abort ralph_parallel_clean ralph_parallel_status ralph_parallel_watch ralph_parallel_log help
+.PHONY: setup_dev setup_claude_code setup_markdownlint setup_project run_markdownlint ruff test_all test_quick test_coverage test_e2e type_check validate validate_quick quick_validate ralph_validate_json ralph_userstory ralph_prd ralph_init_loop ralph ralph_status ralph_clean ralph_archive ralph_abort ralph_watch ralph_log help
 .DEFAULT_GOAL := help
-
-# Ralph configuration - Quality thresholds
-MIN_TEST_COVERAGE ?= 70
-RALPH_MAX_ITERATIONS ?= 25
-RALPH_MAX_FIX_ATTEMPTS ?= 3
-
 
 # MARK: setup
 
@@ -64,9 +58,9 @@ test_all:  ## Run all tests (excludes E2E tests by default)
 test_quick:  ## Quick test - rerun only failed tests (use during fix iterations)
 	uv run pytest --lf -x
 
-test_coverage:  ## Run tests with coverage threshold ($(MIN_TEST_COVERAGE)%)
-	echo "Running tests with $(MIN_TEST_COVERAGE)% coverage gate..."
-	uv run pytest --cov --cov-fail-under=$(MIN_TEST_COVERAGE)
+test_coverage:  ## Run tests with coverage threshold (configured in pyproject.toml)
+	echo "Running tests with coverage gate (fail_under=70% in pyproject.toml)..."
+	uv run pytest --cov
 
 test_e2e:  ## Run E2E tests only (Ralph parallel loop tests)
 	echo "Running E2E tests..."
@@ -102,15 +96,7 @@ quick_validate:  ## Fast development cycle validation
 # MARK: ralph
 
 ralph_validate_json:  ## Internal: Validate prd.json syntax
-	@if [ ! -f docs/ralph/prd.json ]; then
-		echo "ERROR: prd.json not found"
-		exit 1
-	fi
-	@if ! jq empty docs/ralph/prd.json 2>/dev/null; then
-		echo "ERROR: Invalid JSON in docs/ralph/prd.json"
-		exit 1
-	fi
-	@echo "✓ prd.json validated"
+	@bash scripts/ralph/lib/validate_json.sh && echo "✓ prd.json validated"
 
 ralph_userstory:  ## [Optional] Create UserStory.md interactively. Usage: make ralph_userstory
 	echo "Creating UserStory.md through interactive Q&A ..."
@@ -126,63 +112,38 @@ ralph_init_loop:  ## Initialize Ralph loop environment
 	bash scripts/ralph/init.sh
 	$(MAKE) -s ralph_validate_json
 
-ralph_run:  ## Run Ralph autonomous development loop (use ITERATIONS=N to set max iterations)
-	echo "Starting Ralph loop ..."
+ralph:  ## Run Ralph loop - Usage: make ralph [N_WT=1] [ITERATIONS=25]
+	echo "Starting Ralph loop (N_WT=$${N_WT:-1}, iterations=$${ITERATIONS:-25}) ..."
 	$(MAKE) -s ralph_validate_json
+	N_WT=$${N_WT:-1}
 	ITERATIONS=$${ITERATIONS:-25}
-	bash scripts/ralph/ralph.sh $$ITERATIONS
+	bash scripts/ralph/parallel_ralph.sh $$N_WT $$ITERATIONS
 
-ralph_status:  ## Show Ralph loop progress and status
-	echo "Ralph Loop Status"
-	echo "================="
-	if [ -f docs/ralph/prd.json ]; then
-		total=$$(jq '.stories | length' docs/ralph/prd.json)
-		passing=$$(jq '[.stories[] | select(.passes == true)] | length' docs/ralph/prd.json)
-		echo "Stories: $$passing/$$total completed"
-		echo ""
-		echo "Incomplete stories:"
-		jq -r '.stories[] | select(.passes == false) | "  - [\(.id)] \(.title)"' docs/ralph/prd.json
-	else
-		echo "prd.json not found. Run 'make ralph_init_loop' first."
+ralph_status:  ## Show Ralph loop progress
+	@if ls ../agents-eval-ralph-wt-*/ralph.log 2>/dev/null | head -1 > /dev/null; then \
+		bash scripts/ralph/parallel_ralph.sh status; \
+	else \
+		echo "No active Ralph loops found."; \
+		if [ -f docs/ralph/prd.json ]; then \
+			echo "Hint: Run 'make ralph' to start loop with existing state"; \
+		else \
+			echo "Hint: Run 'make ralph_init_loop' to initialize"; \
+		fi \
 	fi
-
-ralph_clean:  ## Reset Ralph state (WARNING: removes prd.json and progress.txt)
-	echo "WARNING: This will reset Ralph loop state!"
-	echo "Press Ctrl+C to cancel, Enter to continue..."
-	read
-	rm -f docs/ralph/prd.json docs/ralph/progress.txt
-	echo "Ralph state cleaned. Run 'make ralph_init_loop' to reinitialize."
-
-ralph_reorganize:  ## Archive current PRD and ralph state. Usage: make ralph_reorganize [ARCHIVE_LOGS=1]
-	bash scripts/ralph/reorganize_prd.sh $(if $(filter 1,$(ARCHIVE_LOGS)),-l)
 
 ralph_abort:  ## Abort all running Ralph loops
 	bash scripts/ralph/abort.sh
 
-# Parallel Ralph execution (git worktrees) - N=1 for isolation, N>1 for true parallelism
-# Flags: USE_LOCK=true (default), USE_NO_TRACK=true (default)
-ralph_parallel:  ## Run Ralph loop(s) (N=1 default, up to 10 parallel)
-	echo "Starting parallel Ralph loop (N=$${N:-1}, iterations=$${ITERATIONS:-25}) ..."
-	$(MAKE) -s ralph_validate_json
-	N=$${N:-1}
-	ITERATIONS=$${ITERATIONS:-25}
-	USE_LOCK=$${USE_LOCK:-true}
-	USE_NO_TRACK=$${USE_NO_TRACK:-true}
-	bash scripts/ralph/parallel_ralph.sh $$N $$ITERATIONS
+ralph_clean:  ## Clean Ralph state (worktrees + local) - Requires double confirmation
+	bash scripts/ralph/clean.sh
 
-ralph_parallel_abort:  ## Abort all parallel loops and cleanup
-	bash scripts/ralph/parallel_ralph.sh abort
+ralph_archive:  ## Archive current run state. Usage: make ralph_archive [ARCHIVE_LOGS=1]
+	bash scripts/ralph/archive.sh $(if $(filter 1,$(ARCHIVE_LOGS)),-l)
 
-ralph_parallel_clean:  ## Remove all worktrees without aborting
-	bash scripts/ralph/parallel_ralph.sh clean
-
-ralph_parallel_status:  ## Show summary status of all parallel worktrees
-	bash scripts/ralph/parallel_ralph.sh status
-
-ralph_parallel_watch:  ## Live-watch all parallel loop outputs (tail -f)
+ralph_watch:  ## Live-watch Ralph loop output
 	bash scripts/ralph/parallel_ralph.sh watch
 
-ralph_parallel_log:  ## Show output of specific worktree (WT=1)
+ralph_log:  ## Show output of specific worktree - Usage: make ralph_log WT=2
 	bash scripts/ralph/parallel_ralph.sh log $${WT:-1}
 
 
