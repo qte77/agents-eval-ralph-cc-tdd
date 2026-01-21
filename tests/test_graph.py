@@ -85,8 +85,8 @@ def test_calculate_graph_density_sparse():
     graph = build_interaction_graph(interactions)
     density = calculate_graph_density(graph)
 
-    # Sparse graph: low density
-    assert 0.0 <= density < 0.5
+    # Sparse graph: density should be non-zero but <= 0.5
+    assert 0.0 < density <= 0.5
 
 
 def test_calculate_graph_density_empty():
