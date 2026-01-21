@@ -119,19 +119,19 @@ def test_report_model_creation():
 def test_paper_model_validates_required_fields():
     """Test that Paper model validates required fields."""
     with pytest.raises(Exception):  # Pydantic ValidationError
-        Paper()
+        Paper()  # type: ignore[call-arg]
 
 
 def test_review_model_validates_required_fields():
     """Test that Review model validates required fields."""
     with pytest.raises(Exception):  # Pydantic ValidationError
-        Review()
+        Review()  # type: ignore[call-arg]
 
 
 def test_metrics_model_has_optional_fields():
     """Test that Metrics model allows optional fields."""
     # Create with minimal required fields
-    metrics = Metrics(
+    metrics = Metrics(  # type: ignore[call-arg]
         execution_time_seconds=10.0,
         task_success_rate=0.9,
     )

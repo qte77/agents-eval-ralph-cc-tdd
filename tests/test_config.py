@@ -32,11 +32,11 @@ def test_config_loads_from_json_file(tmp_path: Path):
 
 def test_config_has_dataset_settings():
     """Test that Config model has dataset configuration."""
-    config = Config(
-        dataset={"name": "peerread", "version": "1.0", "path": "data/peerread"},
-        evaluation={"seed": 42, "batch_size": 10, "llm_judge_model": "claude-sonnet-4"},
-        observability={"backend": "loguru", "log_level": "INFO"},
-    )
+    config = Config.model_validate({
+        "dataset": {"name": "peerread", "version": "1.0", "path": "data/peerread"},
+        "evaluation": {"seed": 42, "batch_size": 10, "llm_judge_model": "claude-sonnet-4"},
+        "observability": {"backend": "loguru", "log_level": "INFO"},
+    })
 
     assert config.dataset.name == "peerread"
     assert config.dataset.version == "1.0"
@@ -45,11 +45,11 @@ def test_config_has_dataset_settings():
 
 def test_config_has_evaluation_settings():
     """Test that Config model has evaluation configuration."""
-    config = Config(
-        dataset={"name": "peerread", "version": "1.0", "path": "data/peerread"},
-        evaluation={"seed": 42, "batch_size": 10, "llm_judge_model": "claude-sonnet-4"},
-        observability={"backend": "loguru", "log_level": "INFO"},
-    )
+    config = Config.model_validate({
+        "dataset": {"name": "peerread", "version": "1.0", "path": "data/peerread"},
+        "evaluation": {"seed": 42, "batch_size": 10, "llm_judge_model": "claude-sonnet-4"},
+        "observability": {"backend": "loguru", "log_level": "INFO"},
+    })
 
     assert config.evaluation.seed == 42
     assert config.evaluation.batch_size == 10
@@ -58,11 +58,11 @@ def test_config_has_evaluation_settings():
 
 def test_config_has_observability_settings():
     """Test that Config model has observability configuration."""
-    config = Config(
-        dataset={"name": "peerread", "version": "1.0", "path": "data/peerread"},
-        evaluation={"seed": 42, "batch_size": 10, "llm_judge_model": "claude-sonnet-4"},
-        observability={"backend": "loguru", "log_level": "INFO"},
-    )
+    config = Config.model_validate({
+        "dataset": {"name": "peerread", "version": "1.0", "path": "data/peerread"},
+        "evaluation": {"seed": 42, "batch_size": 10, "llm_judge_model": "claude-sonnet-4"},
+        "observability": {"backend": "loguru", "log_level": "INFO"},
+    })
 
     assert config.observability.backend == "loguru"
     assert config.observability.log_level == "INFO"
