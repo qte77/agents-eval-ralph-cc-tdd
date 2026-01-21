@@ -363,7 +363,7 @@ cleanup_worktrees() {
 
 # Show status of all worktrees
 show_all_status() {
-    log_info "Parallel Ralph Status:"
+    log_info "Parallel Ralph Status ($(date +%H:%M:%S)):"
     echo ""
 
     # Scan up to system max to find all existing worktrees
