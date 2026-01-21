@@ -234,6 +234,12 @@ make ralph_clean                # Clean worktrees + local state (requires double
 - **Paused (unlocked)**: Ralph loop stopped/interrupted → `make ralph` auto-resumes
 - **Clean**: No worktrees exist → `make ralph` creates new run
 
+**Interrupt Handling:**
+
+- **Ctrl+C during execution**: Worktrees are unlocked but preserved (state maintained for resume)
+- **Successful completion**: Worktrees are cleaned up automatically (after merging best result)
+- **Merge failure**: Worktrees are unlocked but preserved (for debugging)
+
 **Scoring:**
 
 (N_WT>1 only): `(stories × 100) + test_count + validation_bonus`

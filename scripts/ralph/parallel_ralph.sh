@@ -344,7 +344,25 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
     fi
 }
 
-# Cleanup worktrees
+# Unlock worktrees (preserve state for resume)
+unlock_worktrees() {
+    log_info "Unlocking worktrees (preserving state for resume)..."
+
+    for i in $(seq 1 $MAX_WORKTREES); do
+        local worktree_path=$(find_worktree_by_index "$i")
+        [ -z "$worktree_path" ] && continue
+
+        # Unlock worktree to allow future operations
+        if [ "$USE_LOCK" = "true" ]; then
+            log_info "Unlocking worktree $i..."
+            git worktree unlock "$worktree_path" 2>/dev/null || true
+        fi
+    done
+
+    log_info "Worktrees unlocked - run 'make ralph' to resume"
+}
+
+# Cleanup worktrees (remove everything)
 cleanup_worktrees() {
     log_info "Cleaning up worktrees..."
 
@@ -562,8 +580,8 @@ main() {
         log_info "Resuming existing worktrees (ITERATIONS parameter ignored)"
     fi
 
-    # Setup trap for cleanup on exit
-    trap cleanup_worktrees EXIT
+    # Setup trap for interrupt: unlock but preserve state (allows resume)
+    trap 'unlock_worktrees; exit 130' INT TERM
 
     if [ "$resume_mode" = true ]; then
         # RESUME MODE: Use existing worktrees
@@ -621,12 +639,14 @@ EOF
 
     if merge_best "$best_wt" "$N_WT" "$RUN_ID"; then
         log_info "Success! Best result merged from worktree $best_wt"
+        # Cleanup worktrees after successful completion
+        cleanup_worktrees
     else
         log_error "Merge failed - manual intervention required"
+        # On merge failure, unlock but preserve worktrees for debugging
+        unlock_worktrees
         exit 1
     fi
-
-    # Cleanup happens via trap
 }
 
 # Handle command-line actions
