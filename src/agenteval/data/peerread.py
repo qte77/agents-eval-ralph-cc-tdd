@@ -2,8 +2,13 @@
 
 import json
 from pathlib import Path
+from typing import TypeVar
+
+from pydantic import BaseModel
 
 from agenteval.models.data import Paper, Review
+
+T = TypeVar("T", bound=BaseModel)
 
 
 class PeerReadLoader:
@@ -17,26 +22,38 @@ class PeerReadLoader:
         """
         self.data_path = Path(data_path)
 
+    def _load_json_files(self, pattern: str, model_class: type[T]) -> list[T]:
+        """Load and parse JSON files matching pattern into Pydantic models.
+
+        Args:
+            pattern: Glob pattern for file matching
+            model_class: Pydantic model class to validate against
+
+        Returns:
+            List of parsed model instances
+        """
+        if not self.data_path.exists():
+            return []
+
+        results = []
+        for file_path in self.data_path.glob(pattern):
+            try:
+                data = json.loads(file_path.read_text())
+                model = model_class.model_validate(data)
+                results.append(model)
+            except (json.JSONDecodeError, ValueError):
+                # Skip corrupted or invalid files
+                continue
+
+        return results
+
     async def load_papers(self) -> list[Paper]:
         """Load papers from local storage into Paper models.
 
         Returns:
             List of Paper objects parsed from JSON files
         """
-        if not self.data_path.exists():
-            return []
-
-        papers = []
-        for file_path in self.data_path.glob("paper_*.json"):
-            try:
-                data = json.loads(file_path.read_text())
-                paper = Paper.model_validate(data)
-                papers.append(paper)
-            except (json.JSONDecodeError, ValueError):
-                # Skip corrupted or invalid files
-                continue
-
-        return papers
+        return self._load_json_files("paper_*.json", Paper)
 
     async def load_reviews(self) -> list[Review]:
         """Load reviews from local storage into Review models.
@@ -44,20 +61,7 @@ class PeerReadLoader:
         Returns:
             List of Review objects parsed from JSON files
         """
-        if not self.data_path.exists():
-            return []
-
-        reviews = []
-        for file_path in self.data_path.glob("review_*.json"):
-            try:
-                data = json.loads(file_path.read_text())
-                review = Review.model_validate(data)
-                reviews.append(review)
-            except (json.JSONDecodeError, ValueError):
-                # Skip corrupted or invalid files
-                continue
-
-        return reviews
+        return self._load_json_files("review_*.json", Review)
 
     async def load_dataset(self) -> dict[str, list[Paper] | list[Review]]:
         """Load complete dataset with papers and reviews.
