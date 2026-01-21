@@ -243,7 +243,7 @@ make ralph [N_WT=1] [ITERATIONS=25]
 
 ### High Priority (High ROI)
 
-- **Claude Judge for Parallel Runs**: Replace simple scoring `(stories × 100) + test_count` with AI-based evaluation. Claude evaluates code quality, design, test coverage across worktrees. Can recommend "winner" or "cherry-pick" best modules from each worktree into hybrid codebase. Add `templates/judge.md` prompt and `lib/judge.sh`.
+- **Claude Judge for Parallel Runs**: LLM-as-Judge functionality to enhance simple scoring `(stories × 100) + test_count` with AI-based evaluation. Claude evaluates code quality, design, test coverage across worktrees. Can recommend "winner" or "cherry-pick" best modules from each worktree into hybrid codebase. Add `templates/judge.md` prompt and `lib/judge.sh`.
 - **Directory Consolidation**: Consolidate `scripts/ralph/` and `docs/ralph/` into single `ralph/` root directory for cleaner ownership. Structure: `ralph/{scripts,templates,state,docs}`. Add symlinks for backward compatibility.
 - **Clean up intermediate files**: Remove `*_green.py`, `*_red.py`, `*_stub` after story completion
 - **E2E tests**: Add end-to-end test coverage for full application paths
