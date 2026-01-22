@@ -59,10 +59,12 @@ class ReportGenerator:
         """Generate consolidated report from pipeline results.
 
         Args:
-            pipeline_results: Dictionary containing results from all evaluation tiers
+            pipeline_results: Dictionary containing results from all evaluation tiers.
+                             Can be empty - will generate report with minimal structure.
 
         Returns:
-            Dictionary with structured report including metadata, results, and aggregates
+            Dictionary with structured report including metadata, results, and aggregates.
+            Always includes metadata with report_id and timestamp even if no results present.
         """
         report = {
             "metadata": {

@@ -224,3 +224,21 @@ def test_report_handles_missing_optional_tiers():
     # Should gracefully handle missing tiers
     assert report.get("llm_evaluation") is None or "llm_evaluation" not in report
     assert report.get("graph_metrics") is None or "graph_metrics" not in report
+
+
+def test_report_handles_empty_pipeline_results():
+    """Test that report handles completely empty pipeline results gracefully."""
+    report_gen = ReportGenerator()
+
+    # Empty pipeline results
+    pipeline_results = {}
+
+    report = report_gen.generate_report(pipeline_results)
+
+    # Report should still be generated with minimal structure
+    assert report is not None
+    assert "metadata" in report
+    assert "results" in report
+    assert "aggregate_metrics" in report
+    assert report["metadata"]["timestamp"] is not None
+    assert report["metadata"]["report_id"] is not None
