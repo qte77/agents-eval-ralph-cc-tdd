@@ -21,7 +21,8 @@ analysis.
 
 ## Architecture
 
-**Design Philosophy**: Plugin-based evaluation framework powered by OpenTelemetry observability data.
+**Design Philosophy**: Plugin-based evaluation framework powered by
+OpenTelemetry observability data.
 
 ```text
 ┌─────────────────────────────────────────────────┐
@@ -50,8 +51,10 @@ analysis.
 - **OpenTelemetry Standard**: Not locked to specific vendor - any OTel backend works
 - **Logfire Recommended**: Ease of use with PydanticAI + Logfire MCP for debugging
 - **Local Development**: Opik or other OTel tools for local development
-- **Plugin Architecture**: ALL modules are independent plugins with no inter-plugin dependencies
-- **LLM-as-a-Judge Multi-Mode**: Special plugin that can analyze outputs from ANY other plugin
+- **Plugin Architecture**: ALL modules are independent plugins with no
+  inter-plugin dependencies
+- **LLM-as-a-Judge Multi-Mode**: Special plugin that can analyze outputs
+  from ANY other plugin
 - **Composable Design**: Mix and match plugins based on evaluation needs
 
 ## Technical Requirements
@@ -103,9 +106,11 @@ analysis.
 
 #### Developer Tooling
 
-- [Logfire MCP](https://github.com/pydantic/logfire-mcp) - AI-assisted trace debugging (requires Logfire)
+- [Logfire MCP](https://github.com/pydantic/logfire-mcp) - AI-assisted trace
+  debugging (requires Logfire)
 
-Install: `claude mcp add logfire -e LOGFIRE_READ_TOKEN="..." -- uvx logfire-mcp@latest`
+Install:
+`claude mcp add logfire -e LOGFIRE_READ_TOKEN="..." -- uvx logfire-mcp@latest`
 
 ### Data Processing
 
@@ -329,12 +334,12 @@ perform structural complexity analysis using NetworkX formalization.
 
 All plugins operate independently with no inter-plugin dependencies.
 
-| Plugin         | Input             | Output            | Notes                                       |
-| -------------- | ----------------- | ----------------- | ------------------------------------------- |
-| Graph Plugin   | OTel Traces       | Graph structures  | Extracts graphs from traces using NetworkX  |
-| Text Metrics   | Reviews           | Similarity scores | Levenshtein, Jaro-Winkler, Cosine sim      |
-| Perf Metrics   | Traces            | Timing metrics    | Execution time, success rate, coordination  |
-| LLM-as-a-Judge | ANY plugin output | Semantic scores   | Multi-mode: analyzes output from any plugin |
+| Plugin         | Input        | Output       | Notes                  |
+| -------------- | ------------ | ------------ | ---------------------- |
+| Graph Plugin   | OTel Traces  | Graphs       | NetworkX formalization |
+| Text Metrics   | Reviews      | Similarity   | Leven., Jaro-W., Cos.  |
+| Perf Metrics   | Traces       | Timing       | Time, success, coord.  |
+| LLM-as-a-Judge | Plugin data  | Semantic     | Analyzes any plugin    |
 
 ---
 

@@ -6,7 +6,8 @@ status: dev
 created: 2026-01-19
 ---
 
-Autonomous development loop that executes stories from prd.json using Test-Driven Development with Claude Code.
+Autonomous development loop that executes stories from prd.json using
+Test-Driven Development with Claude Code.
 
 ## Prerequisites
 
@@ -28,7 +29,8 @@ Run `make ralph_init_loop` to validate all prerequisites are installed.
 ```bash
 make ralph_run [ITERATIONS=25]              # Single loop (isolated via worktree)
 make ralph_run N_WT=5 ITERATIONS=25         # 5 parallel loops
-make ralph_run DEBUG=1 N_WT=3               # Debug mode (watch logs, worktrees persist)
+make ralph_run DEBUG=1 N_WT=3               # Debug mode (watch,
+                                            # persist)
 ```
 
 ## How It Works
@@ -190,7 +192,8 @@ make ralph_run N_WT=5 ITERATIONS=25    # 5 worktrees, scores results, merges bes
 
 ### Resume Paused Run
 
-**Automatic resume detection**: If existing worktrees are found (not locked), `make ralph_run` automatically resumes them:
+**Automatic resume detection**: If existing worktrees are found (not locked),
+`make ralph_run` automatically resumes them:
 
 ```bash
 # If paused worktrees exist:
@@ -210,7 +213,7 @@ make ralph_run                      # Auto-resumes all existing worktrees
 
 ```bash
 make ralph_status               # Progress summary with timestamp
-make ralph_watch                # Live tail all logs
+make ralph_watch                # Show process tree + live tail all logs
 make ralph_log WT=2             # View specific worktree
 ```
 
@@ -223,6 +226,7 @@ make ralph_run DEBUG=1 N_WT=3       # Starts worktrees + watches logs
 ```
 
 When DEBUG=1:
+
 - Automatically starts log watching (like `make ralph_watch`)
 - Worktrees run in background and persist after Ctrl+C
 - No automatic scoring or merging
@@ -233,7 +237,8 @@ When DEBUG=1:
 
 ```bash
 make ralph_abort                # Abort all loops + cleanup
-make ralph_clean                # Clean worktrees + local state (requires double confirmation)
+make ralph_clean                # Clean worktrees + local state
+                                # (requires double confirmation)
 ```
 
 **Safety Features:**
@@ -246,19 +251,24 @@ make ralph_clean                # Clean worktrees + local state (requires double
 
 **Execution States:**
 
-- **Active (locked)**: Ralph loop running → `make ralph_run` aborts with error, use `make ralph_abort` first
-- **Paused (unlocked)**: Ralph loop stopped/interrupted → `make ralph_run` auto-resumes
+- **Active (locked)**: Ralph loop running → `make ralph_run` aborts with
+  error, use `make ralph_abort` first
+- **Paused (unlocked)**: Ralph loop stopped/interrupted →
+  `make ralph_run` auto-resumes
 - **Clean**: No worktrees exist → `make ralph_run` creates new run
 
 **Interrupt Handling:**
 
-- **Ctrl+C during execution**: Background processes persist (detached via `disown`), worktrees unlocked but preserved for resume
-- **Successful completion**: Worktrees are cleaned up automatically (after merging best result)
+- **Ctrl+C during execution**: Background processes persist (detached via
+  `disown`), worktrees unlocked but preserved for resume
+- **Successful completion**: Worktrees are cleaned up automatically
+  (after merging best result)
 - **Merge failure**: Worktrees are unlocked but preserved (for debugging)
 
 **Background Process Persistence:**
 
 All worktrees run as detached background processes (via `disown`):
+
 - Survive Ctrl+C interrupts
 - Survive terminal disconnects
 - Survive parent shell exit
@@ -268,9 +278,11 @@ All worktrees run as detached background processes (via `disown`):
 **Scoring:**
 
 (N_WT>1 only): `base + coverage_bonus - penalties`
+
 - base = `(stories × 10) + test_count + validation_bonus`
 - coverage_bonus = `coverage% / 2` (0-50 points)
-- penalties = `(ruff × 2) + (pyright_err × 5) + (pyright_warn × 1) + (churn / 100)`
+- penalties = `(ruff × 2) + (pyright_err × 5) + (pyright_warn × 1) +
+  (churn / 100)`
 
 **Config:**
 
@@ -309,29 +321,57 @@ make ralph_run [N_WT=1] [ITERATIONS=25]
 
 ### High Priority (High ROI)
 
-- [ ] **Claude Judge for Parallel Runs**: LLM-as-Judge functionality to enhance simple scoring `(stories × 100) + test_count` with AI-based evaluation. Claude evaluates code quality, design, test coverage across worktrees. Can recommend "winner" or "cherry-pick" best modules from each worktree into hybrid codebase. Add `templates/judge.md` prompt and `lib/judge.sh`.
-- [ ] **Directory Consolidation**: Consolidate `scripts/ralph/` and `docs/ralph/` into single `ralph/` root directory for cleaner ownership. Structure: `ralph/{scripts,templates,state,docs}`. Add symlinks for backward compatibility.
-- [ ] **Clean up intermediate files**: Remove `*_green.py`, `*_red.py`, `*_stub` after story completion
+- [ ] **Claude Judge for Parallel Runs**: LLM-as-Judge functionality to
+  enhance simple scoring `(stories × 100) + test_count` with AI-based
+  evaluation. Claude evaluates code quality, design, test coverage across
+  worktrees. Can recommend "winner" or "cherry-pick" best modules from
+  each worktree into hybrid codebase. Add `templates/judge.md` prompt
+  and `lib/judge.sh`.
+- [ ] **Directory Consolidation**: Consolidate `scripts/ralph/` and
+  `docs/ralph/` into single `ralph/` root directory for cleaner ownership.
+  Structure: `ralph/{scripts,templates,state,docs}`. Add symlinks for
+  backward compatibility.
+- [ ] **Clean up intermediate files**: Remove `*_green.py`, `*_red.py`,
+  `*_stub` after story completion
 - [ ] **E2E tests**: Add end-to-end test coverage for full application paths
 
 ### Medium Priority
 
-- [ ] **Smart Story Distribution**: Analyze dependency graph, run independent stories in parallel by spinning up a new worktree
+- [ ] **Smart Story Distribution**: Analyze dependency graph, run
+  independent stories in parallel by spinning up a new worktree
 - [ ] **Memory/Lessons Learned**: Simple `AGENT_LEARNINGS.md` mechanism
-- [ ] **Bi-directional Communication**: `AGENT_REQUESTS.md` for human-agent communication
+- [ ] **Bi-directional Communication**: `AGENT_REQUESTS.md` for
+  human-agent communication
 - [ ] **Auto-resolve Conflicts**: Programmatic merge conflict resolution
 - [ ] **Plugin Integration**: Ralph commands as Claude Code skills on marketplace
 - [ ] **Packaging for pypi and npm**: Provide as packages for python and node
-- [ ] **Vibe Kanban UI Exploration**: Evaluate [Vibe Kanban](https://github.com/BloopAI/vibe-kanban) (9.4k stars, Apache 2.0) as visual UI layer. Provides Kanban board for parallel agents, git worktree isolation, built-in diff review. Install: `npx vibe-kanban`. Compatible with Claude Code.
+- [ ] **Vibe Kanban UI Exploration**: Evaluate
+  [Vibe Kanban](https://github.com/BloopAI/vibe-kanban) (9.4k stars,
+  Apache 2.0) as visual UI layer. Provides Kanban board for parallel
+  agents, git worktree isolation, built-in diff review. Install:
+  `npx vibe-kanban`. Compatible with Claude Code.
 
 ### Low Priority (Future Exploration)
 
 - [ ] **Real-time Dashboard**: Live monitoring UI for parallel worktrees
-- [ ] **JSON Status API Output** (Team/Enterprise quick win): Add `make ralph_status_json` for structured output. Foundation for dashboards, CI/CD hooks, monitoring. Enables Grafana, Datadog, custom UIs.
-- [ ] **Slack/Teams Notifications** (Team/Enterprise quick win): Post completion/failure alerts to team channels. Hook into `parallel_ralph.sh` completion. Example: "Ralph completed STORY-005 ✅" → `#dev-alerts`.
-- [ ] **Rippletide Eval Integration**: Add hallucination detection for generated docs/comments using [Rippletide Eval CLI](https://docs.rippletide.com). Scores agent outputs 1-4, flags unsupported claims.
+- [ ] **JSON Status API Output** (Team/Enterprise quick win): Add
+  `make ralph_status_json` for structured output. Foundation for
+  dashboards, CI/CD hooks, monitoring. Enables Grafana, Datadog,
+  custom UIs.
+- [ ] **Slack/Teams Notifications** (Team/Enterprise quick win): Post
+  completion/failure alerts to team channels. Hook into
+  `parallel_ralph.sh` completion. Example: "Ralph completed STORY-005 ✅"
+  → `#dev-alerts`.
+- [ ] **Rippletide Eval Integration**: Add hallucination detection for
+  generated docs/comments using
+  [Rippletide Eval CLI](https://docs.rippletide.com). Scores agent
+  outputs 1-4, flags unsupported claims.
 - [ ] **Mobile/Remote Monitoring**: Options evaluated:
-  - **Claude iOS App** (claude.ai/code): ❌ Incompatible - runs in cloud sandbox, can't access local worktrees/make commands
-  - **Omnara**: ⚠️ Limited - wraps local Claude Code but no devcontainer support, legacy version deprecated
-  - **Conductor.build**: ❌ Unusable - macOS-only, doesn't work in devcontainer/Linux
-  - **Recommended**: SSH + Tailscale for mobile terminal access, or build JSON API for custom dashboards
+  - **Claude iOS App** (claude.ai/code): ❌ Incompatible - runs in cloud
+    sandbox, can't access local worktrees/make commands
+  - **Omnara**: ⚠️ Limited - wraps local Claude Code but no devcontainer
+    support, legacy version deprecated
+  - **Conductor.build**: ❌ Unusable - macOS-only, doesn't work in
+    devcontainer/Linux
+  - **Recommended**: SSH + Tailscale for mobile terminal access, or build
+    JSON API for custom dashboards

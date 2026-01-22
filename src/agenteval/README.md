@@ -6,11 +6,16 @@ Application description
 
 ## Why
 
-- Establish foundation with JSON configuration management and shared Pydantic data models to prevent duplication across evaluation modules.
-- Download PeerRead dataset and persist locally with versioning for reproducibility and offline use.
-- Load and parse PeerRead dataset from local storage into structured Pydantic models.
-- Measure agent system performance with standard metrics for objective comparison of implementations.
-- Evaluate semantic quality of provided agent outputs using LLM-based assessment against human baseline reviews from PeerRead dataset.
+- Establish foundation with JSON configuration management and shared
+  Pydantic data models to prevent duplication across evaluation modules.
+- Download PeerRead dataset and persist locally with versioning for
+  reproducibility and offline use.
+- Load and parse PeerRead dataset from local storage into structured
+  Pydantic models.
+- Measure agent system performance with standard metrics for objective
+  comparison of implementations.
+- Evaluate semantic quality of provided agent outputs using LLM-based
+  assessment against human baseline reviews from PeerRead dataset.
 
 ## Quick Start
 

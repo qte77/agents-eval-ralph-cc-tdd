@@ -26,7 +26,8 @@ Follow TDD workflow below. Tests MUST be written FIRST.
   - Write tests that verify each acceptance criterion
   - Run tests - they MUST fail (code doesn't exist yet)
   - **RUN VALIDATION**: `make validate` - fix any errors before committing
-  - **COMMIT TESTS FIRST**: `git add tests/ && git commit -m "test(STORY-XXX): add failing tests [RED]
+  - **COMMIT TESTS FIRST**:
+    `git add tests/ && git commit -m "test(STORY-XXX): add failing tests [RED]
 
 Co-Authored-By: Claude <noreply@anthropic.com>"`
 
@@ -37,7 +38,8 @@ Co-Authored-By: Claude <noreply@anthropic.com>"`
   - Write simplest code that makes tests pass
   - Run tests - they MUST pass now
   - **RUN VALIDATION**: `make validate` - fix any errors before committing
-  - **COMMIT IMPLEMENTATION**: `git add src/ && git commit -m "feat(STORY-XXX): implement to pass tests [GREEN]
+  - **COMMIT IMPLEMENTATION**:
+    `git add src/ && git commit -m "feat(STORY-XXX): implement to pass tests [GREEN]
 
 Co-Authored-By: Claude <noreply@anthropic.com>"`
 
@@ -45,11 +47,13 @@ Co-Authored-By: Claude <noreply@anthropic.com>"`
 
 - Clean up code while keeping tests passing (see core-principles.md)
   - **RUN VALIDATION**: `make validate` before committing
-  - **COMMIT REFACTORINGS** (if any): `git add . && git commit -m "refactor(STORY-XXX): cleanup [REFACTOR]
+  - **COMMIT REFACTORINGS** (if any):
+    `git add . && git commit -m "refactor(STORY-XXX): cleanup [REFACTOR]
 
 Co-Authored-By: Claude <noreply@anthropic.com>"`
 
-**CRITICAL**: Tests MUST be committed BEFORE implementation. This ensures verifiable TDD compliance and provides audit trail for agent evaluation.
+**CRITICAL**: Tests MUST be committed BEFORE implementation. This ensures
+verifiable TDD compliance and provides audit trail for agent evaluation.
 
 ## Before Writing Code (DRY CHECK - MANDATORY)
 
@@ -60,6 +64,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>"`
 3. Run `grep -r "class.*BaseModel" src/` → Find existing Pydantic models
 
 **Import existing code, don't duplicate:**
+
 ```python
 # ✅ CORRECT - Reuse existing
 from myproject.models import ExistingModel
@@ -82,7 +87,8 @@ Use skills appropriately based on task requirements.
 
 ## Quality Gates
 
-Run `make validate` before marking complete. See `CONTRIBUTING.md` for all validation commands.
+Run `make validate` before marking complete. See `CONTRIBUTING.md` for all
+validation commands.
 
 ## Current Story Details
 

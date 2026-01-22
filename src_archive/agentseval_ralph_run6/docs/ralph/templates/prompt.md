@@ -60,6 +60,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>"`
 3. Run `grep -r "class.*BaseModel" src/` → Find existing Pydantic models
 
 **Import existing code, don't duplicate:**
+
 ```python
 # ✅ CORRECT - Reuse existing
 from myproject.models import ExistingModel
