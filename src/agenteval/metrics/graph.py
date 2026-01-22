@@ -4,6 +4,9 @@ This module models agent interactions as directed graphs and computes
 structural metrics like density, centrality, and clustering coefficients.
 """
 
+from __future__ import annotations
+
+import json
 from pathlib import Path
 from typing import Any
 
@@ -134,8 +137,6 @@ def export_graph(graph: nx.DiGraph, output_path: Path, format: str = "json") -> 
     if format == "json":
         # Convert to node-link format for JSON
         data = nx.node_link_data(graph)
-        import json
-
         with open(output_path, "w") as f:
             json.dump(data, f)
     elif format == "graphml":
