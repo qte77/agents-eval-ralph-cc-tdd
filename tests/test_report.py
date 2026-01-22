@@ -21,6 +21,9 @@ def test_combine_results_from_all_three_evaluation_tiers():
             execution_time_seconds=120.5,
             task_success_rate=0.85,
             coordination_quality=0.92,
+            semantic_similarity=None,
+            graph_density=None,
+            graph_centrality=None,
         ),
         "llm_evaluation": Evaluation(
             evaluation_id="eval_001",
@@ -55,6 +58,9 @@ def test_generate_consolidated_json_report_with_all_metrics():
             execution_time_seconds=60.0,
             task_success_rate=1.0,
             coordination_quality=0.95,
+            semantic_similarity=None,
+            graph_density=None,
+            graph_centrality=None,
         ),
         "llm_evaluation": Evaluation(
             evaluation_id="eval_002",
@@ -128,6 +134,9 @@ def test_output_combined_results_in_structured_format():
             execution_time_seconds=45.5,
             task_success_rate=0.90,
             coordination_quality=0.88,
+            semantic_similarity=None,
+            graph_density=None,
+            graph_centrality=None,
         ),
         "llm_evaluation": Evaluation(
             evaluation_id="eval_003",
@@ -164,6 +173,9 @@ def test_report_includes_aggregate_statistics():
             execution_time_seconds=100.0,
             task_success_rate=0.80,
             coordination_quality=0.85,
+            semantic_similarity=None,
+            graph_density=None,
+            graph_centrality=None,
         ),
         "llm_evaluation": Evaluation(
             evaluation_id="eval_004",
@@ -198,6 +210,9 @@ def test_report_handles_missing_optional_tiers():
             execution_time_seconds=30.0,
             task_success_rate=0.95,
             coordination_quality=0.90,
+            semantic_similarity=None,
+            graph_density=None,
+            graph_centrality=None,
         ),
     }
 
