@@ -10,6 +10,7 @@ Application description
 - Download PeerRead dataset and persist locally with versioning for reproducibility and offline use.
 - Load and parse PeerRead dataset from local storage into structured Pydantic models.
 - Measure agent system performance with standard metrics for objective comparison of implementations.
+- Evaluate semantic quality of provided agent outputs using LLM-based assessment against human baseline reviews from PeerRead dataset.
 
 ## Quick Start
 
@@ -38,7 +39,11 @@ src/agenteval
 │   └── peerread.py
 ├── example.py
 ├── __init__.py
+├── judges
+│   ├── __init__.py
+│   └── llm_judge.py
 ├── metrics
+│   ├── graph.py
 │   ├── __init__.py
 │   └── traditional.py
 ├── models
@@ -50,6 +55,8 @@ tests/
 ├── __init__.py
 ├── test_config.py
 ├── test_downloader.py
+├── test_graph.py
+├── test_llm_judge.py
 ├── test_models.py
 ├── test_peerread.py
 └── test_traditional.py
