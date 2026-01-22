@@ -37,23 +37,16 @@
       "Edit(tests/**/*.json)",
       "Read(.claude/skills/**/*.md)",
       "SlashCommand",
-      "Skill",
-      "WebFetch(domain:github.com/DavidAnson/markdownlint/blob/main/doc/Rules.md)",
-      "WebFetch(domain:docs.anthropic.com/en/docs/claude-code/claude_code_docs_map.md)",
-      "WebFetch(domain:docs.anthropic.com)"
+      "Skill"
     ],
     "deny": [
       "Bash(awk:*)",
       "Bash(cat:*)",
       "Bash(find:*)",
-      "Bash(git push:*)",
       "Bash(grep:*)",
       "Bash(head:*)",
       "Bash(ls:*)",
       "Bash(mkdir:*)",
-      "Bash(mv:*)",
-      "Bash(rg:*)",
-      "Bash(rm:*)",
       "Bash(source:*)",
       "Bash(tail:*)",
       "Bash(touch:*)"
@@ -61,6 +54,9 @@
     "ask": [
       "Bash(git add:*)",
       "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(mv:*)",
+      "Bash(rm:*)",
       "Edit(.claude/**)",
       "Edit(.devcontainer/**)",
       "Edit(.github/**)",
