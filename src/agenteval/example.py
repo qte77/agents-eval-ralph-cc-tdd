@@ -1,5 +1,7 @@
 """Minimal viable example demonstrating how to use this application."""
 
+import agenteval
+
 
 def main():
     """Run the application example."""
