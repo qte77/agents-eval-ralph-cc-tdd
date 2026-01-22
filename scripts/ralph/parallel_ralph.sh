@@ -62,6 +62,9 @@ source "$SCRIPT_DIR/lib/config.sh"
 source "$SCRIPT_DIR/lib/validate_json.sh"
 source "$SCRIPT_DIR/lib/vibe.sh"
 
+# Source judge library (conditional)
+[ "${RALPH_JUDGE_ENABLED:-false}" = "true" ] && source "$SCRIPT_DIR/lib/judge.sh"
+
 # Configuration (import from config.sh with CLI/env overrides)
 # Note: N_WT and MAX_ITERATIONS are parsed in main() to avoid conflicts with subcommands
 WORKTREE_PREFIX="$RALPH_PARALLEL_WORKTREE_PREFIX"
@@ -420,6 +423,22 @@ merge_best() {
             commit_msg="feat: merge best Ralph result from worktree $best_wt ($stories_passed/$total_stories stories) [run:$run_id]"
         fi
 
+        # Optional interactive approval
+        if [ "${RALPH_MERGE_INTERACTIVE:-false}" = "true" ]; then
+            echo ""
+            log_info "Merge staged (not yet committed). You can now:"
+            log_info "  - Test the changes (run GUI, manual checks, etc.)"
+            log_info "  - Review: git status, git diff --cached"
+            echo ""
+            read -p "Approve merge and commit? [y/N] " -r
+            echo ""
+            if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+                git merge --abort
+                log_warn "Merge aborted by user"
+                return 1
+            fi
+        fi
+
         git commit -m "$commit_msg
 
 Co-Authored-By: Claude <noreply@anthropic.com>"
@@ -753,8 +772,35 @@ EOF
         log_info "Single worktree mode - merging worktree 1..."
         best_wt=1
     else
-        # N_WT>1: Score all and select best
-        best_wt=$(select_best "$RUN_ID" "$N_WT")
+        # N_WT>1: Try judge first, fall back to metrics
+        if [ "${RALPH_JUDGE_ENABLED:-false}" = "true" ]; then
+            # Get metrics baseline for transparency
+            local metrics_winner=$(select_best "$RUN_ID" "$N_WT")
+            log_info "Metrics selected worktree $metrics_winner"
+
+            # Try judge evaluation
+            local judge_winner=$(judge_worktrees "$RUN_ID" "$N_WT")
+            if [ $? -ne 0 ] || [ -z "$judge_winner" ]; then
+                log_info "Falling back to quantitative metrics..."
+                best_wt="$metrics_winner"
+            else
+                # Use judge result
+                best_wt="$judge_winner"
+                if [ "$judge_winner" != "$metrics_winner" ]; then
+                    log_warn "Judge ($judge_winner) disagrees with metrics ($metrics_winner)"
+                fi
+            fi
+        else
+            best_wt=$(select_best "$RUN_ID" "$N_WT")
+        fi
+    fi
+
+    # Optional security review before merge
+    if [ "${RALPH_SECURITY_REVIEW:-false}" = "true" ]; then
+        log_info "Running security review on worktree $best_wt..."
+        local worktree_path=$(get_worktree_path "$best_wt" "$RUN_ID" "$N_WT")
+        (cd "$worktree_path" && claude -p '/security-review' --dangerously-skip-permissions 2>&1 | tee /tmp/ralph_security_review.log) || \
+            log_warn "Security review completed with findings - check /tmp/ralph_security_review.log"
     fi
 
     if merge_best "$best_wt" "$N_WT" "$RUN_ID"; then

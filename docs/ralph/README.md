@@ -268,6 +268,32 @@ make ralph_clean                # Clean worktrees + local state
 - Shows what will be deleted before asking for confirmation
 - Cannot be undone - use with caution
 
+### Judge-Based Selection (Optional)
+
+Enable LLM-based worktree evaluation for quality-focused selection:
+
+```bash
+# Basic judge mode (autonomous)
+RALPH_JUDGE_ENABLED=true make ralph_run N_WT=3
+
+# With security review
+RALPH_JUDGE_ENABLED=true RALPH_SECURITY_REVIEW=true make ralph_run N_WT=2
+
+# Human-in-the-loop (interactive merge approval)
+RALPH_JUDGE_ENABLED=true RALPH_MERGE_INTERACTIVE=true make ralph_run N_WT=2
+
+# Increase max worktrees for judge (default: 5)
+RALPH_JUDGE_ENABLED=true RALPH_JUDGE_MAX_WT=10 make ralph_run N_WT=8
+```
+
+**How it works:**
+
+- Judge evaluates: **correctness > test quality > code clarity**
+- Falls back to metrics if N_WT > `RALPH_JUDGE_MAX_WT` or on timeout
+- Autonomous by default (no human approval required)
+- Optional security review via `/security-review` skill
+- Optional interactive approval before final commit
+
 **Execution States:**
 
 - **Active (locked)**: Ralph loop running → `make ralph_run` aborts with
@@ -340,12 +366,15 @@ make ralph_run [N_WT=1] [ITERATIONS=25]
 
 ### High Priority (High ROI)
 
-- [ ] **Claude Judge for Parallel Runs**: LLM-as-Judge functionality to
-  enhance simple scoring `(stories × 100) + test_count` with AI-based
-  evaluation. Claude evaluates code quality, design, test coverage across
-  worktrees. Can recommend "winner" or "cherry-pick" best modules from
-  each worktree into hybrid codebase. Add `templates/judge.md` prompt
-  and `lib/judge.sh`.
+- [x] **Claude Judge for Parallel Runs**: Implemented LLM-as-Judge using
+  pairwise comparison for worktree selection. Judge evaluates code
+  quality, test coverage, correctness using `claude -p`. Falls back to
+  metrics if N_WT > `RALPH_JUDGE_MAX_WT` (default: 5). Includes optional
+  security review (`/security-review`) and interactive merge approval.
+  Autonomous by default. Config: `RALPH_JUDGE_ENABLED`,
+  `RALPH_JUDGE_MAX_WT`, `RALPH_SECURITY_REVIEW`,
+  `RALPH_MERGE_INTERACTIVE`. Files: `templates/judge.prompt.md`,
+  `lib/judge.sh`.
 - [ ] **Directory Consolidation**: Consolidate `scripts/ralph/` and
   `docs/ralph/` into single `ralph/` root directory for cleaner ownership.
   Structure: `ralph/{scripts,templates,state,docs}`. Add symlinks for

@@ -91,6 +91,17 @@ RALPH_PARALLEL_WORKTREE_PREFIX=${RALPH_PARALLEL_WORKTREE_PREFIX:-"../${SRC_PACKA
 RALPH_PARALLEL_WORKTREE_QUIET=${RALPH_PARALLEL_WORKTREE_QUIET:-false}
 
 # =================================================
+# JUDGE CONFIGURATION (Claude-as-Judge for N_WT>1)
+# =================================================
+RALPH_JUDGE_ENABLED=${RALPH_JUDGE_ENABLED:-false}
+RALPH_JUDGE_MODEL=${RALPH_JUDGE_MODEL:-"sonnet"}
+RALPH_JUDGE_TIMEOUT=${RALPH_JUDGE_TIMEOUT:-120}
+RALPH_JUDGE_MAX_WT=${RALPH_JUDGE_MAX_WT:-5}
+RALPH_JUDGE_TEMPLATE="$RALPH_TEMPLATES_DIR/judge.prompt.md"
+RALPH_SECURITY_REVIEW=${RALPH_SECURITY_REVIEW:-false}
+RALPH_MERGE_INTERACTIVE=${RALPH_MERGE_INTERACTIVE:-false}
+
+# =================================================
 # STATE FILE PATHS
 # Derived from Ralph docs directory
 # =================================================
