@@ -195,7 +195,7 @@ main() {
 
     echo ""
     log_info "Ready to run Ralph loop:"
-    log_info "  make ralph [ITERATIONS=25]"
+    log_info "  make ralph_run [ITERATIONS=25]"
     log_info "  or"
     log_info "  ./scripts/ralph/ralph.sh 5"
     echo ""

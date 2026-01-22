@@ -26,9 +26,9 @@ Run `make ralph_init_loop` to validate all prerequisites are installed.
 ## Quick Start
 
 ```bash
-make ralph [ITERATIONS=25]              # Single loop (isolated via worktree)
-make ralph N_WT=5 ITERATIONS=25         # 5 parallel loops
-make ralph DEBUG=1 N_WT=3               # Debug mode (watch logs, worktrees persist)
+make ralph_run [ITERATIONS=25]              # Single loop (isolated via worktree)
+make ralph_run N_WT=5 ITERATIONS=25         # 5 parallel loops
+make ralph_run DEBUG=1 N_WT=3               # Debug mode (watch logs, worktrees persist)
 ```
 
 ## How It Works
@@ -182,19 +182,19 @@ Runs without human approval:
 
 ```bash
 # Single loop (N_WT=1, default)
-make ralph [ITERATIONS=25]      # Isolated in worktree, no scoring overhead
+make ralph_run [ITERATIONS=25]      # Isolated in worktree, no scoring overhead
 
 # Parallel loops (N_WT>1)
-make ralph N_WT=5 ITERATIONS=25    # 5 worktrees, scores results, merges best
+make ralph_run N_WT=5 ITERATIONS=25    # 5 worktrees, scores results, merges best
 ```
 
 ### Resume Paused Run
 
-**Automatic resume detection**: If existing worktrees are found (not locked), `make ralph` automatically resumes them:
+**Automatic resume detection**: If existing worktrees are found (not locked), `make ralph_run` automatically resumes them:
 
 ```bash
 # If paused worktrees exist:
-make ralph                      # Auto-resumes all existing worktrees
+make ralph_run                      # Auto-resumes all existing worktrees
                                 # ITERATIONS parameter ignored (uses existing state)
                                 # N_WT detected from existing worktrees
 ```
@@ -217,7 +217,7 @@ make ralph_log WT=2             # View specific worktree
 **DEBUG Mode:**
 
 ```bash
-make ralph DEBUG=1 N_WT=3       # Starts worktrees + watches logs
+make ralph_run DEBUG=1 N_WT=3       # Starts worktrees + watches logs
                                 # Ctrl+C exits watch, worktrees continue
                                 # No auto-merge (manual intervention required)
 ```
@@ -246,9 +246,9 @@ make ralph_clean                # Clean worktrees + local state (requires double
 
 **Execution States:**
 
-- **Active (locked)**: Ralph loop running → `make ralph` aborts with error, use `make ralph_abort` first
-- **Paused (unlocked)**: Ralph loop stopped/interrupted → `make ralph` auto-resumes
-- **Clean**: No worktrees exist → `make ralph` creates new run
+- **Active (locked)**: Ralph loop running → `make ralph_run` aborts with error, use `make ralph_abort` first
+- **Paused (unlocked)**: Ralph loop stopped/interrupted → `make ralph_run` auto-resumes
+- **Clean**: No worktrees exist → `make ralph_run` creates new run
 
 **Interrupt Handling:**
 
@@ -279,7 +279,7 @@ All worktrees run as detached background processes (via `disown`):
 ## Execution Flow Details
 
 ```text
-make ralph [N_WT=1] [ITERATIONS=25]
+make ralph_run [N_WT=1] [ITERATIONS=25]
   └─> parallel_ralph.sh
        ├─> creates N_WT worktrees
        ├─> for each worktree: ralph.sh (background) →

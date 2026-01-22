@@ -40,8 +40,8 @@ make ralph_prd        # Generate PRD.md from UserStory.md
 
 ```bash
 make ralph_init_loop              # Initialize (creates prd.json)
-make ralph ITERATIONS=10          # Run autonomous development
-make ralph DEBUG=1                # Watch logs in real-time (optional)
+make ralph_run ITERATIONS=10      # Run autonomous development
+make ralph_run DEBUG=1            # Watch logs in real-time (optional)
 make ralph_status                 # Check progress (with timestamp)
 ```
 
@@ -95,8 +95,8 @@ make ralph_prd         # [Optional] Generate PRD.md from UserStory.md
 
 # Ralph (Core workflow)
 make ralph_init_loop   # Initialize Ralph (creates prd.json)
-make ralph             # Run autonomous dev
-make ralph DEBUG=1     # Watch logs (optional)
+make ralph_run         # Run autonomous dev
+make ralph_run DEBUG=1 # Watch logs (optional)
 make ralph_status      # Check progress (with timestamp)
 make ralph_clean       # Reset state (removes prd.json, progress.txt)
 make ralph_archive     # Archive and start new iteration
@@ -108,6 +108,6 @@ make help              # Show all commands
 
 1. Delete `TEMPLATE_USAGE.md`
 2. Write requirements in `docs/PRD.md`
-3. Run `make ralph` for autonomous implementation
+3. Run `make ralph_run` for autonomous implementation
 
 See `.claude/skills/` for available skills and `make help` for all commands.

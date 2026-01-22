@@ -48,10 +48,10 @@ make ralph_userstory            # Interactive User Story using CC
 make ralph_prd                  # Generate PRD.md from UserStory.md 
 
 # 3. Write requirements in docs/PRD.md, then run Ralph
-make ralph_init_loop                 # Initialize (creates prd.json)
-make ralph [ITERATIONS=25]  # Run autonomous development
-make ralph                      # Resume if paused (auto-detects existing worktrees)
-make ralph_status               # Check progress (with timestamp)
+make ralph_init_loop             # Initialize (creates prd.json)
+make ralph_run [ITERATIONS=25]   # Run autonomous development
+make ralph_run                   # Resume if paused (auto-detects existing worktrees)
+make ralph_status                # Check progress (with timestamp)
 
 # 4. Post-run options
 # Reset state (removes prd.json, progress.txt)

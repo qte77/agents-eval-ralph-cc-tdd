@@ -6,7 +6,7 @@
 
 .SILENT:
 .ONESHELL:
-.PHONY: setup_dev setup_claude_code setup_markdownlint setup_project run_markdownlint ruff test_all test_quick test_coverage test_e2e type_check validate validate_quick quick_validate ralph_validate_json ralph_userstory ralph_prd ralph_init_loop ralph ralph_status ralph_clean ralph_archive ralph_abort ralph_watch ralph_log help
+.PHONY: setup_dev setup_claude_code setup_markdownlint setup_project run_markdownlint ruff test_all test_quick test_coverage test_e2e type_check validate validate_quick quick_validate ralph_validate_json ralph_userstory ralph_prd ralph_init_loop ralph_run ralph_status ralph_clean ralph_archive ralph_abort ralph_watch ralph_log help
 .DEFAULT_GOAL := help
 
 # MARK: setup
@@ -112,7 +112,7 @@ ralph_init_loop:  ## Initialize Ralph loop environment
 	bash scripts/ralph/init.sh
 	$(MAKE) -s ralph_validate_json
 
-ralph:  ## Run Ralph loop - Usage: make ralph [N_WT=<value>] [ITERATIONS=<value>] [DEBUG=1]
+ralph_run:  ## Run Ralph loop - Usage: make ralph_run [N_WT=<value>] [ITERATIONS=<value>] [DEBUG=1]
 	echo "Starting Ralph loop (N_WT=$${N_WT:-default}, iterations=$${ITERATIONS:-default}) ..."
 	$(MAKE) -s ralph_validate_json
 	DEBUG=$${DEBUG:-0} bash scripts/ralph/parallel_ralph.sh "$${N_WT}" "$${ITERATIONS}"

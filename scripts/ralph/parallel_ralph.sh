@@ -3,7 +3,7 @@
 # Parallel Ralph Loop - Orchestrator for parallel execution
 #
 # Usage: ./scripts/ralph/parallel_ralph.sh [N_WT] [MAX_ITERATIONS]
-#        make ralph N_WT=2 ITERATIONS=10
+#        make ralph_run N_WT=2 ITERATIONS=10
 #
 # Environment variables:
 #   DEBUG=0 (default) - Enable debug mode (watch logs, no auto-merge)
@@ -15,10 +15,10 @@
 #   MERGE_LOG=true (default) - Include commit descriptions in merge
 #
 # Examples:
-#   make ralph N_WT=3 ITERATIONS=25
-#   make ralph DEBUG=1 N_WT=3
-#   USE_LOCK=false make ralph N_WT=1
-#   MERGE_VERIFY_SIGNATURES=true make ralph N_WT=2
+#   make ralph_run N_WT=3 ITERATIONS=25
+#   make ralph_run DEBUG=1 N_WT=3
+#   USE_LOCK=false make ralph_run N_WT=1
+#   MERGE_VERIFY_SIGNATURES=true make ralph_run N_WT=2
 #
 # This script orchestrates parallel Ralph loop execution by:
 # 1. Creating N_WT git worktrees (default=1, max=10)
@@ -450,7 +450,7 @@ unlock_worktrees() {
         fi
     done
 
-    log_info "Worktrees unlocked - run 'make ralph' to resume"
+    log_info "Worktrees unlocked - run 'make ralph_run' to resume"
 }
 
 # Cleanup worktrees (remove everything)
@@ -525,7 +525,7 @@ show_all_status() {
 
     if [ "$found_any" = false ]; then
         echo "No active Ralph worktrees found."
-        echo "Hint: Run 'make ralph' to start a new loop"
+        echo "Hint: Run 'make ralph_run' to start a new loop"
     fi
 }
 

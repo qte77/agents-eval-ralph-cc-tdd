@@ -10,7 +10,7 @@
 # Usage examples:
 #   - Override iterations: ./ralph.sh 50
 #   - Override timeout: VALIDATION_TIMEOUT=600 ./ralph.sh
-#   - Override parallel N_WT: make ralph N_WT=5
+#   - Override parallel N_WT: make ralph_run N_WT=5
 
 # =================================================
 # USER-EDITABLE STATIC VARIABLES
@@ -46,7 +46,7 @@ ARCHIVE_SRC_SUBDIR="$SRC_BASE_DIR"
 
 # =================================================
 # EXECUTION PARAMETERS
-# All values support environment variable override (e.g., RALPH_MAX_ITERATIONS=50 make ralph)
+# All values support environment variable override (e.g., RALPH_MAX_ITERATIONS=50 make ralph_run)
 # =================================================
 RALPH_FIX_TIMEOUT=${RALPH_FIX_TIMEOUT:-600}  # Fix attempt timeout (10 min)
 RALPH_MAX_FIX_ATTEMPTS=${RALPH_MAX_FIX_ATTEMPTS:-3}  # Max validation fix attempts
