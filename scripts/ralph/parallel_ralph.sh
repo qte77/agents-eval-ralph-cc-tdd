@@ -221,7 +221,8 @@ start_parallel() {
 
     (
         cd "$worktree_path"
-        export KANBAN_MAP VIBE_URL VIBE_PROJECT_ID
+        export WORKTREE_NUM="$i"
+        export RALPH_RUN_ID="$run_id"
         ./scripts/ralph/ralph.sh "$MAX_ITERATIONS" > "$log_file" 2>&1
     ) &
 
@@ -684,7 +685,15 @@ main() {
 
     # Initialize Kanban integration
     KANBAN_MAP="/tmp/ralph-kb-${RUN_ID}.map"
-    kanban_init "$RUN_ID"
+    kanban_init "$RUN_ID" "$N_WT"
+
+    # Write env vars to file for worktree subprocesses
+    cat > "/tmp/ralph-vibe-${RUN_ID}.env" <<EOF
+export VIBE_URL="$VIBE_URL"
+export VIBE_PROJECT_ID="$VIBE_PROJECT_ID"
+export KANBAN_MAP="$KANBAN_MAP"
+export RUN_ID="$RUN_ID"
+EOF
 
     # Validate environment
     if ! validate_prd_json "$RALPH_PRD_JSON"; then

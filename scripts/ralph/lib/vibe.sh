@@ -1,8 +1,10 @@
 #!/bin/bash
 # Vibe Kanban real-time integration via REST API
 
-VIBE_URL=""
-VIBE_PROJECT_ID=""
+# Preserve exported values if already set
+: ${VIBE_URL:=""}
+: ${VIBE_PROJECT_ID:=""}
+: ${KANBAN_MAP:=""}
 
 # Get Vibe Kanban URL from config
 get_vibe_url() {
@@ -28,12 +30,14 @@ _detect_vibe() {
 # Initialize Kanban integration
 kanban_init() {
     local run_id=$1
+    local n_wt=${2:-1}
 
     # Try to detect Vibe Kanban
     if ! _detect_vibe; then
         return 0  # Silent fail - Vibe not running
     fi
 
+    export VIBE_URL
     log_info "Vibe Kanban detected at $VIBE_URL"
 
     # Get project ID
@@ -44,30 +48,48 @@ kanban_init() {
         return 0
     fi
 
+    export VIBE_PROJECT_ID
     log_info "Using Vibe project: $VIBE_PROJECT_ID"
 
     # Create tasks from prd.json
     > "$KANBAN_MAP"  # Initialize map file
-    while IFS= read -r story; do
-        local id=$(echo "$story" | jq -r '.id')
-        local title=$(echo "$story" | jq -r '.title')
-        local desc=$(echo "$story" | jq -r '.description // "No description"')
+    export KANBAN_MAP
 
-        local task_resp=$(curl -sf -X POST "$VIBE_URL/api/tasks" \
-            -H "Content-Type: application/json" \
-            -d '{
-                "project_id": "'"$VIBE_PROJECT_ID"'",
-                "title": "'"$id: $title"'",
-                "description": "'"$desc"'",
-                "status": "todo"
-            }' 2>/dev/null)
+    for wt in $(seq 1 $n_wt); do
+        while IFS= read -r story; do
+            local id=$(echo "$story" | jq -r '.id')
+            local title=$(echo "$story" | jq -r '.title')
 
-        local task_id=$(echo "$task_resp" | jq -r '.data.id // empty')
-        if [ -n "$task_id" ]; then
-            echo "$id=$task_id" >> "$KANBAN_MAP"
-            log_info "Created Vibe task: $id"
-        fi
-    done < <(jq -c '.stories[]' "$RALPH_PRD_JSON")
+            # Add [run_id] and [WTn] prefixes
+            local task_title="[$run_id] [WT$wt] ${id}: $title"
+
+            # Use jq to construct payload with description and acceptance criteria
+            local payload=$(echo "$story" | jq -n \
+                --arg project_id "$VIBE_PROJECT_ID" \
+                --arg title "$task_title" \
+                --arg status "todo" \
+                --argjson story "$(cat)" \
+                '{
+                    project_id: $project_id,
+                    title: $title,
+                    description: (
+                        $story.description + "\n\nAcceptance Criteria:\n- " +
+                        ($story.acceptance | join("\n- "))
+                    ),
+                    status: $status
+                }')
+
+            local task_resp=$(curl -sf -X POST "$VIBE_URL/api/tasks" \
+                -H "Content-Type: application/json" \
+                -d "$payload" 2>/dev/null)
+
+            local task_id=$(echo "$task_resp" | jq -r '.data.id // empty')
+            if [ -n "$task_id" ]; then
+                echo "${wt}:${id}=$task_id" >> "$KANBAN_MAP"
+                log_info "Created Vibe task: [$run_id] [WT$wt] ${id}"
+            fi
+        done < <(jq -c '.stories[]' "$RALPH_PRD_JSON")
+    done
 
     log_info "Kanban sync active - created $(wc -l < "$KANBAN_MAP") tasks"
 }
@@ -80,14 +102,41 @@ kanban_update() {
     # Check if Vibe Kanban was initialized
     [ -n "$VIBE_URL" ] && [ -f "$KANBAN_MAP" ] || return 0
 
+    # Use composite key with WORKTREE_NUM
+    local key="${WORKTREE_NUM:-1}:${story_id}"
+
     # Get task ID from map
-    local task_id=$(grep "^$story_id=" "$KANBAN_MAP" 2>/dev/null | cut -d= -f2)
+    local task_id=$(grep "^$key=" "$KANBAN_MAP" 2>/dev/null | cut -d= -f2)
     [ -z "$task_id" ] && return 0
 
-    # Update task
+    # Set attempt flags based on status
+    local has_in_progress=false
+    local last_failed=false
+    case "$status" in
+        "inprogress"|"inreview")
+            has_in_progress=true
+            ;;
+        "done")
+            has_in_progress=false
+            last_failed=false
+            ;;
+        "todo")
+            has_in_progress=false
+            last_failed=true
+            ;;
+        "cancelled")
+            has_in_progress=false
+            last_failed=true
+            ;;
+    esac
+
+    # Update task with status and attempt tracking
     curl -sf -X PUT "$VIBE_URL/api/tasks/$task_id" \
         -H "Content-Type: application/json" \
         -d '{
-            "status": "'"$status"'"
+            "status": "'"$status"'",
+            "has_in_progress_attempt": '"$has_in_progress"',
+            "last_attempt_failed": '"$last_failed"',
+            "executor": "WT'"${WORKTREE_NUM:-1}"'"
         }' >/dev/null 2>&1
 }

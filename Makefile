@@ -9,6 +9,7 @@
 .PHONY: setup_dev setup_claude_code setup_markdownlint setup_project run_markdownlint ruff test_all test_quick test_coverage test_e2e type_check validate validate_quick quick_validate ralph_validate_json ralph_create_userstory_md ralph_create_prd_md ralph_init_loop ralph_run ralph_status ralph_clean ralph_archive ralph_abort ralph_watch ralph_get_log vibe_start vibe_stop_all vibe_status vibe_cleanup help
 .DEFAULT_GOAL := help
 
+
 # MARK: setup
 
 
@@ -98,15 +99,15 @@ quick_validate:  ## Fast development cycle validation
 ralph_validate_json:  ## Internal: Validate prd.json syntax
 	bash scripts/ralph/lib/validate_json.sh
 
-ralph_create_userstory_md:  ## [Optional] Create UserStory.md interactively. Usage: make ralph_create_userstory_md
+ralph_create_userstory_md:  ## [Optional] Create UserStory.md interactively. No params.
 	echo "Creating UserStory.md through interactive Q&A ..."
 	claude -p '/build-userstory'
 
-ralph_create_prd_md:  ## [Optional] Generate PRD.md from UserStory.md
+ralph_create_prd_md:  ## [Optional] Generate PRD.md from UserStory.md. No params.
 	echo "Generating PRD.md from UserStory.md ..."
 	claude -p '/generate-prd-md-from-userstory'
 
-ralph_init_loop:  ## Initialize Ralph loop environment
+ralph_init_loop:  ## Initialize Ralph loop environment. No params.
 	echo "Initializing Ralph loop environment ..."
 	claude -p '/generate-prd-json-from-md'
 	bash scripts/ralph/init.sh
@@ -122,6 +123,11 @@ ralph_run:  ## Run Ralph loop - Usage: make ralph_run [N_WT=<N>] [ITERATIONS=<N>
 	RALPH_SECURITY_REVIEW=$${RALPH_SECURITY_REVIEW:-false} \
 	RALPH_MERGE_INTERACTIVE=$${RALPH_MERGE_INTERACTIVE:-false} \
 	bash scripts/ralph/parallel_ralph.sh "$${N_WT}" "$${ITERATIONS}"
+
+ralph_init_and_run:  ## Initialize and run Ralph loop in one command. Usage: make ralph_init_and_run [N_WT=<N>] [ITERATIONS=<N>] [DEBUG=1] [RALPH_JUDGE_ENABLED=true] [RALPH_SECURITY_REVIEW=true] [RALPH_MERGE_INTERACTIVE=true]
+	$(MAKE) -s ralph_init_loop
+	$(MAKE) -s ralph_run N_WT=$${N_WT:-} ITERATIONS=$${ITERATIONS:-} DEBUG=$${DEBUG:-} RALPH_JUDGE_ENABLED=$${RALPH_JUDGE_ENABLED:-} RALPH_SECURITY_REVIEW=$${RALPH_SECURITY_REVIEW:-} RALPH_MERGE_INTERACTIVE=$${RALPH_MERGE_INTERACTIVE:-}
+
 
 ralph_status:  ## Show Ralph loop progress
 	bash scripts/ralph/parallel_ralph.sh status

@@ -73,20 +73,51 @@ Ralph auto-detects Vibe Kanban at the configured port and syncs automatically.
 
 Ralph uses Vibe Kanban REST API endpoints:
 
-| Endpoint | Purpose | When |
+### GET /api/projects
+
+Get project list to find Ralph project ID.
+
+```bash
+curl -s http://127.0.0.1:5173/api/projects | jq -r '.data[0].id'
+```
+
+### POST /api/tasks
+
+Create task for each story from prd.json.
+
+```bash
+curl -X POST http://127.0.0.1:5173/api/tasks \
+  -H "Content-Type: application/json" \
+  -d '{
+    "project_id": "project-uuid",
+    "title": "[run_id] [WT1] STORY-001: Title",
+    "description": "Story description\n\nAcceptance Criteria:\n
+- Criterion 1\n- Criterion 2",
+    "status": "todo"
+  }'
+```
+
+### PUT /api/tasks/:id
+
+Update task status during execution.
+
+```bash
+curl -X PUT http://127.0.0.1:5173/api/tasks/{task-uuid} \
+  -H "Content-Type: application/json" \
+  -d '{"status": "inprogress"}'
+```
+
+## Status Lifecycle
+
+| Status | When | Description |
 | --- | --- | --- |
-| `GET /api/projects` | Find Ralph project | On startup |
-| `POST /api/tasks` | Create task for each story | On init |
-| `PUT /api/tasks/:id` | Update status (todo/inprogress/done) | Story state changes |
+| `todo` | Initial, or failed | Story not started or returned to queue |
+| `inprogress` | Story execution starts | Claude Code working on story |
+| `inreview` | Quality checks running | Tests and validation in progress |
+| `done` | Story passes | All acceptance criteria met |
+| `cancelled` | MAX_ITERATIONS reached | Story incomplete after max attempts |
 
-## Status Mapping
-
-| Ralph State | Vibe Kanban Status |
-| --- | --- |
-| Story starts | `inprogress` |
-| Story passes | `done` |
-| Story fails | `todo` |
-
+**Source**: `scripts/ralph/lib/vibe.sh` (kanban_init, kanban_update)
 
 ## Vibe Kanban Data Storage
 
@@ -105,7 +136,7 @@ Vibe Kanban stores all data locally in `~/.vibe/`:
 - `vibe.db` - All project and task state
 - `profiles.json` - Custom agent configurations (GUI: Settings → Agents)
 
-## Configuration
+## Project Configuration
 
 ### Auto-Generated Project Config
 

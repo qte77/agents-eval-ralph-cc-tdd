@@ -35,7 +35,21 @@ source "$SCRIPT_DIR/lib/colors.sh"
 source "$SCRIPT_DIR/lib/config.sh"
 source "$SCRIPT_DIR/lib/validate_json.sh"
 source "$SCRIPT_DIR/lib/generate_app_docs.sh"
+
+# Load Vibe Kanban environment using specific RUN_ID
+if [ -n "${RALPH_RUN_ID:-}" ] && [ -f "/tmp/ralph-vibe-${RALPH_RUN_ID}.env" ]; then
+    source "/tmp/ralph-vibe-${RALPH_RUN_ID}.env"
+    echo "[DEBUG] Sourced /tmp/ralph-vibe-${RALPH_RUN_ID}.env" >&2
+    echo "[DEBUG] VIBE_URL=$VIBE_URL" >&2
+    echo "[DEBUG] KANBAN_MAP=$KANBAN_MAP" >&2
+else
+    echo "[DEBUG] NOT sourcing env file: RALPH_RUN_ID=${RALPH_RUN_ID:-<unset>}" >&2
+fi
+
 source "$SCRIPT_DIR/lib/vibe.sh"
+
+echo "[DEBUG] After vibe.sh: VIBE_URL=$VIBE_URL" >&2
+echo "[DEBUG] After vibe.sh: KANBAN_MAP=$KANBAN_MAP" >&2
 
 # Configuration (import from config.sh with CLI/env overrides)
 MAX_ITERATIONS=${1:-$RALPH_MAX_ITERATIONS}
@@ -257,6 +271,22 @@ execute_story() {
         echo "**Description**: $description"
         echo ""
         echo "Read prd.json for full acceptance criteria and expected files."
+
+        # Inject accumulated learnings
+        if [[ -f "$RALPH_LEARNINGS_FILE" ]]; then
+            echo ""
+            echo "## Agent Learnings"
+            echo ""
+            cat "$RALPH_LEARNINGS_FILE"
+        fi
+
+        # Inject human requests
+        if [[ -f "$RALPH_REQUESTS_FILE" ]]; then
+            echo ""
+            echo "## Human Requests"
+            echo ""
+            cat "$RALPH_REQUESTS_FILE"
+        fi
     } >> "$iteration_prompt"
 
     # Execute via Claude Code with selected model
@@ -341,6 +371,22 @@ fix_validation_errors() {
             echo '```'
             echo ""
             echo "Fix all errors and run \`make validate\` to verify."
+
+            # Inject accumulated learnings
+            if [[ -f "$RALPH_LEARNINGS_FILE" ]]; then
+                echo ""
+                echo "## Agent Learnings"
+                echo ""
+                cat "$RALPH_LEARNINGS_FILE"
+            fi
+
+            # Inject human requests
+            if [[ -f "$RALPH_REQUESTS_FILE" ]]; then
+                echo ""
+                echo "## Human Requests"
+                echo ""
+                cat "$RALPH_REQUESTS_FILE"
+            fi
         } >> "$fix_prompt"
 
         # Execute fix via Claude Code with timeout
@@ -525,6 +571,7 @@ main() {
             fi
 
             # Run quality checks
+            kanban_update "$story_id" "inreview"
             local validation_log="/tmp/ralph_validate_${story_id}.log"
             if run_quality_checks "$validation_log"; then
                 # Mark as passing
@@ -565,6 +612,17 @@ main() {
 
     if [ $iteration -eq $MAX_ITERATIONS ]; then
         log_warn "Reached maximum iterations ($MAX_ITERATIONS)"
+
+        # Mark incomplete stories as cancelled
+        while IFS= read -r story; do
+            local id=$(echo "$story" | jq -r '.id')
+            local is_passing=$(echo "$story" | jq -r '.is_passing')
+
+            if [ "$is_passing" != "true" ]; then
+                kanban_update "$id" "cancelled"
+                log_warn "Story $id cancelled (incomplete after $MAX_ITERATIONS iterations)"
+            fi
+        done < <(jq -c '.stories[]' "$PRD_JSON")
     fi
 
     # Commit any remaining uncommitted tracking files
