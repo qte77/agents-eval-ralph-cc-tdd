@@ -608,9 +608,9 @@ main() {
         # Mark incomplete stories as cancelled
         while IFS= read -r story; do
             local id=$(echo "$story" | jq -r '.id')
-            local is_passing=$(echo "$story" | jq -r '.is_passing')
+            local passes=$(echo "$story" | jq -r '.passes')
 
-            if [ "$is_passing" != "true" ]; then
+            if [ "$passes" != "true" ]; then
                 kanban_update "$id" "cancelled"
                 log_warn "Story $id cancelled (incomplete after $MAX_ITERATIONS iterations)"
             fi

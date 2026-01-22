@@ -801,6 +801,29 @@ EOF
     # Wait for completion
     wait_and_monitor
 
+    # Review LEARNINGS.md in all worktrees (compound engineering - cleanup before scoring/merge)
+    log_info "Reviewing LEARNINGS.md in all worktrees..."
+    for i in $(seq 1 $N_WT); do
+        local worktree_path=$(get_worktree_path "$i" "$RUN_ID" "$N_WT")
+        local learnings_file="$worktree_path/$RALPH_LEARNINGS_FILE"
+
+        if [[ -f "$learnings_file" ]]; then
+            log_info "Reviewing LEARNINGS.md in worktree $i..."
+            (
+                cd "$worktree_path"
+                if echo "/review-learnings" | claude -p --model "$RALPH_DEFAULT_MODEL" --dangerously-skip-permissions 2>&1 | tee "/tmp/ralph_review_learnings_wt${i}.log"; then
+                    # Commit changes if any
+                    if ! git diff --quiet "$RALPH_LEARNINGS_FILE" 2>/dev/null; then
+                        git add "$RALPH_LEARNINGS_FILE"
+                        git commit -m "docs(ralph): review and prune LEARNINGS.md
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+                    fi
+                fi
+            ) || log_warn "LEARNINGS.md review failed in worktree $i (non-critical)"
+        fi
+    done
+
     # Select and merge best result
     local best_wt
     if [ "$N_WT" -eq 1 ]; then
