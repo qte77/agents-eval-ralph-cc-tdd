@@ -533,6 +533,22 @@ show_all_status() {
 watch_all_logs() {
     log_info "Watching all parallel logs (Ctrl+C to exit)..."
 
+    # Show ralph process tree if pstree is available
+    if command -v pstree >/dev/null 2>&1; then
+        echo ""
+        echo "=== Ralph Process Tree ==="
+        # Find all ralph-related PIDs and show their process trees
+        local ralph_pids=$(pgrep -f "ralph|parallel_ralph" 2>/dev/null)
+        if [ -n "$ralph_pids" ]; then
+            echo "$ralph_pids" | while read -r pid; do
+                pstree -p "$pid" 2>/dev/null | grep -E "(ralph|make|bash|sh)" || true
+            done
+        else
+            echo "No ralph processes found"
+        fi
+        echo ""
+    fi
+
     local log_files=""
     # Scan up to system max to find all log files
     for i in $(seq 1 $MAX_WORKTREES); do
