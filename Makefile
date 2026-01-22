@@ -112,10 +112,16 @@ ralph_init_loop:  ## Initialize Ralph loop environment
 	bash scripts/ralph/init.sh
 	$(MAKE) -s ralph_validate_json
 
-ralph_run:  ## Run Ralph loop - Usage: make ralph_run [N_WT=<value>] [ITERATIONS=<value>] [DEBUG=1]
+ralph_run:  ## Run Ralph loop - Usage: make ralph_run [N_WT=<N>] [ITERATIONS=<N>] [DEBUG=1] [RALPH_JUDGE_ENABLED=true] [RALPH_SECURITY_REVIEW=true] [RALPH_MERGE_INTERACTIVE=true]
 	echo "Starting Ralph loop (N_WT=$${N_WT:-default}, iterations=$${ITERATIONS:-default}) ..."
 	$(MAKE) -s ralph_validate_json
-	DEBUG=$${DEBUG:-0} bash scripts/ralph/parallel_ralph.sh "$${N_WT}" "$${ITERATIONS}"
+	DEBUG=$${DEBUG:-0} \
+	RALPH_JUDGE_ENABLED=$${RALPH_JUDGE_ENABLED:-false} \
+	RALPH_JUDGE_MODEL=$${RALPH_JUDGE_MODEL:-sonnet} \
+	RALPH_JUDGE_MAX_WT=$${RALPH_JUDGE_MAX_WT:-5} \
+	RALPH_SECURITY_REVIEW=$${RALPH_SECURITY_REVIEW:-false} \
+	RALPH_MERGE_INTERACTIVE=$${RALPH_MERGE_INTERACTIVE:-false} \
+	bash scripts/ralph/parallel_ralph.sh "$${N_WT}" "$${ITERATIONS}"
 
 ralph_status:  ## Show Ralph loop progress
 	@bash scripts/ralph/parallel_ralph.sh status

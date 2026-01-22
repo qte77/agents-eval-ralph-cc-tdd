@@ -144,11 +144,14 @@ Centralized in `scripts/ralph/lib/config.sh`:
 - `RALPH_VALIDATION_TIMEOUT=300` - Validation timeout (5 min)
 - `RALPH_FIX_TIMEOUT=600` - Fix timeout (10 min)
 
-**Models:**
+**Models (Automatic Routing):**
 
-- `RALPH_DEFAULT_MODEL="sonnet"` - Complex stories
-- `RALPH_SIMPLE_MODEL="haiku"` - Simple tasks
-- `RALPH_FIX_MODEL="haiku"` - Fix attempts
+- `RALPH_DEFAULT_MODEL="sonnet"` - Story implementation (complex logic)
+- `RALPH_SIMPLE_MODEL="haiku"` - Simple changes (docs, typos, formatting)
+- `RALPH_FIX_MODEL="haiku"` - Validation error fixes
+- `RALPH_JUDGE_MODEL="sonnet"` - Claude-as-Judge evaluation (quality assessment)
+
+Story complexity detection: checks title/description for patterns like "fix", "typo", "doc", "format". Judge uses specified model for worktree comparison (N_WT>1).
 
 **Override hierarchy:**
 
@@ -270,7 +273,9 @@ make ralph_clean                # Clean worktrees + local state
 
 ### Judge-Based Selection (Optional)
 
-Enable LLM-based worktree evaluation for quality-focused selection:
+Enable LLM-based worktree evaluation for quality-focused selection.
+
+**Environment variables** are passed through to the bash script:
 
 ```bash
 # Basic judge mode (autonomous)
@@ -284,6 +289,9 @@ RALPH_JUDGE_ENABLED=true RALPH_MERGE_INTERACTIVE=true make ralph_run N_WT=2
 
 # Increase max worktrees for judge (default: 5)
 RALPH_JUDGE_ENABLED=true RALPH_JUDGE_MAX_WT=10 make ralph_run N_WT=8
+
+# Use opus for judge (higher quality evaluation)
+RALPH_JUDGE_ENABLED=true RALPH_JUDGE_MODEL=opus make ralph_run N_WT=3
 ```
 
 **How it works:**
