@@ -6,7 +6,7 @@
 
 .SILENT:
 .ONESHELL:
-.PHONY: setup_dev setup_claude_code setup_markdownlint setup_project run_markdownlint ruff test_all test_quick test_coverage test_e2e type_check validate validate_quick quick_validate ralph_validate_json ralph_userstory ralph_prd ralph_init_loop ralph_run ralph_status ralph_clean ralph_archive ralph_abort ralph_watch ralph_log help
+.PHONY: setup_dev setup_claude_code setup_markdownlint setup_project run_markdownlint ruff test_all test_quick test_coverage test_e2e type_check validate validate_quick quick_validate ralph_validate_json ralph_userstory ralph_prd ralph_init_loop ralph_run ralph_status ralph_clean ralph_archive ralph_abort ralph_watch ralph_log vibe_start vibe_stop vibe_status vibe_demo vibe_cleanup help
 .DEFAULT_GOAL := help
 
 # MARK: setup
@@ -134,6 +134,43 @@ ralph_watch:  ## Live-watch Ralph loop output
 
 ralph_log:  ## Show output of specific worktree - Usage: make ralph_log WT=2
 	bash scripts/ralph/parallel_ralph.sh log $${WT:-1}
+
+
+# MARK: vibe-kanban
+
+
+vibe_start:  ## Start Vibe Kanban on configured port (default: 5173)
+	VIBE_PORT=$${RALPH_VIBE_PORT:-5173}
+	if pgrep -f "vibe-kanban" > /dev/null; then
+		echo "Vibe Kanban already running"
+		exit 1
+	fi
+	PORT=$$VIBE_PORT npx vibe-kanban > /tmp/vibe-kanban.log 2>&1 &
+	echo "Vibe Kanban started on port $$VIBE_PORT"
+	echo "View at: http://127.0.0.1:$$VIBE_PORT"
+
+vibe_stop:  ## Stop Vibe Kanban
+	if pkill -f "vibe-kanban" 2>/dev/null; then
+		echo "Vibe Kanban stopped"
+	else
+		echo "Vibe Kanban not running"
+	fi
+
+vibe_status:  ## Check Vibe Kanban status
+	VIBE_PORT=$${RALPH_VIBE_PORT:-5173}
+	if pgrep -f "vibe-kanban" > /dev/null; then
+		echo "Vibe Kanban is running on port $$VIBE_PORT"
+		echo "PID: $$(pgrep -f vibe-kanban)"
+		echo "View at: http://127.0.0.1:$$VIBE_PORT"
+	else
+		echo "Vibe Kanban is not running"
+	fi
+
+vibe_demo:  ## Populate Vibe Kanban with example tasks
+	bash scripts/ralph/vibe_demo.sh
+
+vibe_cleanup:  ## Remove all tasks from Vibe Kanban
+	bash scripts/ralph/vibe_cleanup.sh
 
 
 # MARK: help

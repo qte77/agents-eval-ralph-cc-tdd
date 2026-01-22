@@ -35,6 +35,7 @@ source "$SCRIPT_DIR/lib/colors.sh"
 source "$SCRIPT_DIR/lib/config.sh"
 source "$SCRIPT_DIR/lib/validate_json.sh"
 source "$SCRIPT_DIR/lib/generate_app_docs.sh"
+source "$SCRIPT_DIR/lib/vibe.sh"
 
 # Configuration (import from config.sh with CLI/env overrides)
 MAX_ITERATIONS=${1:-$RALPH_MAX_ITERATIONS}
@@ -239,6 +240,7 @@ execute_story() {
     local description=$(echo "$details" | cut -d'|' -f2)
 
     log_info "Executing story: $story_id - $title"
+    kanban_update "$story_id" "inprogress"
 
     # Smart model selection based on story complexity
     local model=$(classify_story "$title" "$description")
@@ -517,6 +519,7 @@ main() {
                 continue
             elif [ $tdd_check_result -ne 0 ]; then
                 # TDD verification failed
+                kanban_update "$story_id" "todo"
                 log_progress "$iteration" "$story_id" "FAIL" "TDD verification failed: $TDD_ERROR_MSG"
                 continue
             fi
@@ -526,6 +529,7 @@ main() {
             if run_quality_checks "$validation_log"; then
                 # Mark as passing
                 update_story_status "$story_id" "true"
+                kanban_update "$story_id" "done"
                 log_progress "$iteration" "$story_id" "PASS" "Completed successfully with TDD commits"
                 log_info "Story $story_id marked as PASSING"
 
@@ -538,17 +542,20 @@ main() {
                 if fix_validation_errors "$story_id" "$details" "$validation_log" "$MAX_FIX_ATTEMPTS"; then
                     # Mark as passing after successful fixes
                     update_story_status "$story_id" "true"
+                    kanban_update "$story_id" "done"
                     log_progress "$iteration" "$story_id" "PASS" "Completed after fixing validation errors"
                     log_info "Story $story_id marked as PASSING after fixes"
 
                     # Commit state files with documentation
                     commit_story_state "$story_id" "update state and documentation after fixing validation errors"
                 else
+                    kanban_update "$story_id" "todo"
                     log_error "Failed to fix validation errors"
                     log_progress "$iteration" "$story_id" "FAIL" "Quality checks failed after $MAX_FIX_ATTEMPTS fix attempts"
                 fi
             fi
         else
+            kanban_update "$story_id" "todo"
             log_error "Story execution failed"
             log_progress "$iteration" "$story_id" "FAIL" "Execution error"
         fi

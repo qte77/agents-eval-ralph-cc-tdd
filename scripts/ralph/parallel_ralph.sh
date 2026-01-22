@@ -60,6 +60,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib/colors.sh"
 source "$SCRIPT_DIR/lib/config.sh"
 source "$SCRIPT_DIR/lib/validate_json.sh"
+source "$SCRIPT_DIR/lib/vibe.sh"
 
 # Configuration (import from config.sh with CLI/env overrides)
 # Note: N_WT and MAX_ITERATIONS are parsed in main() to avoid conflicts with subcommands
@@ -217,6 +218,7 @@ start_parallel() {
 
     (
         cd "$worktree_path"
+        export KANBAN_MAP VIBE_URL VIBE_PROJECT_ID
         ./scripts/ralph/ralph.sh "$MAX_ITERATIONS" > "$log_file" 2>&1
     ) &
 
@@ -633,6 +635,10 @@ main() {
     # Generate unique run ID for this execution
     local RUN_ID=$(generate_run_id)
     log_info "Starting Parallel Ralph Loop (run_id=$RUN_ID, N_WT=$N_WT, iterations=$MAX_ITERATIONS)"
+
+    # Initialize Kanban integration
+    KANBAN_MAP="/tmp/ralph-kb-${RUN_ID}.map"
+    kanban_init "$RUN_ID"
 
     # Validate environment
     if ! validate_prd_json "$RALPH_PRD_JSON"; then

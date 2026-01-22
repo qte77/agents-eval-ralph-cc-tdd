@@ -1,7 +1,7 @@
 # Ralph Loop Progress Log
 
 Initialized: {{DATE}}
-Project: agents-eval-ralph-cc-tdd
+Project: [PROJECT NAME]
 
 This file tracks the progress of Ralph loop autonomous execution.
 Each iteration appends its results here.

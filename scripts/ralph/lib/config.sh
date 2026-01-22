@@ -52,6 +52,7 @@ RALPH_FIX_TIMEOUT=${RALPH_FIX_TIMEOUT:-600}  # Fix attempt timeout (10 min)
 RALPH_MAX_FIX_ATTEMPTS=${RALPH_MAX_FIX_ATTEMPTS:-3}  # Max validation fix attempts
 RALPH_MAX_ITERATIONS=${RALPH_MAX_ITERATIONS:-25}  # Default loop iterations
 RALPH_VALIDATION_TIMEOUT=${RALPH_VALIDATION_TIMEOUT:-300}  # Validation timeout (5 min)
+RALPH_VIBE_PORT=${RALPH_VIBE_PORT:-5173}  # Vibe Kanban port
 
 # =================================================
 # GIT BRANCH CONFIGURATION

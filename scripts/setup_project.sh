@@ -155,9 +155,10 @@ sed -i "s|\\[PYTHON VERSION SHORT\\]|$PYTHON_VERSION_SHORT|g" pyproject.toml
 sed -i "s|your_project_name|$APP_NAME|g" pyproject.toml
 sed -i "s|\\[YEAR\\]|$YEAR|g" LICENSE.md
 sed -i "s|\\[YOUR NAME OR ORGANIZATION\\]|$AUTHOR|g" LICENSE.md
-sed -i "s|your-project-name|$PROJECT|g" scripts/ralph/init.sh
-sed -i "s|your-project-name|$PROJECT|g" docs/ralph/templates/progress.txt.template
-sed -i "s|your-project-name|$PROJECT|g" docs/ralph/templates/prd.json.template
+sed -i "s|\\[PROJECT NAME\\]|$PROJECT|g" docs/ralph/templates/progress.txt.template
+sed -i "s|\\[PROJECT NAME\\]|$PROJECT|g" docs/ralph/templates/prd.json.template
+sed -i "s|\\[PROJECT NAME\\]|$PROJECT|g" docs/ralph/templates/vibe-project.json.template
+sed -i "s|\\[APP NAME\\]|$APP_NAME|g" docs/ralph/templates/vibe-project.json.template
 sed -i "s|\\[PROJECT NAME\\]|$PROJECT|g" mkdocs.yaml
 sed -i "s|\\[PROJECT DESCRIPTION\\]|$DESCRIPTION|g" mkdocs.yaml
 sed -i "s|\\[GITHUB REPO\\]|$GITHUB_REPO|g" mkdocs.yaml
@@ -169,11 +170,11 @@ if [ -d "src/your_project_name" ]; then
 fi
 
 # Verify replacements
-REMAINING=$(grep -r "YOUR-ORG\|\[PROJECT NAME\]\|\[YEAR\]\|\[YOUR NAME\|\[PROJECT DESCRIPTION\]\|\[GITHUB REPO\]\|\[PYTHON VERSION" . --exclude-dir=.git --exclude="TEMPLATE_USAGE.md" --exclude="Makefile" 2>/dev/null | wc -l)
+REMAINING=$(grep -r "YOUR-ORG\|your_project_name\|Python Ralph-Loop Template\|\[PROJECT NAME\]\|\[YEAR\]\|\[YOUR NAME\|\[PROJECT DESCRIPTION\]\|\[GITHUB REPO\]\|\[PYTHON VERSION\]\|\[APP NAME\]" . --exclude-dir=.git --exclude="TEMPLATE_USAGE.md" --exclude="Makefile" --exclude-dir="docs/ralph/templates" 2>/dev/null | wc -l)
 if [ $REMAINING -gt 0 ]; then
 	echo ""
 	echo "WARNING: Some placeholders may remain. Review with:"
-	echo "  grep -r 'YOUR-ORG\|your-project-name' . --exclude-dir=.git"
+	echo "  grep -r 'YOUR-ORG\|your_project_name\|Python Ralph-Loop Template' . --exclude-dir=.git"
 fi
 
 echo ""

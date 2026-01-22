@@ -33,6 +33,22 @@ make ralph_run DEBUG=1 N_WT=3               # Debug mode (watch,
                                             # persist)
 ```
 
+### Visual Monitoring with Vibe Kanban
+
+```bash
+# Start Vibe Kanban UI
+make vibe_start          # Start on port 5173
+make vibe_status         # Check if running
+make vibe_demo           # Populate example tasks
+make vibe_cleanup        # Remove all tasks
+make vibe_stop           # Stop Vibe Kanban
+
+# Run Ralph (auto-syncs in real-time)
+make ralph_run N_WT=3
+```
+
+Ralph auto-detects Vibe Kanban on configured port and syncs status in real-time. See [UI.md](./UI.md) for details.
+
 ## How It Works
 
 ```text
@@ -77,10 +93,13 @@ scripts/ralph/
 ├── archive.sh           # Archive current run state
 ├── abort.sh             # Terminate running loops
 ├── clean.sh             # Clean Ralph state (worktrees + local)
+├── vibe_demo.sh         # Populate Vibe Kanban with example tasks
+├── vibe_cleanup.sh      # Remove all tasks from Vibe Kanban
 └── lib/
     ├── config.sh        # Centralized configuration
     ├── colors.sh        # Logging utilities
     ├── validate_json.sh # JSON validation utilities
+    ├── vibe.sh          # Vibe Kanban REST API integration
     └── generate_app_docs.sh  # README/example generation
 ```
 
@@ -345,11 +364,7 @@ make ralph_run [N_WT=1] [ITERATIONS=25]
 - [ ] **Auto-resolve Conflicts**: Programmatic merge conflict resolution
 - [ ] **Plugin Integration**: Ralph commands as Claude Code skills on marketplace
 - [ ] **Packaging for pypi and npm**: Provide as packages for python and node
-- [ ] **Vibe Kanban UI Exploration**: Evaluate
-  [Vibe Kanban](https://github.com/BloopAI/vibe-kanban) (9.4k stars,
-  Apache 2.0) as visual UI layer. Provides Kanban board for parallel
-  agents, git worktree isolation, built-in diff review. Install:
-  `npx vibe-kanban`. Compatible with Claude Code.
+- [x] **Vibe Kanban UI Integration**: Integrated Vibe Kanban for real-time visual monitoring. Auto-detects on port 5173, syncs task status (todo/inprogress/done), supports parallel worktrees. REST API integration via `lib/vibe.sh`. See [UI.md](./UI.md) for usage.
 
 ### Low Priority (Future Exploration)
 

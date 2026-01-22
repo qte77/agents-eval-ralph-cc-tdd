@@ -64,6 +64,24 @@ activates new PRD.
 Template includes `context7` and `exa` MCP servers. Remove from
 `.claude/settings.json` if not needed.
 
+## Optional: Vibe Kanban UI
+
+Ralph can sync status to Vibe Kanban for real-time visual monitoring:
+
+```bash
+# Terminal 1: Start Vibe Kanban
+npx vibe-kanban
+
+# Terminal 2: Run Ralph (auto-syncs!)
+make ralph_run N_WT=3
+```
+
+Ralph auto-detects Vibe Kanban and displays live task updates. See
+[docs/ralph/UI.md](./ralph/UI.md) for details.
+
+**Configuration**: `make ralph_init_loop` creates `.vibe-kanban/project.json`
+from template automatically.
+
 ## Directory Structure
 
 ```text

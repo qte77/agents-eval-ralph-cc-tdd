@@ -132,6 +132,29 @@ EOF
     fi
 }
 
+# Initialize Vibe Kanban project config from template if it doesn't exist
+initialize_vibe_config() {
+    local vibe_dir=".vibe-kanban"
+    local vibe_config="$vibe_dir/project.json"
+    local vibe_template="$RALPH_TEMPLATES_DIR/vibe-project.json.template"
+
+    if [ ! -f "$vibe_config" ]; then
+        log_info "Initializing Vibe Kanban config from template..."
+
+        if [ -f "$vibe_template" ]; then
+            # Create directory and copy template (already populated by setup_project.sh)
+            mkdir -p "$vibe_dir"
+            cp "$vibe_template" "$vibe_config"
+
+            log_success "Vibe Kanban config initialized"
+        else
+            log_warn "Vibe template not found: $vibe_template"
+        fi
+    else
+        log_info "Vibe Kanban config already exists"
+    fi
+}
+
 # Check if prd.json exists, create from template if not
 check_prd_json() {
     if [ ! -f "$RALPH_PRD_JSON" ]; then
@@ -173,6 +196,8 @@ make_executable() {
     chmod +x scripts/ralph/archive.sh
     chmod +x scripts/ralph/abort.sh
     chmod +x scripts/ralph/clean.sh
+    chmod +x scripts/ralph/vibe_demo.sh
+    chmod +x scripts/ralph/vibe_cleanup.sh
     log_success "Scripts are executable"
 }
 
@@ -182,6 +207,7 @@ main() {
     check_project_structure
     create_state_dirs
     initialize_progress
+    initialize_vibe_config
     make_executable
 
     echo ""
