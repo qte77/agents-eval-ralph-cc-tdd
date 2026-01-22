@@ -52,7 +52,8 @@ src/agenteval
 │   └── __init__.py
 ├── pipeline_backup.py
 ├── pipeline.py
-└── README.md
+├── README.md
+└── report.py
 tests/
 ├── __init__.py
 ├── test_config.py
@@ -62,6 +63,7 @@ tests/
 ├── test_models.py
 ├── test_peerread.py
 ├── test_pipeline.py
+├── test_report.py
 └── test_traditional.py
 ```
 
