@@ -327,14 +327,11 @@ make ralph_run [N_WT=1] [ITERATIONS=25]
 ### Low Priority (Future Exploration)
 
 - [ ] **Real-time Dashboard**: Live monitoring UI for parallel worktrees
-- [ ] **JSON Status API Output** (Team/Enterprise quick win): Add `ralph --status --json` for structured output. Foundation for dashboards, CI/CD hooks, monitoring. Enables Grafana, Datadog, custom UIs.
+- [ ] **JSON Status API Output** (Team/Enterprise quick win): Add `make ralph_status_json` for structured output. Foundation for dashboards, CI/CD hooks, monitoring. Enables Grafana, Datadog, custom UIs.
 - [ ] **Slack/Teams Notifications** (Team/Enterprise quick win): Post completion/failure alerts to team channels. Hook into `parallel_ralph.sh` completion. Example: "Ralph completed STORY-005 ✅" → `#dev-alerts`.
 - [ ] **Rippletide Eval Integration**: Add hallucination detection for generated docs/comments using [Rippletide Eval CLI](https://docs.rippletide.com). Scores agent outputs 1-4, flags unsupported claims.
-- [ ] **Conductor.build Integration** (macOS only): Evaluate [Conductor](https://conductor.build) for visual parallel agent orchestration. Uses same git worktree pattern as Ralph. Main value: visual dashboard, code review UI. Consider if team uses macOS; otherwise Vibe Kanban (cross-platform, open source) covers similar needs.
-- [ ] **Omnara.com Integration**: Mobile/voice interface for Claude Code. Available SDKs (no custom HTTP layer needed):
-  - [ ] **Python SDK**: `pip install omnara` - log events, request user input programmatically
-  - [ ] **NPM CLI**: `@omnara/cli` - CLI wrapper
-  - [ ] **n8n nodes**: `n8n-nodes-omnara` - workflow automation with "Human in the Loop" node
-  - [ ] **New platform**: `curl -fsSL https://omnara.com/install/install.sh | bash` (built on Claude Agent SDK)
-  - [ ] **Devcontainer note**: No explicit devcontainer/remote container support. Designed for local machine agents. Workaround: run Omnara inside the container, mount `.claude` folder for persistence.
-  - [ ] Potential use: push notifications on Ralph completion, mobile approval for cherry-pick decisions, remote status monitoring. See [GitHub](https://github.com/omnara-ai/omnara), [PyPI](https://pypi.org/project/omnara/).
+- [ ] **Mobile/Remote Monitoring**: Options evaluated:
+  - **Claude iOS App** (claude.ai/code): ❌ Incompatible - runs in cloud sandbox, can't access local worktrees/make commands
+  - **Omnara**: ⚠️ Limited - wraps local Claude Code but no devcontainer support, legacy version deprecated
+  - **Conductor.build**: ❌ Unusable - macOS-only, doesn't work in devcontainer/Linux
+  - **Recommended**: SSH + Tailscale for mobile terminal access, or build JSON API for custom dashboards
