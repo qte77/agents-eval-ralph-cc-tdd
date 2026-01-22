@@ -23,3 +23,33 @@ Next steps:
 3. Execute Ralph loop: `make ralph_run ITERATIONS=5`
 
 ---
+
+## Resumed: Thu Jan 22 05:04:12 PM UTC 2026
+
+## STORY-000: Configuration & Core Data Models - COMPLETED
+**Status**: ✅ PASSED
+**Date**: Thu Jan 22 2026
+**Validation**: All tests passing (95.49% coverage)
+
+### Implementation Summary
+All required files already exist and all tests pass:
+- ✅ src/agenteval/config/__init__.py - Config module exports
+- ✅ src/agenteval/config/config.py - Config, DatasetConfig, EvaluationConfig, ObservabilityConfig models + load_config()
+- ✅ src/agenteval/config/default.json - Default configuration values
+- ✅ src/agenteval/models/__init__.py - Models module exports
+- ✅ src/agenteval/models/data.py - Paper, Review models
+- ✅ src/agenteval/models/evaluation.py - Evaluation, Metrics, Report models
+- ✅ tests/test_config.py - 6/6 tests passing
+- ✅ tests/test_models.py - 9/9 tests passing
+
+### Acceptance Criteria Met
+1. ✅ Create JSON config loader in src/agenteval/config/
+2. ✅ Load configuration at application runtime
+3. ✅ Define core Pydantic models: Paper, Review, Evaluation, Metrics, Report
+4. ✅ Models are reusable across all evaluation modules
+5. ✅ Pass all tests in tests/test_config.py and tests/test_models.py
+
+**Previous commits**: Already committed in earlier iterations (see git log --grep="STORY-000")
+
+---
+
