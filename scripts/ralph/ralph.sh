@@ -39,17 +39,9 @@ source "$SCRIPT_DIR/lib/generate_app_docs.sh"
 # Load Vibe Kanban environment using specific RUN_ID
 if [ -n "${RALPH_RUN_ID:-}" ] && [ -f "/tmp/ralph-vibe-${RALPH_RUN_ID}.env" ]; then
     source "/tmp/ralph-vibe-${RALPH_RUN_ID}.env"
-    echo "[DEBUG] Sourced /tmp/ralph-vibe-${RALPH_RUN_ID}.env" >&2
-    echo "[DEBUG] VIBE_URL=$VIBE_URL" >&2
-    echo "[DEBUG] KANBAN_MAP=$KANBAN_MAP" >&2
-else
-    echo "[DEBUG] NOT sourcing env file: RALPH_RUN_ID=${RALPH_RUN_ID:-<unset>}" >&2
 fi
 
 source "$SCRIPT_DIR/lib/vibe.sh"
-
-echo "[DEBUG] After vibe.sh: VIBE_URL=$VIBE_URL" >&2
-echo "[DEBUG] After vibe.sh: KANBAN_MAP=$KANBAN_MAP" >&2
 
 # Configuration (import from config.sh with CLI/env overrides)
 MAX_ITERATIONS=${1:-$RALPH_MAX_ITERATIONS}
