@@ -234,7 +234,7 @@ make ralph_run                      # Auto-resumes all existing worktrees
 ```bash
 make ralph_status               # Progress summary with timestamp
 make ralph_watch                # Show process tree + live tail all logs
-make ralph_log WT=2             # View specific worktree
+make ralph_get_log WT=2             # View specific worktree
 ```
 
 **DEBUG Mode:**

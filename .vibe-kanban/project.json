@@ -1,0 +1,11 @@
+{
+  "name": "Ralph: [PROJECT NAME]",
+  "git_repo_path": ".",
+  "use_existing_repo": true,
+  "description": "Ralph Loop - Autonomous TDD development with Claude Code",
+  "worktree_prefix": "../[APP NAME]-ralph-wt",
+  "state_files": {
+    "prd": "docs/ralph/prd.json",
+    "progress": "docs/ralph/progress.txt"
+  }
+}

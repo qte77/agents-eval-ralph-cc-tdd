@@ -68,7 +68,7 @@ if [ "$worktree_count" -gt 0 ]; then
     # Find all ralph worktrees and clean them
     git worktree list | grep "$RALPH_PARALLEL_WORKTREE_PREFIX" | awk '{print $1}' | while read worktree_path; do
         # Extract worktree number from path
-        wt_num=$(basename "$worktree_path" | sed "s/${RALPH_PARALLEL_WORKTREE_PREFIX}-//")
+        wt_num=$(basename "$worktree_path" | sed "s#${RALPH_PARALLEL_WORKTREE_PREFIX}-##")
         branch_name="${RALPH_PARALLEL_BRANCH_PREFIX}-${wt_num}"
 
         log_info "  Removing worktree: $worktree_path"

@@ -6,7 +6,7 @@
 
 .SILENT:
 .ONESHELL:
-.PHONY: setup_dev setup_claude_code setup_markdownlint setup_project run_markdownlint ruff test_all test_quick test_coverage test_e2e type_check validate validate_quick quick_validate ralph_validate_json ralph_userstory ralph_prd ralph_init_loop ralph_run ralph_status ralph_clean ralph_archive ralph_abort ralph_watch ralph_log vibe_start vibe_stop_all vibe_status vibe_cleanup help
+.PHONY: setup_dev setup_claude_code setup_markdownlint setup_project run_markdownlint ruff test_all test_quick test_coverage test_e2e type_check validate validate_quick quick_validate ralph_validate_json ralph_create_userstory_md ralph_create_prd_md ralph_init_loop ralph_run ralph_status ralph_clean ralph_archive ralph_abort ralph_watch ralph_get_log vibe_start vibe_stop_all vibe_status vibe_cleanup help
 .DEFAULT_GOAL := help
 
 # MARK: setup
@@ -98,13 +98,13 @@ quick_validate:  ## Fast development cycle validation
 ralph_validate_json:  ## Internal: Validate prd.json syntax
 	bash scripts/ralph/lib/validate_json.sh
 
-ralph_userstory:  ## [Optional] Create UserStory.md interactively. Usage: make ralph_userstory
+ralph_create_userstory_md:  ## [Optional] Create UserStory.md interactively. Usage: make ralph_create_userstory_md
 	echo "Creating UserStory.md through interactive Q&A ..."
-	claude /build-userstory
+	claude -p '/build-userstory'
 
-ralph_prd:  ## [Optional] Generate PRD.md from UserStory.md
+ralph_create_prd_md:  ## [Optional] Generate PRD.md from UserStory.md
 	echo "Generating PRD.md from UserStory.md ..."
-	claude /generate-prd-md-from-userstory
+	claude -p '/generate-prd-md-from-userstory'
 
 ralph_init_loop:  ## Initialize Ralph loop environment
 	echo "Initializing Ralph loop environment ..."
@@ -124,7 +124,7 @@ ralph_run:  ## Run Ralph loop - Usage: make ralph_run [N_WT=<N>] [ITERATIONS=<N>
 	bash scripts/ralph/parallel_ralph.sh "$${N_WT}" "$${ITERATIONS}"
 
 ralph_status:  ## Show Ralph loop progress
-	@bash scripts/ralph/parallel_ralph.sh status
+	bash scripts/ralph/parallel_ralph.sh status
 
 ralph_abort:  ## Abort all running Ralph loops
 	bash scripts/ralph/abort.sh
@@ -138,7 +138,7 @@ ralph_archive:  ## Archive current run state. Usage: make ralph_archive [ARCHIVE
 ralph_watch:  ## Live-watch Ralph loop output
 	bash scripts/ralph/parallel_ralph.sh watch
 
-ralph_log:  ## Show output of specific worktree - Usage: make ralph_log WT=2
+ralph_get_log:  ## Show output of specific worktree - Usage: make ralph_get_log WT=2
 	bash scripts/ralph/parallel_ralph.sh log $${WT:-1}
 
 

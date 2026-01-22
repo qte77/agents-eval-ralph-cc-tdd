@@ -1,13 +1,13 @@
 {
   "project": "AgentEvals",
-  "desciption": "A three-tiered evaluation framework for multi-agent AI systems that provides objective benchmarking of autonomous agent teams using the PeerRead dataset",
+  "desciption": "A three-tiered evaluation framework for multi-agent AI systems that provides objective benchmarking of autonomous agent teams using the PeerRead dataset.",
   "source": "docs/PRD.md",
-  "generated": "2026-01-21 00:00:00",
+  "generated": "2026-01-22 00:00:00",
   "stories": [
     {
       "id": "STORY-000",
       "title": "Configuration & Core Data Models",
-      "description": "Establish foundation with JSON configuration management and shared Pydantic data models to prevent duplication across evaluation modules.",
+      "description": "Create JSON config loader and define core Pydantic models (Paper, Review, Evaluation, Metrics, Report) to prevent duplicate model definitions across stories.",
       "depends_on": [],
       "acceptance": [
         "Create JSON config loader in src/agenteval/config/",
@@ -26,16 +26,14 @@
         "tests/test_models.py",
         "src/agenteval/config/default.json"
       ],
-      "passes": true,
-      "completed_at": "2026-01-22T17:05:00Z"
+      "passes": false,
+      "completed_at": null
     },
     {
       "id": "STORY-001",
       "title": "Dataset Downloader & Persistence",
-      "description": "Download PeerRead dataset and persist locally with versioning for reproducibility and offline use.",
-      "depends_on": [
-        "STORY-000"
-      ],
+      "description": "Download PeerRead dataset from source and save locally with versioning/checksums for reproducibility and offline use.",
+      "depends_on": ["STORY-000"],
       "acceptance": [
         "Download PeerRead dataset from source",
         "Save dataset locally in structured format",
@@ -47,17 +45,14 @@
         "src/agenteval/data/downloader.py",
         "tests/test_downloader.py"
       ],
-      "passes": true,
-      "completed_at": "2026-01-22T17:10:00Z"
+      "passes": false,
+      "completed_at": null
     },
     {
       "id": "STORY-002",
       "title": "Dataset Loader & Parser",
-      "description": "Load and parse PeerRead dataset from local storage into structured Pydantic models.",
-      "depends_on": [
-        "STORY-000",
-        "STORY-001"
-      ],
+      "description": "Load PeerRead data from local storage and parse into Pydantic models with batch loading API.",
+      "depends_on": ["STORY-000", "STORY-001"],
       "acceptance": [
         "Load PeerRead dataset from local storage",
         "Parse into Pydantic models (Paper, Review from Feature 0)",
@@ -69,17 +64,14 @@
         "src/agenteval/data/peerread.py",
         "tests/test_peerread.py"
       ],
-      "passes": true,
-      "completed_at": "2026-01-22T17:12:51Z"
+      "passes": false,
+      "completed_at": null
     },
     {
       "id": "STORY-003",
-      "title": "Traditional Performance Metrics",
-      "description": "Measure agent system performance with standard metrics for objective comparison of implementations.",
-      "depends_on": [
-        "STORY-000",
-        "STORY-002"
-      ],
+      "title": "Traditional Metrics Calculator",
+      "description": "Calculate execution time, success rate, and coordination quality metrics with JSON output format and deterministic results using seed configuration.",
+      "depends_on": ["STORY-000", "STORY-002"],
       "acceptance": [
         "Calculate execution time metrics for agent task completion",
         "Measure task success rate across evaluation runs",
@@ -91,17 +83,14 @@
         "src/agenteval/metrics/traditional.py",
         "tests/test_traditional.py"
       ],
-      "passes": true,
-      "completed_at": "2026-01-22T17:15:00Z"
+      "passes": false,
+      "completed_at": null
     },
     {
       "id": "STORY-004",
-      "title": "LLM-as-a-Judge Evaluation",
-      "description": "Evaluate semantic quality of provided agent outputs using LLM-based assessment against human baseline reviews from PeerRead dataset.",
-      "depends_on": [
-        "STORY-000",
-        "STORY-002"
-      ],
+      "title": "LLM Judge Evaluator",
+      "description": "Evaluate semantic quality using PydanticAI judge agent, compare against human baseline reviews, and provide structured reasoning output with scores.",
+      "depends_on": ["STORY-000", "STORY-002"],
       "acceptance": [
         "Evaluate semantic quality of provided agent-generated reviews",
         "Compare agent outputs against human baseline reviews from PeerRead",
@@ -115,16 +104,14 @@
         "src/agenteval/judges/llm_judge.py",
         "tests/test_llm_judge.py"
       ],
-      "passes": true,
-      "completed_at": "2026-01-22T17:20:00Z"
+      "passes": false,
+      "completed_at": null
     },
     {
       "id": "STORY-005",
-      "title": "Graph-Based Complexity Analysis",
-      "description": "Extract agent interaction graphs from OpenTelemetry traces and perform structural complexity analysis using NetworkX formalization.",
-      "depends_on": [
-        "STORY-000"
-      ],
+      "title": "Graph Complexity Analyzer",
+      "description": "Model agent interactions as NetworkX graphs, calculate complexity metrics (density, centrality, clustering), and export in GraphML/JSON format.",
+      "depends_on": ["STORY-000"],
       "acceptance": [
         "Model agent interactions as graph structures using NetworkX",
         "Calculate complexity metrics (density, centrality, clustering coefficient) from interaction graphs",
@@ -137,18 +124,14 @@
         "src/agenteval/metrics/graph.py",
         "tests/test_graph.py"
       ],
-      "passes": true,
-      "completed_at": "2026-01-22T17:25:00Z"
+      "passes": false,
+      "completed_at": null
     },
     {
       "id": "STORY-006",
       "title": "Evaluation Pipeline Orchestrator",
-      "description": "Orchestrate the execution of all evaluation modules in sequence with dependency management and reproducibility controls.",
-      "depends_on": [
-        "STORY-003",
-        "STORY-004",
-        "STORY-005"
-      ],
+      "description": "Orchestrate evaluation modules in sequence, handle module dependencies, and provide seed-based reproducibility.",
+      "depends_on": ["STORY-003", "STORY-004", "STORY-005"],
       "acceptance": [
         "Run all three evaluation tiers (traditional, LLM judge, graph) in sequence",
         "Handle module dependencies correctly",
@@ -161,16 +144,14 @@
         "src/agenteval/pipeline.py",
         "tests/test_pipeline.py"
       ],
-      "passes": true,
-      "completed_at": "2026-01-22T17:30:00Z"
+      "passes": false,
+      "completed_at": null
     },
     {
       "id": "STORY-007",
       "title": "Consolidated Reporting & Observability",
-      "description": "Combine results from all evaluation tiers into unified reports with integrated observability for debugging and monitoring.",
-      "depends_on": [
-        "STORY-006"
-      ],
+      "description": "Combine results from all evaluation tiers, generate unified JSON report, integrate loguru console logging, and support optional Logfire/Weave cloud export via configuration.",
+      "depends_on": ["STORY-006"],
       "acceptance": [
         "Combine results from all three evaluation tiers",
         "Generate consolidated JSON report with all metrics",
@@ -183,8 +164,8 @@
         "src/agenteval/report.py",
         "tests/test_report.py"
       ],
-      "passes": true,
-      "completed_at": "2026-01-22T17:27:52Z"
+      "passes": false,
+      "completed_at": null
     }
   ]
 }

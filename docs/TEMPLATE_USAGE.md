@@ -32,8 +32,8 @@ make setup_dev
 **Option B (Assisted)**: Use interactive workflow:
 
 ```bash
-make ralph_userstory  # Create UserStory.md via Q&A
-make ralph_prd        # Generate PRD.md from UserStory.md
+make ralph_create_userstory_md  # Create UserStory.md via Q&A
+make ralph_create_prd_md        # Generate PRD.md from UserStory.md
 ```
 
 ### 3. Run Ralph Loop
@@ -108,8 +108,8 @@ make setup_dev         # Setup environment
 make validate          # Run all checks
 
 # Ralph (Optional assisted workflow)
-make ralph_userstory   # [Optional] Create UserStory.md interactively
-make ralph_prd         # [Optional] Generate PRD.md from UserStory.md
+make ralph_create_userstory_md   # [Optional] Create UserStory.md interactively
+make ralph_create_prd_md         # [Optional] Generate PRD.md from UserStory.md
 
 # Ralph (Core workflow)
 make ralph_init_loop   # Initialize Ralph (creates prd.json)

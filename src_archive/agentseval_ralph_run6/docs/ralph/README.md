@@ -187,7 +187,7 @@ make ralph N_WT=5 ITERATIONS=25    # 5 worktrees, scores results, merges best
 # Monitoring
 make ralph_status               # Progress summary
 make ralph_watch                # Live tail all logs
-make ralph_log WT=2             # View specific worktree
+make ralph_get_log WT=2             # View specific worktree
 
 # Control
 make ralph_abort                # Abort all loops + cleanup

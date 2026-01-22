@@ -57,7 +57,7 @@ See `docs/ralph/templates/prd.md.template` for structure and placeholders.
 ## Usage
 
 ```bash
-make ralph_prd
+make ralph_create_prd_md
 ```
 
 ## Next Steps

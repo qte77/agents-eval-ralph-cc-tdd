@@ -32,7 +32,7 @@ into PRD.md using the `/generate-prd-md-from-userstory` command.
    - Replace placeholders with user responses
    - Write to `docs/UserStory.md`
 
-4. **Suggest next step**: `make ralph_prd` to generate PRD.md
+4. **Suggest next step**: `make ralph_create_prd_md` to generate PRD.md
 
 ## Template
 
@@ -41,5 +41,5 @@ See `docs/ralph/templates/userstory.md.template` for structure and placeholders.
 ## Usage
 
 ```bash
-make ralph_userstory
+make ralph_create_userstory_md
 ```

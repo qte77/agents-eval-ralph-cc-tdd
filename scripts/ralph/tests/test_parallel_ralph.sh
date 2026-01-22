@@ -62,7 +62,7 @@ echo ""
 echo "=== Test 3: Makefile Integration ==="
 TEST_COUNT=$((TEST_COUNT + 1))
 
-required_targets="ralph ralph_abort ralph_clean ralph_status ralph_watch ralph_log"
+required_targets="ralph ralph_abort ralph_clean ralph_status ralph_watch ralph_get_log"
 all_found=true
 
 for target in $required_targets; do
