@@ -48,6 +48,25 @@ make ralph_run N_WT=3
 
 Ralph auto-detects Vibe Kanban on configured port and syncs status in real-time. See [UI.md](./UI.md) for details.
 
+### Compound Engineering - Knowledge Management
+
+Ralph implements compound engineering: each solved problem makes future work easier through systematic knowledge capture.
+
+```bash
+# Agents automatically append learnings after each story completion
+# LEARNINGS.md accumulates: validation fixes, code patterns, common mistakes
+
+# Periodically review and prune (recommended: every 5-10 stories)
+claude -p /review-learnings
+```
+
+**Files:**
+
+- `docs/ralph/LEARNINGS.md` - Accumulated knowledge (read before each story)
+- `docs/ralph/REQUESTS.md` - Human→agent guidance (edit while Ralph runs)
+
+**Workflow:** Plan → Work (TDD) → Compound (append learning) → Review (prune/declutter)
+
 ## How It Works
 
 ```text
@@ -75,6 +94,38 @@ parallel_ralph.sh (orchestrator - always used, even N_WT=1)
   └─> cleans up worktrees
 ```
 
+## Architecture
+
+Ralph leverages Claude Code features (rules, skills, prompts) for optimal agent guidance:
+
+```text
+┌─────────────────────────────────────────┐
+│ .claude/rules/core-principles.md        │ ← Auto-applied globally (all sessions)
+│ (KISS, DRY, YAGNI, user-centric)        │    Project-wide principles
+└─────────────────────────────────────────┘
+           ↓ References
+
+┌─────────────────────────────────────────┐
+│ .claude/skills/implementing-python/     │ ← Invokable by agents (contextual)
+│ .claude/skills/reviewing-code/          │    Specialized workflows
+│ .claude/skills/designing-backend/       │
+└─────────────────────────────────────────┘
+           ↓ Listed in
+
+┌─────────────────────────────────────────┐
+│ docs/ralph/templates/story.prompt.md    │ ← Piped to claude -p (dynamic)
+│ + LEARNINGS.md (accumulated knowledge)  │    Ralph-specific instructions
+│ + REQUESTS.md (human guidance)          │    Runtime content injection
+│ + Story details (prd.json)              │
+└─────────────────────────────────────────┘
+```
+
+**Design rationale:**
+
+- **Rules**: Global principles (auto-applied, all Claude sessions)
+- **Skills**: Invokable workflows (agent decides when to use)
+- **Prompts**: Scoped instructions (Ralph-only, supports dynamic content)
+
 ## File Structure
 
 ```text
@@ -82,6 +133,8 @@ docs/ralph/
 ├── README.md              # This file
 ├── prd.json              # Story definitions and status
 ├── progress.txt          # Execution log
+├── LEARNINGS.md          # Accumulated agent knowledge (compound engineering)
+├── REQUESTS.md           # Human→agent communication channel
 └── templates/
     └── story.prompt.md   # Agent instructions (TDD workflow)
 
@@ -393,9 +446,13 @@ make ralph_run [N_WT=1] [ITERATIONS=25]
 
 - [ ] **Smart Story Distribution**: Analyze dependency graph, run
   independent stories in parallel by spinning up a new worktree
-- [ ] **Memory/Lessons Learned**: Simple `AGENT_LEARNINGS.md` mechanism
-- [ ] **Bi-directional Communication**: `AGENT_REQUESTS.md` for
-  human-agent communication
+- [x] **Memory/Lessons Learned**: Implemented `LEARNINGS.md` for compound
+  engineering. Agents auto-read before each story, append learnings after
+  completion. Tracks validation fixes, code patterns, common mistakes,
+  testing strategies. Persistent across runs (git-tracked).
+- [x] **Bi-directional Communication**: Implemented `REQUESTS.md` for
+  human→agent communication. Edit while Ralph runs to communicate priority
+  changes, style preferences, constraints. Changes picked up next iteration.
 - [ ] **Auto-resolve Conflicts**: Programmatic merge conflict resolution
 - [ ] **Plugin Integration**: Ralph commands as Claude Code skills on marketplace
 - [ ] **Packaging for pypi and npm**: Provide as packages for python and node

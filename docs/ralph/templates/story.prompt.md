@@ -90,6 +90,42 @@ Use skills appropriately based on task requirements.
 Run `make validate` before marking complete. See `CONTRIBUTING.md` for all
 validation commands.
 
+## After Story Completion
+
+**MANDATORY**: Review and compound before finishing. Each learning makes future
+stories easier.
+
+### COMPOUND Phase
+
+Document learnings to make future work easier.
+
+**Step 1: Reflect and identify learning**
+
+Answer these questions:
+1. **What worked?** - Pattern/approach that succeeded
+2. **What failed initially?** - Mistake + how you fixed it
+3. **What should future iterations remember?** - Key learning
+
+**Step 2: Append to LEARNINGS.md**
+
+Add to appropriate section in `docs/ralph/LEARNINGS.md`:
+
+- **Validation Fixes**: What fixed validation errors
+  - Format: `- [STORY-XXX] Brief description of fix`
+- **Code Patterns**: Discovered codebase conventions
+  - Format: `- Pattern description (discovered in STORY-XXX)`
+- **Common Mistakes**: Errors to avoid
+  - Format: `- Mistake description (from STORY-XXX)`
+- **Testing Strategies**: Effective testing approaches
+  - Format: `- Strategy description (from STORY-XXX)`
+
+**Guidelines:**
+- Keep entries concise (1 line each)
+- Focus on actionable insights that benefit future iterations
+- Avoid duplicating existing entries
+
+**Note**: LEARNINGS.md is periodically reviewed using `/review-learnings` command to prune duplicates and obsolete entries.
+
 ## Current Story Details
 
 (Will be appended by ralph.sh for each iteration)
