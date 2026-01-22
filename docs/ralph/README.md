@@ -26,8 +26,9 @@ Run `make ralph_init_loop` to validate all prerequisites are installed.
 ## Quick Start
 
 ```bash
-make ralph [ITERATIONS=25]           # Single loop (isolated via worktree)
+make ralph [ITERATIONS=25]              # Single loop (isolated via worktree)
 make ralph N_WT=5 ITERATIONS=25         # 5 parallel loops
+make ralph DEBUG=1 N_WT=3               # Debug mode (watch logs, worktrees persist)
 ```
 
 ## How It Works
@@ -213,6 +214,21 @@ make ralph_watch                # Live tail all logs
 make ralph_log WT=2             # View specific worktree
 ```
 
+**DEBUG Mode:**
+
+```bash
+make ralph DEBUG=1 N_WT=3       # Starts worktrees + watches logs
+                                # Ctrl+C exits watch, worktrees continue
+                                # No auto-merge (manual intervention required)
+```
+
+When DEBUG=1:
+- Automatically starts log watching (like `make ralph_watch`)
+- Worktrees run in background and persist after Ctrl+C
+- No automatic scoring or merging
+- Use `make ralph_status` to check progress later
+- Use `make ralph_abort` to stop worktrees if needed
+
 ### Control
 
 ```bash
@@ -236,13 +252,25 @@ make ralph_clean                # Clean worktrees + local state (requires double
 
 **Interrupt Handling:**
 
-- **Ctrl+C during execution**: Worktrees are unlocked but preserved (state maintained for resume)
+- **Ctrl+C during execution**: Background processes persist (detached via `disown`), worktrees unlocked but preserved for resume
 - **Successful completion**: Worktrees are cleaned up automatically (after merging best result)
 - **Merge failure**: Worktrees are unlocked but preserved (for debugging)
 
+**Background Process Persistence:**
+
+All worktrees run as detached background processes (via `disown`):
+- Survive Ctrl+C interrupts
+- Survive terminal disconnects
+- Survive parent shell exit
+- Check progress: `make ralph_status`
+- Stop manually: `make ralph_abort`
+
 **Scoring:**
 
-(N_WT>1 only): `(stories × 100) + test_count + validation_bonus`
+(N_WT>1 only): `base + coverage_bonus - penalties`
+- base = `(stories × 10) + test_count + validation_bonus`
+- coverage_bonus = `coverage% / 2` (0-50 points)
+- penalties = `(ruff × 2) + (pyright_err × 5) + (pyright_warn × 1) + (churn / 100)`
 
 **Config:**
 

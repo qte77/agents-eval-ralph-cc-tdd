@@ -6,6 +6,7 @@
 #        make ralph N_WT=2 ITERATIONS=10
 #
 # Environment variables:
+#   DEBUG=0 (default) - Enable debug mode (watch logs, no auto-merge)
 #   USE_LOCK=true (default) - Lock worktrees to prevent pruning
 #   USE_NO_TRACK=true (default) - Create local-only branches
 #   LOCK_REASON="..." - Custom lock reason message
@@ -15,6 +16,7 @@
 #
 # Examples:
 #   make ralph N_WT=3 ITERATIONS=25
+#   make ralph DEBUG=1 N_WT=3
 #   USE_LOCK=false make ralph N_WT=1
 #   MERGE_VERIFY_SIGNATURES=true make ralph N_WT=2
 #
@@ -32,6 +34,13 @@
 #   Both flags configurable via USE_LOCK and USE_NO_TRACK env vars
 # - Best result selected by scoring algorithm
 # - Merge via --no-ff --no-commit (dry-run test, then commit)
+#
+# Scoring Algorithm (N_WT>1 only):
+# - Formula: base + coverage_bonus - penalties
+#   base = (stories × 10) + test_count + validation_bonus
+#   coverage_bonus = coverage% / 2 (0-50 points)
+#   penalties = (ruff × 2) + (pyright_err × 5) + (pyright_warn × 1) + (churn / 100)
+# - Higher score wins; N_WT=1 skips scoring overhead
 #
 # Worktree Naming:
 # - N_WT=1: ${PREFIX}-${RUN_ID}        (e.g., ../agenteval-ralph-wt-a3f5e2)
@@ -69,6 +78,9 @@ WORKTREE_QUIET="$RALPH_PARALLEL_WORKTREE_QUIET"
 # Merge flags (inherited from config.sh with env override support)
 MERGE_VERIFY_SIGNATURES="$RALPH_PARALLEL_MERGE_VERIFY_SIGNATURES"
 MERGE_LOG="$RALPH_PARALLEL_MERGE_LOG"
+
+# Debug mode (env override)
+DEBUG="${DEBUG:-0}"
 
 # PID tracking
 declare -a WORKTREE_PIDS=()
@@ -209,6 +221,7 @@ start_parallel() {
     ) &
 
     WORKTREE_PIDS[$i]=$!
+    disown ${WORKTREE_PIDS[$i]}  # Detach from shell - persist after abort
     log_info "Worktree $i running (PID: ${WORKTREE_PIDS[$i]})"
 }
 
@@ -218,7 +231,6 @@ wait_and_monitor() {
 
     for i in $(seq 1 $N_WT); do
         local pid=${WORKTREE_PIDS[$i]}
-        log_info "Waiting for worktree $i (PID: $pid)..."
 
         if wait "$pid"; then
             WORKTREE_EXIT_CODES[$i]=0
@@ -232,36 +244,116 @@ wait_and_monitor() {
     log_info "All worktrees completed"
 }
 
-# Score worktree results
+# Extract test coverage % from validation log
+# Returns: integer 0-100 (coverage percentage)
+extract_coverage() {
+    local log_file="$1"
+    # pytest-cov format: "TOTAL    1234   123    90%"
+    grep "TOTAL" "$log_file" 2>/dev/null | tail -1 | awk '{print $NF}' | tr -d '%' || echo 0
+}
+
+# Extract ruff violation count from validation log
+# Returns: integer (violation count)
+extract_ruff_violations() {
+    local log_file="$1"
+    # ruff format: path/file.py:line:col: CODE message
+    grep -cE "\.py:[0-9]+:[0-9]+: [A-Z][0-9]+" "$log_file" 2>/dev/null || echo 0
+}
+
+# Extract pyright error count from validation log
+# Returns: integer (error count)
+extract_pyright_errors() {
+    local log_file="$1"
+    # pyright format: "X errors, Y warnings, Z informations"
+    grep -oE "^[0-9]+ errors" "$log_file" 2>/dev/null | grep -oE "[0-9]+" | tail -1 || echo 0
+}
+
+# Extract pyright warning count from validation log
+# Returns: integer (warning count)
+extract_pyright_warnings() {
+    local log_file="$1"
+    # pyright format: "X errors, Y warnings, Z informations"
+    grep -oE "[0-9]+ warnings" "$log_file" 2>/dev/null | grep -oE "[0-9]+" | tail -1 || echo 0
+}
+
+# Calculate code churn (total lines changed across all commits)
+# Returns: integer (total insertions + deletions)
+extract_code_churn() {
+    local worktree_path="$1"
+    # Sum all insertions+deletions from git log
+    (cd "$worktree_path" && git log --shortstat --format="" 2>/dev/null | \
+        awk '/files? changed/ {s+=$4+$6} END {print s+0}')
+}
+
+# Score worktree results using: base + coverage_bonus - penalties
+# Returns: numeric score (0 if prd.json missing)
+# Logs: detailed breakdown of scoring components
 score_worktree() {
     local i="$1"
     local run_id="$2"
     local n_wt="$3"
     local worktree_path=$(get_worktree_path "$i" "$run_id" "$n_wt")
     local prd_json="$worktree_path/$RALPH_PRD_JSON"
+    local log_file="$worktree_path/ralph.log"
 
     if [ ! -f "$prd_json" ]; then
+        log_info "Worktree $i: No prd.json found (score: 0)"
         echo 0
         return
     fi
 
-    # Scoring: (stories_passed * 100) + test_count + (validation_pass ? 50 : 0)
+    # Base metrics
     local stories_passed=$(jq '[.stories[] | select(.passes == true)] | length' "$prd_json" 2>/dev/null || echo 0)
-
-    # Count test files in worktree
+    local total_stories=$(jq '.stories | length' "$prd_json" 2>/dev/null || echo 0)
     local test_count=$(find "$worktree_path" -name "test_*.py" -type f 2>/dev/null | wc -l)
 
-    # Check if last validation passed (exit code 0)
+    # Validation bonus
     local validation_bonus=0
+    local validation_status="failed"
     if [ "${WORKTREE_EXIT_CODES[$i]}" -eq 0 ]; then
         validation_bonus=50
+        validation_status="passed"
     fi
 
-    local score=$((stories_passed * 100 + test_count + validation_bonus))
+    # New metrics (from validation log)
+    local coverage=0
+    local ruff_violations=0
+    local pyright_errors=0
+    local pyright_warnings=0
+    local code_churn=0
+
+    if [ -f "$log_file" ]; then
+        coverage=$(extract_coverage "$log_file")
+        ruff_violations=$(extract_ruff_violations "$log_file")
+        pyright_errors=$(extract_pyright_errors "$log_file")
+        pyright_warnings=$(extract_pyright_warnings "$log_file")
+    fi
+    code_churn=$(extract_code_churn "$worktree_path")
+
+    # Calculate score with new formula
+    local base_score=$((stories_passed * 10 + test_count + validation_bonus))
+    local coverage_bonus=$((coverage / 2))  # 0-50 points
+    local ruff_penalty=$((ruff_violations * 2))
+    local pyright_error_penalty=$((pyright_errors * 5))
+    local pyright_warning_penalty=$((pyright_warnings * 1))
+    local churn_penalty=$((code_churn / 100))
+
+    local score=$((base_score + coverage_bonus - ruff_penalty - pyright_error_penalty - pyright_warning_penalty - churn_penalty))
+
+    # Ensure score doesn't go negative
+    [ "$score" -lt 0 ] && score=0
+
+    # Log breakdown
+    log_info "Worktree $i: stories=$stories_passed/$total_stories tests=$test_count validation=$validation_status"
+    log_info "  coverage=${coverage}% ruff=-${ruff_violations} pyright_err=-${pyright_errors} pyright_warn=-${pyright_warnings} churn=-${churn_penalty}"
+    log_info "  score: $base_score + $coverage_bonus - $ruff_penalty - $pyright_error_penalty - $pyright_warning_penalty - $churn_penalty = $score"
+
     echo "$score"
 }
 
-# Select best worktree
+# Select best worktree by comparing scores
+# Returns: worktree index with highest score
+# Logs: decision with final score
 select_best() {
     local run_id="$1"
     local n_wt="$2"
@@ -272,7 +364,6 @@ select_best() {
 
     for i in $(seq 2 $n_wt); do
         local score=$(score_worktree $i "$run_id" "$n_wt")
-        log_info "Worktree $i score: $score (best: $best_score)"
 
         if [ "$score" -gt "$best_score" ]; then
             best_wt=$i
@@ -280,7 +371,7 @@ select_best() {
         fi
     done
 
-    log_info "Best worktree: $best_wt (score: $best_score)"
+    log_info "Selected worktree $best_wt (score: $best_score)"
     echo "$best_wt"
 }
 
@@ -621,6 +712,13 @@ EOF
         done
 
         log_info "All $N_WT worktrees started in parallel"
+    fi
+
+    # DEBUG mode: Watch logs instead of waiting
+    if [ "$DEBUG" = "1" ]; then
+        log_info "DEBUG mode enabled - watching logs (Ctrl+C to exit, worktrees continue)..."
+        watch_all_logs
+        exit 0
     fi
 
     # Wait for completion

@@ -112,10 +112,10 @@ ralph_init_loop:  ## Initialize Ralph loop environment
 	bash scripts/ralph/init.sh
 	$(MAKE) -s ralph_validate_json
 
-ralph:  ## Run Ralph loop - Usage: make ralph [N_WT=<value>] [ITERATIONS=<value>]
+ralph:  ## Run Ralph loop - Usage: make ralph [N_WT=<value>] [ITERATIONS=<value>] [DEBUG=1]
 	echo "Starting Ralph loop (N_WT=$${N_WT:-default}, iterations=$${ITERATIONS:-default}) ..."
 	$(MAKE) -s ralph_validate_json
-	bash scripts/ralph/parallel_ralph.sh "$${N_WT}" "$${ITERATIONS}"
+	DEBUG=$${DEBUG:-0} bash scripts/ralph/parallel_ralph.sh "$${N_WT}" "$${ITERATIONS}"
 
 ralph_status:  ## Show Ralph loop progress
 	@bash scripts/ralph/parallel_ralph.sh status
