@@ -209,9 +209,9 @@ def test_export_graph_to_json(tmp_path: Path):
         data = json.load(f)
 
     assert "nodes" in data
-    assert "links" in data
+    assert "edges" in data
     assert len(data["nodes"]) == 3
-    assert len(data["links"]) == 2
+    assert len(data["edges"]) == 2
 
 
 def test_export_graph_to_graphml(tmp_path: Path):
