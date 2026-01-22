@@ -57,7 +57,7 @@ parallel_ralph.sh (orchestrator - always used, even N_WT=1)
   ├─> runs ralph.sh in each worktree (background jobs)
   │   └─> ralph.sh (worker):
   │       ├─> reads prd.json (incomplete stories)
-  │       ├─> builds prompt from templates/prompt.md + story details
+  │       ├─> builds prompt from templates/story.prompt.md + story details
   │       ├─> invokes: claude -p --dangerously-skip-permissions
   │       │   └─> Agent follows TDD workflow:
   │       │       ├─ RED: write failing tests → commit [RED]
@@ -84,7 +84,7 @@ docs/ralph/
 ├── prd.json              # Story definitions and status
 ├── progress.txt          # Execution log
 └── templates/
-    └── prompt.md         # Agent instructions (TDD workflow)
+    └── story.prompt.md   # Agent instructions (TDD workflow)
 
 scripts/ralph/
 ├── parallel_ralph.sh     # Orchestrator: worktree management, scoring, merging

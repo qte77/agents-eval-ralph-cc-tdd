@@ -107,7 +107,7 @@ RALPH_MERGE_INTERACTIVE=${RALPH_MERGE_INTERACTIVE:-false}
 # =================================================
 RALPH_PRD_JSON="$RALPH_DOCS_DIR/prd.json"
 RALPH_PROGRESS_FILE="$RALPH_DOCS_DIR/progress.txt"
-RALPH_PROMPT_FILE="$RALPH_TEMPLATES_DIR/prompt.md"
+RALPH_PROMPT_FILE="$RALPH_TEMPLATES_DIR/story.prompt.md"
 
 # =================================================
 # TEMPLATE PATHS

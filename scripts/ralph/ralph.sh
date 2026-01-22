@@ -20,7 +20,7 @@
 # - Checks for [RED] and [GREEN] markers in commit messages
 #
 # Commit Architecture:
-# - Agent commits (prompt.md): tests [RED], implementation [GREEN], refactoring [REFACTOR]
+# - Agent commits (story.prompt.md): tests [RED], implementation [GREEN], refactoring [REFACTOR]
 # - Script commits (commit_story_state): prd.json, progress.txt, README.md, example.py
 # - Both required: Agent commits prove TDD compliance, script commits track progress
 #
