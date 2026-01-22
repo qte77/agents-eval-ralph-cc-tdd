@@ -196,8 +196,7 @@ make_executable() {
     chmod +x scripts/ralph/archive.sh
     chmod +x scripts/ralph/abort.sh
     chmod +x scripts/ralph/clean.sh
-    chmod +x scripts/ralph/vibe_demo.sh
-    chmod +x scripts/ralph/vibe_cleanup.sh
+    chmod +x scripts/ralph/vibe.sh
     log_success "Scripts are executable"
 }
 

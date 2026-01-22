@@ -234,16 +234,26 @@ start_parallel() {
 wait_and_monitor() {
     log_info "Waiting for all $N_WT worktrees to complete..."
 
-    for i in $(seq 1 $N_WT); do
-        local pid=${WORKTREE_PIDS[$i]}
+    # Poll for process completion (can't use wait on disowned PIDs)
+    local all_done=false
+    while [ "$all_done" = "false" ]; do
+        all_done=true
 
-        if wait "$pid"; then
-            WORKTREE_EXIT_CODES[$i]=0
-            log_info "Worktree $i completed successfully"
-        else
-            WORKTREE_EXIT_CODES[$i]=$?
-            log_warn "Worktree $i exited with code: ${WORKTREE_EXIT_CODES[$i]}"
-        fi
+        for i in $(seq 1 $N_WT); do
+            local pid=${WORKTREE_PIDS[$i]}
+
+            # Check if process still running
+            if ps -p "$pid" > /dev/null 2>&1; then
+                all_done=false
+            elif [ -z "${WORKTREE_EXIT_CODES[$i]:-}" ]; then
+                # Process finished, record exit code (can't get actual code from disowned process)
+                WORKTREE_EXIT_CODES[$i]=0
+                log_info "Worktree $i completed"
+            fi
+        done
+
+        # Sleep briefly before next check
+        [ "$all_done" = "false" ] && sleep 5
     done
 
     log_info "All worktrees completed"
@@ -352,6 +362,23 @@ score_worktree() {
     log_info "Worktree $i: stories=$stories_passed/$total_stories tests=$test_count validation=$validation_status"
     log_info "  coverage=${coverage}% ruff=-${ruff_violations} pyright_err=-${pyright_errors} pyright_warn=-${pyright_warnings} churn=-${churn_penalty}"
     log_info "  score: $base_score + $coverage_bonus - $ruff_penalty - $pyright_error_penalty - $pyright_warning_penalty - $churn_penalty = $score"
+
+    # Save metrics to file for judge consumption
+    local metrics_file="$worktree_path/metrics.json"
+    cat > "$metrics_file" <<EOF
+{
+  "stories_passed": $stories_passed,
+  "total_stories": $total_stories,
+  "test_count": $test_count,
+  "coverage": $coverage,
+  "ruff_violations": $ruff_violations,
+  "pyright_errors": $pyright_errors,
+  "pyright_warnings": $pyright_warnings,
+  "code_churn": $code_churn,
+  "validation_status": "$validation_status",
+  "score": $score
+}
+EOF
 
     echo "$score"
 }

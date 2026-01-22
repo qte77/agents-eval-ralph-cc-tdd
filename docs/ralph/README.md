@@ -39,9 +39,8 @@ make ralph_run DEBUG=1 N_WT=3               # Debug mode (watch,
 # Start Vibe Kanban UI
 make vibe_start          # Start on port 5173
 make vibe_status         # Check if running
-make vibe_demo           # Populate example tasks
 make vibe_cleanup        # Remove all tasks
-make vibe_stop           # Stop Vibe Kanban
+make vibe_stop_all       # Stop all Vibe Kanban instances
 
 # Run Ralph (auto-syncs in real-time)
 make ralph_run N_WT=3
@@ -93,8 +92,7 @@ scripts/ralph/
 ├── archive.sh           # Archive current run state
 ├── abort.sh             # Terminate running loops
 ├── clean.sh             # Clean Ralph state (worktrees + local)
-├── vibe_demo.sh         # Populate Vibe Kanban with example tasks
-├── vibe_cleanup.sh      # Remove all tasks from Vibe Kanban
+├── vibe.sh              # Vibe Kanban management (start/stop_all/status/cleanup)
 └── lib/
     ├── config.sh        # Centralized configuration
     ├── colors.sh        # Logging utilities

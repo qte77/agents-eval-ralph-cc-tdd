@@ -43,19 +43,26 @@ judge_worktrees() {
     # Append worktree data for each worktree
     for i in $(seq 1 $n_wt); do
         local worktree_path=$(get_worktree_path "$i" "$run_id" "$n_wt")
-        local prd_json="$worktree_path/$RALPH_PRD_JSON"
-        local log_file="$worktree_path/ralph.log"
+        local metrics_file="$worktree_path/metrics.json"
 
-        # Collect metrics (reuses extract_* functions from parallel_ralph.sh)
-        local stories_passed=$(jq '[.stories[] | select(.passes == true)] | length' "$prd_json" 2>/dev/null || echo 0)
-        local total_stories=$(jq '.stories | length' "$prd_json" 2>/dev/null || echo 0)
-        local test_count=$(find "$worktree_path" -name "test_*.py" -type f 2>/dev/null | wc -l)
-        local coverage=$(extract_coverage "$log_file" 2>/dev/null || echo 0)
-        local ruff_violations=$(extract_ruff_violations "$log_file" 2>/dev/null || echo 0)
-        local pyright_errors=$(extract_pyright_errors "$log_file" 2>/dev/null || echo 0)
+        # Read pre-calculated metrics from score_worktree()
+        if [ ! -f "$metrics_file" ]; then
+            log_warn "Metrics file not found for worktree $i - skipping"
+            continue
+        fi
 
-        # Get diff summary (limited to avoid token explosion)
-        local diff_summary=$(cd "$worktree_path" && git diff --stat HEAD~5 2>/dev/null | tail -20 || echo "No diff available")
+        local stories_passed=$(jq -r '.stories_passed' "$metrics_file" 2>/dev/null || echo 0)
+        local total_stories=$(jq -r '.total_stories' "$metrics_file" 2>/dev/null || echo 0)
+        local test_count=$(jq -r '.test_count' "$metrics_file" 2>/dev/null || echo 0)
+        local coverage=$(jq -r '.coverage' "$metrics_file" 2>/dev/null || echo 0)
+        local ruff_violations=$(jq -r '.ruff_violations' "$metrics_file" 2>/dev/null || echo 0)
+        local pyright_errors=$(jq -r '.pyright_errors' "$metrics_file" 2>/dev/null || echo 0)
+
+        # Get changed files (excluding tracking/config files)
+        local changed_files=$(cd "$worktree_path" && git diff --name-only $(git merge-base HEAD origin/main 2>/dev/null || echo HEAD~20)..HEAD 2>/dev/null | \
+            grep -E '\.(py|sh)$' | \
+            grep -v -E '(prd\.json|progress\.txt|__pycache__|\.pyc|__init__\.py)' | \
+            head -15)  # Limit to 15 files to control token usage
 
         # Append to prompt
         cat <<EOF >> "$judge_prompt"
@@ -69,11 +76,34 @@ judge_worktrees() {
 - ruff_violations: $ruff_violations
 - pyright_errors: $pyright_errors
 
-**Diff summary:**
-\`\`\`
-$diff_summary
+**Implementation (actual code):**
+EOF
+
+        # Show actual file contents (limited by size and count)
+        if [ -n "$changed_files" ]; then
+            echo "$changed_files" | while IFS= read -r file; do
+                if [ -f "$worktree_path/$file" ]; then
+                    local file_size=$(wc -l < "$worktree_path/$file" 2>/dev/null || echo 0)
+                    # Skip files over 200 lines to control token usage
+                    if [ "$file_size" -le 200 ]; then
+                        cat <<EOF >> "$judge_prompt"
+
+\`$file\` ($file_size lines):
+\`\`\`python
+$(cat "$worktree_path/$file" 2>/dev/null || echo "Unable to read file")
 \`\`\`
 EOF
+                    else
+                        cat <<EOF >> "$judge_prompt"
+
+\`$file\` ($file_size lines): [File too large, skipped]
+EOF
+                    fi
+                fi
+            done
+        else
+            echo "No implementation files found" >> "$judge_prompt"
+        fi
     done
 
     # Invoke Claude with timeout
@@ -84,10 +114,16 @@ EOF
         "cat \"$judge_prompt\" | claude -p --model \"$model\" --dangerously-skip-permissions" \
         > "$judge_output" 2>&1; then
 
-        # Parse JSON response
-        local winner=$(jq -r '.winner' "$judge_output" 2>/dev/null || \
-                      grep -oP '"winner"\s*:\s*\K\d+' "$judge_output" 2>/dev/null | head -1)
-        local reason=$(jq -r '.reason' "$judge_output" 2>/dev/null || echo "No reason provided")
+        # Parse JSON response (extract from markdown code blocks if present)
+        local json_content=$(sed -n '/^```json/,/^```/p' "$judge_output" | sed '1d;$d' 2>/dev/null)
+        if [ -z "$json_content" ]; then
+            # Try without code blocks
+            json_content=$(grep -E '^\s*\{' "$judge_output" 2>/dev/null || cat "$judge_output")
+        fi
+
+        local winner=$(echo "$json_content" | jq -r '.winner' 2>/dev/null || \
+                      grep -oP '"winner"\s*:\s*\K\d+' <<< "$json_content" 2>/dev/null | head -1)
+        local reason=$(echo "$json_content" | jq -r '.reason' 2>/dev/null || echo "No reason provided")
 
         if [ -n "$winner" ] && [ "$winner" -ge 1 ] && [ "$winner" -le "$n_wt" ]; then
             log_info "Judge selected worktree $winner: $reason"
