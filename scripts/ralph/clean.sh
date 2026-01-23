@@ -82,14 +82,23 @@ fi
 
 # Clean local state files
 if [ "$state_count" -gt 0 ]; then
-    log_info "Cleaning local state files..."
-    for file in "${STATE_FILES[@]}"; do
-        if [ -f "$file" ]; then
-            rm -f "$file"
-            log_info "  Removed: $file"
-        fi
-    done
-    log_success "Local state cleaned"
+    echo ""
+    log_warn "Remove Ralph state files (prd.json, progress.txt)?"
+    echo -n "Type 'yes' to confirm: "
+    read confirm_state
+
+    if [ "$confirm_state" = "yes" ]; then
+        log_info "Cleaning local state files..."
+        for file in "${STATE_FILES[@]}"; do
+            if [ -f "$file" ]; then
+                rm -f "$file"
+                log_info "  Removed: $file"
+            fi
+        done
+        log_success "Local state cleaned"
+    else
+        log_info "Skipping state file cleanup"
+    fi
 fi
 
 log_success "Clean complete!"
