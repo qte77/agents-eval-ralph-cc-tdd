@@ -8,6 +8,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/ralph/lib/colors.sh"
 source "$SCRIPT_DIR/ralph/lib/config.sh"
 
+# Template placeholder names (before customization)
+TEMPLATE_PACKAGE_NAME="your_project_name"
+
 # Display usage information
 show_help() {
 	cat <<EOF
@@ -57,8 +60,8 @@ echo "(Leave inputs empty to use found, default or empty values)"
 echo ""
 
 # Check if already customized
-if [ ! -d "$SRC_BASE_DIR/your_project_name" ] && [ -z "$GITHUB_REPO" ]; then
-	echo "WARNING: Appears already customized ($SRC_BASE_DIR/your_project_name/ not found)"
+if [ ! -d "$SRC_BASE_DIR/$TEMPLATE_PACKAGE_NAME" ] && [ -z "$GITHUB_REPO" ]; then
+	echo "WARNING: Appears already customized ($SRC_BASE_DIR/$TEMPLATE_PACKAGE_NAME/ not found)"
 	read -p "Continue anyway? [y/N]: " confirm
 	[ "$confirm" != "y" ] && exit 0
 fi
@@ -89,8 +92,6 @@ if [ -z "$PROJECT" ]; then
 	if [ -z "$PROJECT" ]; then
 		read -p "Project name (kebab-case, e.g., my-app): " PROJECT
 	fi
-else
-	PROJECT="$PROJECT"
 fi
 
 # Derive default app name from PROJECT
@@ -103,8 +104,6 @@ APP_NAME=${APP_NAME:-$PROJECT_SNAKE}
 # Get DESCRIPTION (prompt if empty)
 if [ -z "$DESCRIPTION" ]; then
 	read -p "Project description: " DESCRIPTION
-else
-	DESCRIPTION="$DESCRIPTION"
 fi
 
 # Get AUTHOR (auto-detect from org, user can override)
@@ -157,7 +156,7 @@ sed -i "s|\\[PROJECT NAME\\]|$(escape_sed "$PROJECT")|g" pyproject.toml
 sed -i "s|\\[PROJECT DESCRIPTION\\]|$(escape_sed "$DESCRIPTION")|g" pyproject.toml
 sed -i "s|\\[PYTHON VERSION\\]|$(escape_sed "$PYTHON_VERSION")|g" pyproject.toml
 sed -i "s|\\[PYTHON VERSION SHORT\\]|$(escape_sed "$PYTHON_VERSION_SHORT")|g" pyproject.toml
-sed -i "s|your_project_name|$(escape_sed "$APP_NAME")|g" pyproject.toml
+sed -i "s|$TEMPLATE_PACKAGE_NAME|$(escape_sed "$APP_NAME")|g" pyproject.toml
 sed -i "s|\\[YEAR\\]|$(escape_sed "$YEAR")|g" LICENSE.md
 sed -i "s|\\[YOUR NAME OR ORGANIZATION\\]|$(escape_sed "$AUTHOR")|g" LICENSE.md
 sed -i "s|\\[PROJECT NAME\\]|$(escape_sed "$PROJECT")|g" "$RALPH_TEMPLATES_DIR/progress.txt.template"
@@ -170,8 +169,8 @@ sed -i "s|\\[GITHUB REPO\\]|$(escape_sed "$GITHUB_REPO")|g" mkdocs.yaml
 sed -i "s|devcontainers\/python|devcontainers\/python:$(escape_sed "$PYTHON_VERSION")|g" .devcontainer/project/devcontainer.json
 
 # Rename source directory
-if [ -d "$SRC_BASE_DIR/your_project_name" ]; then
-	mv "$SRC_BASE_DIR/your_project_name" "$SRC_BASE_DIR/$APP_NAME"
+if [ -d "$SRC_BASE_DIR/$TEMPLATE_PACKAGE_NAME" ]; then
+	mv "$SRC_BASE_DIR/$TEMPLATE_PACKAGE_NAME" "$SRC_BASE_DIR/$APP_NAME"
 fi
 
 # Verify replacements
