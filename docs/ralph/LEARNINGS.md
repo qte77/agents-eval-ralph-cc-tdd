@@ -7,6 +7,7 @@ Accumulated knowledge from previous Ralph runs. Read this before starting each s
 <!-- Append fixes that resolved validation errors -->
 <!-- Format: "- [STORY-XXX] Brief description of fix" -->
 - [STORY-001] Other story test files may cause type check failures - scope validation to current story files only
+- [STORY-001] Create stub modules for all imported classes to resolve import errors before implementation (from fixing validation)
 
 ## Code Patterns
 
