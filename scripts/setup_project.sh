@@ -3,6 +3,10 @@
 
 set -e
 
+# Source color utilities and escape functions
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/ralph/lib/colors.sh"
+
 # Display usage information
 show_help() {
 	cat <<EOF
@@ -144,25 +148,25 @@ echo "  Python version: $PYTHON_VERSION (py$PYTHON_VERSION_SHORT)"
 echo ""
 
 # Perform replacements
-sed -i "s|YOUR-ORG/YOUR-PROJECT-NAME|$GITHUB_REPO|g" README.md
-sed -i "s|Python Ralph-Loop Template|$PROJECT|g" README.md
-sed -i "s|> What a time to be alive|$DESCRIPTION|g" README.md
+sed -i "s|YOUR-ORG/YOUR-PROJECT-NAME|$(escape_sed "$GITHUB_REPO")|g" README.md
+sed -i "s|Python Ralph-Loop Template|$(escape_sed "$PROJECT")|g" README.md
+sed -i "s|> What a time to be alive|$(escape_sed "$DESCRIPTION")|g" README.md
 sed -i "/Out-of-the-box Python project template using Ralph Loop autonomous development/{N;d;}" README.md
-sed -i "s|\\[PROJECT NAME\\]|$PROJECT|g" pyproject.toml
-sed -i "s|\\[PROJECT DESCRIPTION\\]|$DESCRIPTION|g" pyproject.toml
-sed -i "s|\\[PYTHON VERSION\\]|$PYTHON_VERSION|g" pyproject.toml
-sed -i "s|\\[PYTHON VERSION SHORT\\]|$PYTHON_VERSION_SHORT|g" pyproject.toml
-sed -i "s|your_project_name|$APP_NAME|g" pyproject.toml
-sed -i "s|\\[YEAR\\]|$YEAR|g" LICENSE.md
-sed -i "s|\\[YOUR NAME OR ORGANIZATION\\]|$AUTHOR|g" LICENSE.md
-sed -i "s|\\[PROJECT NAME\\]|$PROJECT|g" docs/ralph/templates/progress.txt.template
-sed -i "s|\\[PROJECT NAME\\]|$PROJECT|g" docs/ralph/templates/prd.json.template
-sed -i "s|\\[PROJECT NAME\\]|$PROJECT|g" docs/ralph/templates/vibe-project.json.template
-sed -i "s|\\[APP NAME\\]|$APP_NAME|g" docs/ralph/templates/vibe-project.json.template
-sed -i "s|\\[PROJECT NAME\\]|$PROJECT|g" mkdocs.yaml
-sed -i "s|\\[PROJECT DESCRIPTION\\]|$DESCRIPTION|g" mkdocs.yaml
-sed -i "s|\\[GITHUB REPO\\]|$GITHUB_REPO|g" mkdocs.yaml
-sed -i "s|devcontainers\/python|devcontainers\/python:$PYTHON_VERSION|g" .devcontainer/project/devcontainer.json
+sed -i "s|\\[PROJECT NAME\\]|$(escape_sed "$PROJECT")|g" pyproject.toml
+sed -i "s|\\[PROJECT DESCRIPTION\\]|$(escape_sed "$DESCRIPTION")|g" pyproject.toml
+sed -i "s|\\[PYTHON VERSION\\]|$(escape_sed "$PYTHON_VERSION")|g" pyproject.toml
+sed -i "s|\\[PYTHON VERSION SHORT\\]|$(escape_sed "$PYTHON_VERSION_SHORT")|g" pyproject.toml
+sed -i "s|your_project_name|$(escape_sed "$APP_NAME")|g" pyproject.toml
+sed -i "s|\\[YEAR\\]|$(escape_sed "$YEAR")|g" LICENSE.md
+sed -i "s|\\[YOUR NAME OR ORGANIZATION\\]|$(escape_sed "$AUTHOR")|g" LICENSE.md
+sed -i "s|\\[PROJECT NAME\\]|$(escape_sed "$PROJECT")|g" docs/ralph/templates/progress.txt.template
+sed -i "s|\\[PROJECT NAME\\]|$(escape_sed "$PROJECT")|g" docs/ralph/templates/prd.json.template
+sed -i "s|\\[PROJECT NAME\\]|$(escape_sed "$PROJECT")|g" docs/ralph/templates/vibe-project.json.template
+sed -i "s|\\[APP NAME\\]|$(escape_sed "$APP_NAME")|g" docs/ralph/templates/vibe-project.json.template
+sed -i "s|\\[PROJECT NAME\\]|$(escape_sed "$PROJECT")|g" mkdocs.yaml
+sed -i "s|\\[PROJECT DESCRIPTION\\]|$(escape_sed "$DESCRIPTION")|g" mkdocs.yaml
+sed -i "s|\\[GITHUB REPO\\]|$(escape_sed "$GITHUB_REPO")|g" mkdocs.yaml
+sed -i "s|devcontainers\/python|devcontainers\/python:$(escape_sed "$PYTHON_VERSION")|g" .devcontainer/project/devcontainer.json
 
 # Rename source directory
 if [ -d "src/your_project_name" ]; then

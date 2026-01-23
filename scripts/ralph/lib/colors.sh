@@ -8,6 +8,9 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
+# Escape string for sed replacement (handles &, \, delimiter)
+escape_sed() { printf '%s' "$1" | sed 's/[&\\/]/\\&/g'; }
+
 # Logging functions
 log_info() { echo -e "${GREEN}[INFO]${NC} $1" >&2; }
 log_warn() { echo -e "${YELLOW}[WARN]${NC} $1" >&2; }
