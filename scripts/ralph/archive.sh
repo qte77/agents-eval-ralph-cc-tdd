@@ -92,7 +92,7 @@ done
 if [ -d "$RALPH_DOCS_DIR" ]; then
     mkdir -p "$ARCHIVE_DIR/$RALPH_DOCS_DIR"
     # Copy all files first
-    cp -r "$RALPH_DOCS_DIR"/* "$ARCHIVE_DIR/$RALPH_DOCS_DIR/" 2>/dev/null || true
+    cp -r "$RALPH_DOCS_DIR"/* "$ARCHIVE_DIR/$RALPH_DOCS_DIR/"
     # Remove only state files from source
     for file in "${STATE_FILES[@]}"; do
         rm -f "$RALPH_DOCS_DIR/$file"
