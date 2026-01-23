@@ -3,6 +3,8 @@
 from pathlib import Path
 from typing import Any
 
+from agenteval.models.data import Paper, Review
+
 
 class PeerReadLoader:
     """Loads and parses PeerRead dataset from local storage."""
@@ -15,40 +17,40 @@ class PeerReadLoader:
         """
         self.dataset_path = dataset_path or Path("data/peerread")
 
-    def load(self) -> list[dict[str, Any]]:
+    def load(self) -> list[Paper]:
         """Load the complete dataset.
 
         Returns:
-            List of dataset records
+            List of Paper objects
         """
         return []
 
-    def load_dataset(self) -> list[dict[str, Any]]:
+    def load_dataset(self) -> list[Paper]:
         """Load the complete dataset.
 
         Returns:
-            List of dataset records
+            List of Paper objects
         """
         return []
 
-    def load_batch(self, batch_size: int = 10) -> list[dict[str, Any]]:
+    def load_batch(self, batch_size: int = 10) -> list[Paper]:
         """Load a batch of records.
 
         Args:
             batch_size: Number of records per batch
 
         Returns:
-            Batch of records
+            Batch of Paper objects
         """
         return []
 
-    def load_with_reviews(self) -> list[dict[str, Any]]:
+    def load_with_reviews(self) -> tuple[list[Paper], list[Review]]:
         """Load dataset with reviews.
 
         Returns:
-            List of records with review data
+            Tuple of (papers list, reviews list)
         """
-        return []
+        return [], []
 
 
 def load_peerread_dataset(dataset_path: Path | None = None) -> list[dict[str, Any]]:

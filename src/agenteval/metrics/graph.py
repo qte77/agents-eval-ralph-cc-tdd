@@ -68,16 +68,16 @@ class GraphAnalyzer:
             return 0.0
         return nx.average_clustering(g.to_undirected())
 
-    def identify_coordination_patterns(self, graph: Any | None = None) -> list[tuple[str, str]]:
+    def identify_coordination_patterns(self, graph: Any | None = None) -> dict[str, list[Any]]:
         """Identify coordination patterns in interactions.
 
         Args:
             graph: Optional graph (uses self.graph if not provided)
 
         Returns:
-            List of coordinated node pairs
+            Dictionary with coordination pattern information
         """
-        return []
+        return {"bidirectional_pairs": [], "central_coordinators": []}
 
     def calculate_all_metrics(self, graph: Any | None = None) -> dict[str, Any]:
         """Calculate all graph metrics.

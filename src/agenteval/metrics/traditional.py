@@ -3,6 +3,8 @@
 from datetime import datetime
 from typing import Any
 
+from agenteval.models.evaluation import Metrics
+
 
 class TraditionalMetrics:
     """Calculates traditional performance metrics for agent evaluation."""
@@ -55,32 +57,42 @@ class TraditionalMetrics:
 
     def create_metrics(
         self,
+        execution_time: float | None = None,
+        success_rate: float | None = None,
+        coordination_quality: float | None = None,
         start_time: datetime | None = None,
         end_time: datetime | None = None,
         task_results: list[dict[str, Any]] | None = None,
         agent_interactions: list[dict[str, Any]] | None = None,
-    ) -> dict[str, Any]:
+    ) -> Metrics:
         """Create metrics from various inputs.
 
         Args:
+            execution_time: Execution time in seconds
+            success_rate: Success rate 0-1
+            coordination_quality: Coordination quality 0-1
             start_time: Start timestamp
             end_time: End timestamp
             task_results: List of task results
             agent_interactions: List of interactions
 
         Returns:
-            Dictionary of metrics
+            Metrics object
         """
-        return {}
+        return Metrics(
+            execution_time_seconds=execution_time or 0.0,
+            task_success_rate=success_rate or 0.0,
+            coordination_quality=coordination_quality or 0.0,
+        )
 
-    def evaluate_batch(self, batch_data: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    def evaluate_batch(self, batch_data: list[dict[str, Any]]) -> list[Metrics]:
         """Evaluate a batch of data.
 
         Args:
             batch_data: List of data items
 
         Returns:
-            List of evaluation results
+            List of Metrics objects
         """
         return []
 
