@@ -194,9 +194,11 @@ make_executable() {
     chmod +x scripts/ralph/init.sh
     chmod +x scripts/ralph/parallel_ralph.sh
     chmod +x scripts/ralph/archive.sh
-    chmod +x scripts/ralph/abort.sh
+    chmod +x scripts/ralph/stop.sh
     chmod +x scripts/ralph/clean.sh
     chmod +x scripts/ralph/vibe.sh
+    chmod +x scripts/ralph/lib/stop_ralph_processes.sh
+    chmod +x scripts/ralph/lib/cleanup_worktrees.sh
     log_success "Scripts are executable"
 }
 

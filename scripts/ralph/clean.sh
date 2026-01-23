@@ -8,6 +8,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Source libraries
 source "$SCRIPT_DIR/lib/colors.sh"
 source "$SCRIPT_DIR/lib/config.sh"
+source "$SCRIPT_DIR/lib/cleanup_worktrees.sh"
 
 # Check for worktrees
 worktree_count=$(git worktree list | grep "$RALPH_PARALLEL_WORKTREE_PREFIX" | wc -l || true)
@@ -79,20 +80,7 @@ log_info "Proceeding with cleanup..."
 
 # Clean worktrees
 if [ "$worktree_count" -gt 0 ]; then
-    log_info "Cleaning git worktrees..."
-
-    # Find all ralph worktrees and clean them
-    git worktree list | grep "$RALPH_PARALLEL_WORKTREE_PREFIX" | awk '{print $1}' | while read worktree_path; do
-        # Extract worktree number from path
-        wt_num=$(basename "$worktree_path" | sed "s#${RALPH_PARALLEL_WORKTREE_PREFIX}-##")
-        branch_name="${RALPH_PARALLEL_BRANCH_PREFIX}-${wt_num}"
-
-        log_info "  Removing worktree: $worktree_path"
-        git worktree unlock "$worktree_path" 2>/dev/null || true
-        git worktree remove "$worktree_path" --force 2>/dev/null || true
-        git branch -D "$branch_name" 2>/dev/null || true
-    done
-
+    cleanup_worktrees
     log_success "Worktrees cleaned"
 fi
 

@@ -61,6 +61,8 @@ source "$SCRIPT_DIR/lib/colors.sh"
 source "$SCRIPT_DIR/lib/config.sh"
 source "$SCRIPT_DIR/lib/validate_json.sh"
 source "$SCRIPT_DIR/lib/vibe.sh"
+source "$SCRIPT_DIR/lib/cleanup_worktrees.sh"
+source "$SCRIPT_DIR/lib/stop_ralph_processes.sh"
 
 # Source judge library (conditional)
 [ "${RALPH_JUDGE_ENABLED:-false}" = "true" ] && source "$SCRIPT_DIR/lib/judge.sh"
@@ -512,35 +514,7 @@ unlock_worktrees() {
     log_info "Worktrees unlocked - run 'make ralph_run' to resume"
 }
 
-# Cleanup worktrees (remove everything)
-cleanup_worktrees() {
-    log_info "Cleaning up worktrees..."
-
-    # Scan up to system max to find all existing worktrees
-    # Works for both: trap calls from main() and direct 'clean' subcommand
-    for i in $(seq 1 $MAX_WORKTREES); do
-        local worktree_path=$(find_worktree_by_index "$i")
-        [ -z "$worktree_path" ] && continue  # No worktree found for this index
-
-        local branch_name=$(get_branch_name "$i")
-
-        # Unlock worktree first (only if we locked it during creation)
-        if [ "$USE_LOCK" = "true" ]; then
-            log_info "Unlocking worktree $i..."
-            git worktree unlock "$worktree_path" 2>/dev/null || true
-        fi
-
-        # Remove worktree
-        log_info "Removing worktree $i..."
-        git worktree remove "$worktree_path" --force 2>/dev/null || true
-
-        # Delete branch
-        log_info "Deleting branch $branch_name..."
-        git branch -D "$branch_name" 2>/dev/null || true
-    done
-
-    log_info "Cleanup completed"
-}
+# cleanup_worktrees() is provided by lib/cleanup_worktrees.sh
 
 # Show status of all worktrees
 show_all_status() {
@@ -663,35 +637,11 @@ show_worktree_log() {
 }
 
 # Abort all parallel loops
-abort_parallel() {
-    log_warn "Aborting all parallel loops..."
-
-    # Scan up to system max to find all running worktrees
-    for i in $(seq 1 $MAX_WORKTREES); do
-        if [ -n "${WORKTREE_PIDS[$i]:-}" ]; then
-            if ps -p "${WORKTREE_PIDS[$i]}" > /dev/null 2>&1; then
-                log_info "Killing worktree $i (PID: ${WORKTREE_PIDS[$i]})..."
-                kill -TERM "${WORKTREE_PIDS[$i]}" 2>/dev/null || true
-            fi
-        fi
-    done
-
-    # Wait briefly for graceful shutdown
-    sleep 2
-
-    # Force kill if still running
-    for i in $(seq 1 $MAX_WORKTREES); do
-        if [ -n "${WORKTREE_PIDS[$i]:-}" ]; then
-            if ps -p "${WORKTREE_PIDS[$i]}" > /dev/null 2>&1; then
-                log_warn "Force killing worktree $i..."
-                kill -KILL "${WORKTREE_PIDS[$i]}" 2>/dev/null || true
-            fi
-        fi
-    done
-
-    cleanup_worktrees
-    log_info "All loops aborted"
+# Stop all processes (uses lib/stop.sh)
+stop_parallel() {
+    stop_ralph_processes
 }
+
 
 # Main orchestration
 main() {
@@ -914,8 +864,8 @@ case "${1:-run}" in
     log)
         show_worktree_log "${2:-1}"
         ;;
-    abort)
-        abort_parallel
+    stop)
+        stop_parallel
         ;;
     clean)
         cleanup_worktrees

@@ -48,7 +48,7 @@ ARCHIVE_SRC_SUBDIR="$SRC_BASE_DIR"
 # EXECUTION PARAMETERS
 # All values support environment variable override (e.g., RALPH_MAX_ITERATIONS=50 make ralph_run)
 # =================================================
-RALPH_FIX_TIMEOUT=${RALPH_FIX_TIMEOUT:-600}  # Fix attempt timeout (10 min)
+RALPH_FIX_TIMEOUT=${RALPH_FIX_TIMEOUT:-300}
 RALPH_MAX_FIX_ATTEMPTS=${RALPH_MAX_FIX_ATTEMPTS:-3}  # Max validation fix attempts
 RALPH_MAX_ITERATIONS=${RALPH_MAX_ITERATIONS:-25}  # Default loop iterations
 RALPH_VALIDATION_TIMEOUT=${RALPH_VALIDATION_TIMEOUT:-300}  # Validation timeout (5 min)
@@ -75,6 +75,7 @@ RALPH_MAX_LOG_FILES=20
 RALPH_DEFAULT_MODEL="sonnet"
 RALPH_DOCS_PATTERNS="^(docs|documentation|readme|comment)"
 RALPH_FIX_MODEL="haiku"
+RALPH_FIX_ERROR_THRESHOLD=${RALPH_FIX_ERROR_THRESHOLD:-20}
 RALPH_SIMPLE_MODEL="haiku"
 RALPH_SIMPLE_PATTERNS="fix|typo|update.*doc|small.*change|minor|format|style|cleanup|remove.*unused"
 

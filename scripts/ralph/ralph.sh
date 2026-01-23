@@ -61,6 +61,7 @@ LOG_DIR="$RALPH_LOOP_LOG_DIR"
 DEFAULT_MODEL="$RALPH_DEFAULT_MODEL"
 SIMPLE_MODEL="$RALPH_SIMPLE_MODEL"
 FIX_MODEL="$RALPH_FIX_MODEL"
+FIX_ERROR_THRESHOLD="$RALPH_FIX_ERROR_THRESHOLD"
 SIMPLE_PATTERNS="$RALPH_SIMPLE_PATTERNS"
 DOCS_PATTERNS="$RALPH_DOCS_PATTERNS"
 
@@ -335,11 +336,11 @@ fix_validation_errors() {
     while [ $attempt -le $max_attempts ]; do
         log_info "Fix attempt $attempt/$max_attempts"
 
-        # Smart model selection: use sonnet for complex fixes (>50 errors)
+        # Smart model selection: use sonnet for complex fixes (threshold from config)
         local model="$FIX_MODEL"
-        if [ "$prev_error_count" -gt 50 ]; then
+        if [ "$prev_error_count" -gt "$FIX_ERROR_THRESHOLD" ]; then
             model="$DEFAULT_MODEL"
-            log_info "Using $model for complex fixes (error count: $prev_error_count)"
+            log_info "Using $model for complex fixes (error count: $prev_error_count, threshold: $FIX_ERROR_THRESHOLD)"
         else
             log_info "Using model: $model (validation fix)"
         fi

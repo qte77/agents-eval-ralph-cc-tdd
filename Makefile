@@ -138,8 +138,8 @@ ralph_init_and_run:  ## Initialize and run Ralph loop in one command. Usage: mak
 ralph_status:  ## Show Ralph loop progress
 	bash scripts/ralph/parallel_ralph.sh status
 
-ralph_abort:  ## Abort all running Ralph loops
-	bash scripts/ralph/abort.sh
+ralph_stop:  ## Stop Ralph loops and kill processes (keep worktrees and data)
+	bash scripts/ralph/stop.sh
 
 ralph_clean:  ## Clean Ralph state (worktrees + local) - Requires double confirmation
 	bash scripts/ralph/clean.sh

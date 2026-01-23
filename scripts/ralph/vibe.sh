@@ -51,7 +51,59 @@ vibe_status() {
     done
     if [ "$found_any" = "false" ]; then
         echo "Vibe Kanban is not running"
+        return
     fi
+
+    # Show projects and tasks
+    echo ""
+    echo "Projects and Tasks:"
+    echo "==================="
+
+    local projects=$(curl -sf "$VIBE_URL/api/projects" 2>/dev/null | jq -r '.data[]? | @json')
+    if [ -z "$projects" ]; then
+        echo "No projects found"
+        return
+    fi
+
+    echo "$projects" | while IFS= read -r project; do
+        local project_id=$(echo "$project" | jq -r '.id')
+        local project_name=$(echo "$project" | jq -r '.name')
+
+        echo ""
+        echo "Project: $project_name (ID: $project_id)"
+
+        local tasks=$(curl -sf "$VIBE_URL/api/tasks?project_id=$project_id" 2>/dev/null | jq -r '.data[]? | @json')
+        if [ -z "$tasks" ]; then
+            echo "  No tasks"
+            continue
+        fi
+
+        # Count tasks by status
+        local todo_count=$(echo "$tasks" | jq -s '[.[] | select(.status == "todo")] | length')
+        local inprogress_count=$(echo "$tasks" | jq -s '[.[] | select(.status == "inprogress")] | length')
+        local inreview_count=$(echo "$tasks" | jq -s '[.[] | select(.status == "inreview")] | length')
+        local done_count=$(echo "$tasks" | jq -s '[.[] | select(.status == "done")] | length')
+        local total_count=$(echo "$tasks" | wc -l)
+
+        echo "  Summary: $total_count total ($todo_count todo, $inprogress_count in-progress, $inreview_count in-review, $done_count done)"
+        echo ""
+
+        echo "$tasks" | while IFS= read -r task; do
+            local task_title=$(echo "$task" | jq -r '.title')
+            local task_status=$(echo "$task" | jq -r '.status')
+            local status_icon=""
+
+            case "$task_status" in
+                "todo") status_icon="⬜" ;;
+                "inprogress") status_icon="🔄" ;;
+                "inreview") status_icon="👀" ;;
+                "done") status_icon="✅" ;;
+                *) status_icon="❓" ;;
+            esac
+
+            echo "  $status_icon [$task_status] $task_title"
+        done
+    done
 }
 
 # Clean up all tasks
