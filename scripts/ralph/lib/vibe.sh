@@ -100,14 +100,26 @@ kanban_update() {
     local status=$2
 
     # Check if Vibe Kanban was initialized
-    [ -n "$VIBE_URL" ] && [ -f "$KANBAN_MAP" ] || return 0
+    if [ -z "$VIBE_URL" ]; then
+        echo "[DEBUG] kanban_update: VIBE_URL not set" >&2
+        return 0
+    fi
+    if [ ! -f "$KANBAN_MAP" ]; then
+        echo "[DEBUG] kanban_update: KANBAN_MAP file not found: $KANBAN_MAP" >&2
+        return 0
+    fi
 
     # Use composite key with WORKTREE_NUM
     local key="${WORKTREE_NUM:-1}:${story_id}"
 
     # Get task ID from map
     local task_id=$(grep "^$key=" "$KANBAN_MAP" 2>/dev/null | cut -d= -f2)
-    [ -z "$task_id" ] && return 0
+    if [ -z "$task_id" ]; then
+        echo "[DEBUG] kanban_update: task_id not found for key=$key in map=$KANBAN_MAP" >&2
+        return 0
+    fi
+
+    echo "[DEBUG] kanban_update: Updating task_id=$task_id to status=$status" >&2
 
     # Set attempt flags based on status
     local has_in_progress=false
