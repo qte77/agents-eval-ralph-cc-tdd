@@ -53,6 +53,9 @@ ruff:  ## Lint: Format and check with ruff
 	uv run ruff format --exclude tests
 	uv run ruff check --fix --exclude tests
 
+complexity:  ## Check cognitive complexity with complexipy
+	uv run complexipy
+
 test_all:  ## Run all tests (excludes E2E tests by default)
 	uv run pytest
 
@@ -76,6 +79,7 @@ validate:  ## Complete pre-commit validation sequence
 	echo "Running complete validation sequence..."
 	$(MAKE) -s ruff
 	$(MAKE) -s type_check
+	$(MAKE) -s complexity
 	$(MAKE) -s test_coverage
 	echo "Validation completed successfully"
 
@@ -84,6 +88,7 @@ validate_quick:  ## Quick validation for fix iterations (no coverage check)
 	echo "Running quick validation (no coverage check)..."
 	$(MAKE) -s ruff
 	$(MAKE) -s type_check
+	$(MAKE) -s complexity
 	$(MAKE) -s test_quick
 	echo "Quick validation completed"
 
@@ -91,6 +96,7 @@ quick_validate:  ## Fast development cycle validation
 	echo "Running quick validation ..."
 	$(MAKE) -s ruff
 	-$(MAKE) -s type_check
+	-$(MAKE) -s complexity
 	echo "Quick validation completed (check output for any failures)"
 
 

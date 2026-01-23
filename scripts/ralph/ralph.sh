@@ -37,8 +37,8 @@ source "$SCRIPT_DIR/lib/validate_json.sh"
 source "$SCRIPT_DIR/lib/generate_app_docs.sh"
 
 # Load Vibe Kanban environment using specific RUN_ID
-if [ -n "${RALPH_RUN_ID:-}" ] && [ -f "/tmp/ralph-vibe-${RALPH_RUN_ID}.env" ]; then
-    source "/tmp/ralph-vibe-${RALPH_RUN_ID}.env"
+if [ -n "${RALPH_RUN_ID:-}" ] && [ -f "/tmp/ralph/vibe-${RALPH_RUN_ID}.env" ]; then
+    source "/tmp/ralph/vibe-${RALPH_RUN_ID}.env"
 fi
 
 source "$SCRIPT_DIR/lib/vibe.sh"
@@ -296,7 +296,7 @@ execute_story() {
 
 # Run quality checks
 run_quality_checks() {
-    local error_log="${1:-/tmp/ralph_validate.log}"
+    local error_log="${1:-/tmp/ralph/validate.log}"
     > "$error_log"  # Truncate file first (defensive)
     log_info "Running quality checks (timeout: ${VALIDATION_TIMEOUT}s)..."
 
@@ -387,7 +387,7 @@ fix_validation_errors() {
             rm "$fix_prompt"
 
             # Use quick validation (no coverage) for intermediate attempts to save time, full validation on last attempt
-            local retry_log="/tmp/ralph_validate_fix_${attempt}.log"
+            local retry_log="/tmp/ralph/validate_fix_${attempt}.log"
             if [ $attempt -lt $max_attempts ]; then
                 log_info "Running quick validation (attempt $attempt/$max_attempts)..."
                 if make validate_quick 2>&1 | tee "$retry_log"; then
@@ -564,7 +564,7 @@ main() {
 
             # Run quality checks
             kanban_update "$story_id" "inreview"
-            local validation_log="/tmp/ralph_validate_${story_id}.log"
+            local validation_log="/tmp/ralph/validate_${story_id}.log"
             if run_quality_checks "$validation_log"; then
                 # Mark as passing
                 update_story_status "$story_id" "true"

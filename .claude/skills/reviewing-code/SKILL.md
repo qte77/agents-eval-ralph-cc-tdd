@@ -39,6 +39,7 @@ comprehensive testing
 - [ ] Follows @AGENTS.md mandatory requirements
 - [ ] **MANDATORY**: Passes `make validate` (run it now if not already done)
 - [ ] Validation was run incrementally during development (not just at the end)
+- [ ] Cognitive complexity within limits (complexipy passes)
 
 **Requirements Match**:
 

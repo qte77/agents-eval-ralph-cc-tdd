@@ -76,6 +76,7 @@ Ralph uses Vibe Kanban REST API endpoints:
 ### API Attributes Reference
 
 **Project Attributes:**
+
 ```json
 {
   "id": "uuid",                           // Project unique identifier
@@ -88,19 +89,24 @@ Ralph uses Vibe Kanban REST API endpoints:
 ```
 
 **Task Attributes:**
+
 ```json
 {
   "id": "uuid",                           // Task unique identifier
   "project_id": "uuid",                   // Parent project UUID
-  "title": "string",                      // Task title (Ralph format: "[run_id] [WTn] STORY-ID: Title")
-  "description": "string",                // Task description with acceptance criteria
+  "title": "string",                      // Task title (Ralph format:
+                                          // "[run_id] [WTn] STORY-ID: Title")
+  "description": "string",                // Task description with
+                                          // acceptance criteria
   "status": "string",                     // Status: todo|inprogress|inreview|done|cancelled
   "parent_workspace_id": "uuid | null",   // Parent workspace reference
   "created_at": "ISO8601",                // Creation timestamp
   "updated_at": "ISO8601",                // Last update timestamp
-  "has_in_progress_attempt": "boolean",   // Whether task has active attempt
+  "has_in_progress_attempt": "boolean",   // Whether task has active
+                                          // attempt
   "last_attempt_failed": "boolean",       // Whether last attempt failed
-  "executor": "string"                    // Executor identifier (Ralph format: "ralph-loop:{run_id}:WT{n}")
+  "executor": "string"                    // Executor identifier (Ralph
+                                          // format: "ralph-loop:{RUN}:WT{n}")
 }
 ```
 
@@ -111,11 +117,13 @@ Ralph uses Vibe Kanban REST API endpoints:
 Get project list to find Ralph project ID.
 
 **Request:**
+
 ```bash
 curl -s http://127.0.0.1:5173/api/projects
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -134,11 +142,60 @@ curl -s http://127.0.0.1:5173/api/projects
 }
 ```
 
+#### GET /api/tasks
+
+Get all tasks for a project, with optional filtering.
+
+**Request:**
+
+```bash
+curl -s "http://127.0.0.1:5173/api/tasks?\
+project_id=bc74b558-e1e1-4f20-91e2-c6fd33bb969f"
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "edf39612-42bc-4bd3-9c8b-018d58e7bb26",
+      "project_id": "bc74b558-e1e1-4f20-91e2-c6fd33bb969f",
+      "title": "[df3d85] [WT1] STORY-001: Dataset Downloader",
+      "description": "Download dataset\n\nAcceptance:\n- Download\n- Save",
+      "status": "todo",
+      "parent_workspace_id": null,
+      "created_at": "2026-01-23T13:50:45.392Z",
+      "updated_at": "2026-01-23T13:50:45.392Z"
+    }
+  ],
+  "error_data": null,
+  "message": null
+}
+```
+
+**Query by status (with jq):**
+
+```bash
+# Get tasks grouped by status
+curl -sf "http://127.0.0.1:5173/api/tasks?project_id=..." | \
+  jq '.data | group_by(.status) | \
+    map({status: .[0].status, count: length})'
+
+# List all tasks by status
+curl -sf "http://127.0.0.1:5173/api/tasks?project_id=..." | \
+  jq -r '.data | group_by(.status) | .[] | \
+    "\n=== \(.[0].status | ascii_upcase) ===", \
+    (.[] | "  - \(.title)")'
+```
+
 #### POST /api/tasks
 
 Create task for each story from prd.json.
 
 **Request:**
+
 ```bash
 curl -X POST http://127.0.0.1:5173/api/tasks \
   -H "Content-Type: application/json" \
@@ -151,6 +208,7 @@ curl -X POST http://127.0.0.1:5173/api/tasks \
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -172,8 +230,10 @@ curl -X POST http://127.0.0.1:5173/api/tasks \
 Update task status during execution.
 
 **Request:**
+
 ```bash
-curl -X PUT http://127.0.0.1:5173/api/tasks/edf39612-42bc-4bd3-9c8b-018d58e7bb26 \
+curl -X PUT \
+  http://127.0.0.1:5173/api/tasks/edf39612-42bc-4bd3-9c8b-018d58e7bb26 \
   -H "Content-Type: application/json" \
   -d '{
     "status": "inprogress",
@@ -184,6 +244,7 @@ curl -X PUT http://127.0.0.1:5173/api/tasks/edf39612-42bc-4bd3-9c8b-018d58e7bb26
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -202,7 +263,9 @@ curl -X PUT http://127.0.0.1:5173/api/tasks/edf39612-42bc-4bd3-9c8b-018d58e7bb26
 }
 ```
 
-**Note:** The API accepts `executor`, `has_in_progress_attempt`, and `last_attempt_failed` in PUT requests, but these fields are not returned in the response and may not persist. Only `status` field updates reliably.
+**Note:** The API accepts `executor`, `has_in_progress_attempt`, and
+`last_attempt_failed` in PUT requests, but these fields are not returned
+in the response and may not persist. Only `status` field updates reliably.
 
 ## Status Lifecycle
 
@@ -223,17 +286,28 @@ All status transitions verified working via direct API testing:
 - ✓ `todo` → `inprogress` → `inreview` → `done` → `cancelled` → `todo`
 
 **Known Issues:**
-1. **All tasks moved to cancelled**: During Ralph runs, all tasks end up in `cancelled` status regardless of pass/fail. Completed stories (e.g., STORY-000, STORY-001 with `.passes: true`) remain in `todo` or move to `cancelled` instead of `done`.
-2. **Already-passing stories not synced**: Stories with `.passes: true` in prd.json are not synced to Vibe at Ralph startup.
-3. **Tracking fields not persisting**: `executor`, `has_in_progress_attempt`, `last_attempt_failed` return as defaults in API responses despite being sent in PUT requests.
+
+1. **All tasks moved to cancelled**: During Ralph runs, all tasks end up
+   in `cancelled` status regardless of pass/fail. Completed stories
+   (e.g., STORY-000, STORY-001 with `.passes: true`) remain in `todo` or
+   move to `cancelled` instead of `done`.
+2. **Already-passing stories not synced**: Stories with `.passes: true`
+   in prd.json are not synced to Vibe at Ralph startup.
+3. **Tracking fields not persisting**: `executor`, `has_in_progress_attempt`,
+   `last_attempt_failed` return as defaults in API responses despite being
+   sent in PUT requests.
 
 ### Task Tracking Fields
 
 Ralph populates additional fields for execution tracking:
 
-- **`executor`**: Format `ralph-loop:{RUN_ID}:WT{N}` (e.g., "ralph-loop:eea6b0:WT1") - Identifies which Ralph run and worktree is handling the task
-- **`has_in_progress_attempt`**: `true` for active work (`inprogress|inreview`), `false` otherwise
-- **`last_attempt_failed`**: `true` for failures (`todo|cancelled`), `false` for success (`done`)
+- **`executor`**: Format `ralph-loop:{RUN_ID}:WT{N}` (e.g.,
+  "ralph-loop:eea6b0:WT1") - Identifies which Ralph run and worktree is
+  handling the task
+- **`has_in_progress_attempt`**: `true` for active work
+  (`inprogress|inreview`), `false` otherwise
+- **`last_attempt_failed`**: `true` for failures (`todo|cancelled`),
+  `false` for success (`done`)
 
 ## Vibe Kanban Data Storage
 

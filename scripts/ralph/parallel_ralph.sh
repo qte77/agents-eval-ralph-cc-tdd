@@ -679,22 +679,6 @@ main() {
         exit 1
     fi
 
-    # Generate unique run ID for this execution
-    local RUN_ID=$(generate_run_id)
-    log_info "Starting Parallel Ralph Loop (run_id=$RUN_ID, N_WT=$N_WT, iterations=$MAX_ITERATIONS)"
-
-    # Initialize Kanban integration
-    KANBAN_MAP="/tmp/ralph-kb-${RUN_ID}.map"
-    kanban_init "$RUN_ID" "$N_WT"
-
-    # Write env vars to file for worktree subprocesses
-    cat > "/tmp/ralph-vibe-${RUN_ID}.env" <<EOF
-export VIBE_URL="$VIBE_URL"
-export VIBE_PROJECT_ID="$VIBE_PROJECT_ID"
-export KANBAN_MAP="$KANBAN_MAP"
-export RUN_ID="$RUN_ID"
-EOF
-
     # Validate environment
     if ! validate_prd_json "$RALPH_PRD_JSON"; then
         exit 1
@@ -737,16 +721,35 @@ EOF
         exit 1
     fi
 
-    # Determine execution mode
+    # Determine execution mode and set RUN_ID accordingly
     local resume_mode=false
+    local RUN_ID=""
+
     if [ "$found_paused" = true ] && [ "${#existing_worktrees[@]}" -gt 0 ]; then
-        # Resume mode: existing worktrees found
+        # Resume mode: use existing RUN_ID from worktrees
         resume_mode=true
         N_WT=$resume_n_wt
         RUN_ID="$resume_run_id"
         log_info "Detected ${#existing_worktrees[@]} paused worktree(s) (run_id=$RUN_ID)"
         log_info "Resuming existing worktrees (ITERATIONS parameter ignored)"
+    else
+        # Fresh start: generate new RUN_ID
+        RUN_ID=$(generate_run_id)
+        log_info "Starting Parallel Ralph Loop (run_id=$RUN_ID, N_WT=$N_WT, iterations=$MAX_ITERATIONS)"
     fi
+
+    # Initialize Kanban integration with correct RUN_ID
+    mkdir -p /tmp/ralph
+    KANBAN_MAP="/tmp/ralph/kb-${RUN_ID}.map"
+    kanban_init "$RUN_ID" "$N_WT"
+
+    # Write env vars to file for worktree subprocesses
+    cat > "/tmp/ralph/vibe-${RUN_ID}.env" <<EOF
+export VIBE_URL="$VIBE_URL"
+export VIBE_PROJECT_ID="$VIBE_PROJECT_ID"
+export KANBAN_MAP="$KANBAN_MAP"
+export RUN_ID="$RUN_ID"
+EOF
 
     # Setup trap for interrupt: unlock but preserve state (allows resume)
     trap 'unlock_worktrees; exit 130' INT TERM

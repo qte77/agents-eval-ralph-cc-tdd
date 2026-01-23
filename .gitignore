@@ -39,8 +39,7 @@ Thumbs.db
 reference/
 site/
 
-# linting
+# sanity
 .ruff_cache/
-
-# type checking
 .mypy_cache/
+.complexipy_cache
