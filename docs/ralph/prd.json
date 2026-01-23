@@ -2,7 +2,7 @@
   "project": "AgentEvals",
   "desciption": "A three-tiered evaluation framework for multi-agent AI systems that provides objective benchmarking of autonomous agent teams using the PeerRead dataset.",
   "source": "docs/PRD.md",
-  "generated": "2026-01-22 00:00:00",
+  "generated": "2026-01-23 00:00:00",
   "stories": [
     {
       "id": "STORY-000",
