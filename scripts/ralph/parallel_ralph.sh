@@ -597,16 +597,29 @@ watch_all_logs() {
         echo ""
         echo "=== Ralph Process Tree ==="
         # Find all ralph-related PIDs and show their process trees
-        local ralph_pids=$(pgrep -f "ralph|parallel_ralph" 2>/dev/null)
+        # Match only actual ralph script processes, not just paths containing "ralph"
+        local ralph_pids=$(pgrep -f "ralph\.sh" 2>/dev/null | grep -v "^$$\$")
+
+        # Filter out current watch process and its parent
+        ralph_pids=$(echo "$ralph_pids" | while read -r pid; do
+            # Skip if this is the current script or contains "watch" subcommand
+            local cmdline=$(ps -p "$pid" -o args= 2>/dev/null || echo "")
+            if [[ ! "$cmdline" =~ parallel_ralph\.sh[[:space:]]+watch ]] && [[ ! "$cmdline" =~ parallel_ralph\.sh[[:space:]]+status ]] && [ "$pid" != "$$" ]; then
+                echo "$pid"
+            fi
+        done)
+
         if [ -n "$ralph_pids" ]; then
             echo "$ralph_pids" | while read -r pid; do
-                # Show full tree to preserve formatting (no grep filtering)
+                [ -z "$pid" ] && continue
+                # Show full tree with command names (-a flag)
                 local process_name=$(ps -p "$pid" -o comm= 2>/dev/null || echo "unknown")
                 echo "--- PID $pid ($process_name) ---"
-                pstree -p "$pid" 2>/dev/null || true
+                pstree -a -p "$pid" 2>/dev/null || true
             done
         else
-            echo "No ralph processes found"
+            echo "No active ralph loop processes found"
+            echo "Hint: Run 'make ralph_run' to start Ralph loops"
         fi
         echo ""
     fi
