@@ -122,22 +122,30 @@ get_branch_name() {
     echo "${BRANCH_PREFIX}-${1}"
 }
 
-# Helper: Find all worktrees for a given index (across all run IDs)
+# Helper: Find worktree for a given index using git worktree list (not filesystem)
 find_worktree_by_index() {
     local wt_num="$1"
 
+    # Get all registered worktrees from git, filtering by WORKTREE_PREFIX
+    local worktrees=$(git worktree list --porcelain | grep "^worktree " | cut -d' ' -f2 | grep "^${WORKTREE_PREFIX}-")
+
     # For index 1, check both patterns: with number (N_WT>1) and without (N_WT=1)
     if [ "$wt_num" = "1" ]; then
-        # Try pattern without number first (N_WT=1 case)
-        local wt=$(compgen -G "${WORKTREE_PREFIX}-*" 2>/dev/null | grep -v -- "-[0-9]$" | head -1)
+        # Try pattern without number first (N_WT=1 case: ${WORKTREE_PREFIX}-RUNID)
+        # Match lines ending with 6 hex chars (not followed by dash-digit)
+        local wt=$(echo "$worktrees" | while read -r path; do
+            basename "$path" | grep -qE "^$(basename "$WORKTREE_PREFIX")-[a-z0-9]{6}$" && echo "$path" && break
+        done)
         if [ -n "$wt" ]; then
             echo "$wt"
             return
         fi
     fi
 
-    # Standard pattern with number (N_WT>1 case, or fallback for index 1)
-    compgen -G "${WORKTREE_PREFIX}-*-${wt_num}" 2>/dev/null | head -1
+    # Standard pattern with number (N_WT>1 case: ${WORKTREE_PREFIX}-RUNID-N)
+    echo "$worktrees" | while read -r path; do
+        basename "$path" | grep -qE "^$(basename "$WORKTREE_PREFIX")-[a-z0-9]{6}-${wt_num}$" && echo "$path" && break
+    done
 }
 
 # Create worktree with optimized flags
@@ -365,7 +373,7 @@ score_worktree() {
     log_info "  score: $base_score + $coverage_bonus - $ruff_penalty - $pyright_error_penalty - $pyright_warning_penalty - $churn_penalty = $score"
 
     # Save metrics to file for judge consumption
-    local metrics_file="$worktree_path/metrics.json"
+    local metrics_file="$worktree_path/$RALPH_METRICS_FILE"
     cat > "$metrics_file" <<EOF
 {
   "stories_passed": $stories_passed,
@@ -739,12 +747,12 @@ main() {
     fi
 
     # Initialize Kanban integration with correct RUN_ID
-    mkdir -p /tmp/ralph
-    KANBAN_MAP="/tmp/ralph/kb-${RUN_ID}.map"
+    mkdir -p $RALPH_TMP_DIR
+    KANBAN_MAP="$RALPH_TMP_DIR/kb-${RUN_ID}.map"
     kanban_init "$RUN_ID" "$N_WT"
 
     # Write env vars to file for worktree subprocesses
-    cat > "/tmp/ralph/vibe-${RUN_ID}.env" <<EOF
+    cat > "$RALPH_TMP_DIR/vibe-${RUN_ID}.env" <<EOF
 export VIBE_URL="$VIBE_URL"
 export VIBE_PROJECT_ID="$VIBE_PROJECT_ID"
 export KANBAN_MAP="$KANBAN_MAP"
@@ -814,7 +822,7 @@ EOF
             log_info "Reviewing LEARNINGS.md in worktree $i..."
             (
                 cd "$worktree_path"
-                if echo "/review-learnings" | claude -p --model "$RALPH_DEFAULT_MODEL" --dangerously-skip-permissions 2>&1 | tee "/tmp/ralph_review_learnings_wt${i}.log"; then
+                if echo "/review-learnings" | claude -p --model "$RALPH_DEFAULT_MODEL" --dangerously-skip-permissions 2>&1 | tee "$RALPH_TMP_DIR/review_learnings_wt${i}.log"; then
                     # Commit changes if any
                     if ! git diff --quiet "$RALPH_LEARNINGS_FILE" 2>/dev/null; then
                         git add "$RALPH_LEARNINGS_FILE"
@@ -861,8 +869,8 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
     if [ "${RALPH_SECURITY_REVIEW:-false}" = "true" ]; then
         log_info "Running security review on worktree $best_wt..."
         local worktree_path=$(get_worktree_path "$best_wt" "$RUN_ID" "$N_WT")
-        (cd "$worktree_path" && claude -p '/security-review' --dangerously-skip-permissions 2>&1 | tee /tmp/ralph_security_review.log) || \
-            log_warn "Security review completed with findings - check /tmp/ralph_security_review.log"
+        (cd "$worktree_path" && claude -p '/security-review' --dangerously-skip-permissions 2>&1 | tee $RALPH_TMP_DIR/security_review.log) || \
+            log_warn "Security review completed with findings - check $RALPH_TMP_DIR/security_review.log"
     fi
 
     if merge_best "$best_wt" "$N_WT" "$RUN_ID"; then

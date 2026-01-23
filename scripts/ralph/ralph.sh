@@ -37,8 +37,8 @@ source "$SCRIPT_DIR/lib/validate_json.sh"
 source "$SCRIPT_DIR/lib/generate_app_docs.sh"
 
 # Load Vibe Kanban environment using specific RUN_ID
-if [ -n "${RALPH_RUN_ID:-}" ] && [ -f "/tmp/ralph/vibe-${RALPH_RUN_ID}.env" ]; then
-    source "/tmp/ralph/vibe-${RALPH_RUN_ID}.env"
+if [ -n "${RALPH_RUN_ID:-}" ] && [ -f "$RALPH_TMP_DIR/vibe-${RALPH_RUN_ID}.env" ]; then
+    source "$RALPH_TMP_DIR/vibe-${RALPH_RUN_ID}.env"
 fi
 
 source "$SCRIPT_DIR/lib/vibe.sh"
@@ -283,12 +283,12 @@ execute_story() {
 
     # Execute via Claude Code with selected model
     log_info "Running Claude Code with story context..."
-    if cat "$iteration_prompt" | claude -p --model "$model" --dangerously-skip-permissions 2>&1 | tee "/tmp/ralph_execute_${story_id}.log"; then
-        log_info "Execution log saved: /tmp/ralph_execute_${story_id}.log"
+    if cat "$iteration_prompt" | claude -p --model "$model" --dangerously-skip-permissions 2>&1 | tee "$RALPH_TMP_DIR/execute_${story_id}.log"; then
+        log_info "Execution log saved: $RALPH_TMP_DIR/execute_${story_id}.log"
         rm "$iteration_prompt"
         return 0
     else
-        log_error "Execution failed, log saved: /tmp/ralph_execute_${story_id}.log"
+        log_error "Execution failed, log saved: $RALPH_TMP_DIR/execute_${story_id}.log"
         rm "$iteration_prompt"
         return 1
     fi
@@ -296,7 +296,7 @@ execute_story() {
 
 # Run quality checks
 run_quality_checks() {
-    local error_log="${1:-/tmp/ralph/validate.log}"
+    local error_log="${1:-$RALPH_TMP_DIR/validate.log}"
     > "$error_log"  # Truncate file first (defensive)
     log_info "Running quality checks (timeout: ${VALIDATION_TIMEOUT}s)..."
 
@@ -382,12 +382,12 @@ fix_validation_errors() {
         } >> "$fix_prompt"
 
         # Execute fix via Claude Code with timeout
-        if timeout "$FIX_TIMEOUT" bash -c "cat \"$fix_prompt\" | claude -p --model \"$model\" --dangerously-skip-permissions" 2>&1 | tee "/tmp/ralph_fix_${story_id}_${attempt}.log"; then
-            log_info "Fix attempt log saved: /tmp/ralph_fix_${story_id}_${attempt}.log"
+        if timeout "$FIX_TIMEOUT" bash -c "cat \"$fix_prompt\" | claude -p --model \"$model\" --dangerously-skip-permissions" 2>&1 | tee "$RALPH_TMP_DIR/fix_${story_id}_${attempt}.log"; then
+            log_info "Fix attempt log saved: $RALPH_TMP_DIR/fix_${story_id}_${attempt}.log"
             rm "$fix_prompt"
 
             # Use quick validation (no coverage) for intermediate attempts to save time, full validation on last attempt
-            local retry_log="/tmp/ralph/validate_fix_${attempt}.log"
+            local retry_log="$RALPH_TMP_DIR/validate_fix_${attempt}.log"
             if [ $attempt -lt $max_attempts ]; then
                 log_info "Running quick validation (attempt $attempt/$max_attempts)..."
                 if make validate_quick 2>&1 | tee "$retry_log"; then
@@ -418,7 +418,7 @@ fix_validation_errors() {
                 fi
             fi
         else
-            log_error "Fix execution failed, log saved: /tmp/ralph_fix_${story_id}_${attempt}.log"
+            log_error "Fix execution failed, log saved: $RALPH_TMP_DIR/fix_${story_id}_${attempt}.log"
             rm "$fix_prompt"
             return 1
         fi
@@ -564,7 +564,7 @@ main() {
 
             # Run quality checks
             kanban_update "$story_id" "inreview"
-            local validation_log="/tmp/ralph/validate_${story_id}.log"
+            local validation_log="$RALPH_TMP_DIR/validate_${story_id}.log"
             if run_quality_checks "$validation_log"; then
                 # Mark as passing
                 update_story_status "$story_id" "true"
@@ -605,15 +605,18 @@ main() {
     if [ $iteration -eq $MAX_ITERATIONS ]; then
         log_warn "Reached maximum iterations ($MAX_ITERATIONS)"
 
-        # Mark incomplete stories as cancelled
+        # Mark incomplete stories as cancelled (preserve 'done' status for passing stories)
         while IFS= read -r story; do
             local id=$(echo "$story" | jq -r '.id')
             local passes=$(echo "$story" | jq -r '.passes')
 
-            if [ "$passes" != "true" ]; then
-                kanban_update "$id" "cancelled"
-                log_warn "Story $id cancelled (incomplete after $MAX_ITERATIONS iterations)"
+            # Skip stories that passed - they're already marked "done"
+            if [ "$passes" == "true" ]; then
+                continue
             fi
+
+            kanban_update "$id" "cancelled"
+            log_warn "Story $id cancelled (incomplete after $MAX_ITERATIONS iterations)"
         done < <(jq -c '.stories[]' "$PRD_JSON")
     fi
 

@@ -59,15 +59,22 @@ kanban_init() {
         while IFS= read -r story; do
             local id=$(echo "$story" | jq -r '.id')
             local title=$(echo "$story" | jq -r '.title')
+            local passes=$(echo "$story" | jq -r '.passes')
 
             # Add [run_id] and [WTn] prefixes
             local task_title="[$run_id] [WT$wt] ${id}: $title"
+
+            # Set initial status based on .passes field (preserve already-completed stories)
+            local initial_status="todo"
+            if [ "$passes" == "true" ]; then
+                initial_status="done"
+            fi
 
             # Use jq to construct payload with description and acceptance criteria
             local payload=$(echo "$story" | jq -n \
                 --arg project_id "$VIBE_PROJECT_ID" \
                 --arg title "$task_title" \
-                --arg status "todo" \
+                --arg status "$initial_status" \
                 --argjson story "$(cat)" \
                 '{
                     project_id: $project_id,

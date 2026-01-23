@@ -110,6 +110,13 @@ RALPH_PROGRESS_FILE="$RALPH_DOCS_DIR/progress.txt"
 RALPH_PROMPT_FILE="$RALPH_TEMPLATES_DIR/story.prompt.md"
 RALPH_LEARNINGS_FILE="$RALPH_DOCS_DIR/LEARNINGS.md"
 RALPH_REQUESTS_FILE="$RALPH_DOCS_DIR/REQUESTS.md"
+RALPH_METRICS_FILE="metrics.json"
+
+# =================================================
+# RUNTIME TEMPORARY FILES
+# Used for inter-process coordination and logging
+# =================================================
+RALPH_TMP_DIR="/tmp/ralph"
 
 # =================================================
 # TEMPLATE PATHS
