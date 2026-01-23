@@ -23,7 +23,11 @@ class GraphAnalyzer:
         """
         self.graph = nx.DiGraph()
         for interaction in interactions:
-            self.graph.add_edge(interaction.get("source"), interaction.get("target"))
+            source = interaction.get("source")
+            target = interaction.get("target")
+            # Extract all attributes except source and target
+            attrs = {k: v for k, v in interaction.items() if k not in ("source", "target")}
+            self.graph.add_edge(source, target, **attrs)
         return self.graph
 
     def calculate_density(self, graph: Any | None = None) -> float:
@@ -77,7 +81,32 @@ class GraphAnalyzer:
         Returns:
             Dictionary with coordination pattern information
         """
-        return {"bidirectional_pairs": [], "central_coordinators": []}
+        g = graph or self.graph
+        if g is None:
+            return {"bidirectional_pairs": [], "central_coordinators": []}
+
+        # Find bidirectional pairs
+        bidirectional_pairs = []
+        for u, v in g.edges():
+            if g.has_edge(v, u):
+                pair = tuple(sorted([u, v]))
+                if pair not in bidirectional_pairs:
+                    bidirectional_pairs.append(pair)
+
+        # Find central coordinators (nodes with high degree)
+        centrality = nx.degree_centrality(g)
+        if centrality:
+            max_centrality = max(centrality.values())
+            central_coordinators = [
+                node for node, score in centrality.items() if score > 0 and score == max_centrality
+            ]
+        else:
+            central_coordinators = []
+
+        return {
+            "bidirectional_pairs": bidirectional_pairs,
+            "central_coordinators": central_coordinators,
+        }
 
     def calculate_all_metrics(self, graph: Any | None = None) -> dict[str, Any]:
         """Calculate all graph metrics.
@@ -88,10 +117,14 @@ class GraphAnalyzer:
         Returns:
             Dictionary of all metrics
         """
+        g = graph or self.graph
+        centrality = self.calculate_centrality(g)
+        avg_centrality = sum(centrality.values()) / len(centrality) if centrality else 0.0
+
         return {
-            "density": self.calculate_density(graph),
-            "centrality": self.calculate_centrality(graph),
-            "clustering": self.calculate_clustering_coefficient(graph),
+            "density": self.calculate_density(g),
+            "avg_centrality": avg_centrality,
+            "clustering_coefficient": self.calculate_clustering_coefficient(g),
         }
 
 
@@ -107,5 +140,16 @@ def export_graph(graph: Any, output_path: Any | None = None, format: str = "json
         Exported graph data
     """
     if format == "json":
-        return nx.node_link_data(graph)
-    return {}
+        import json
+
+        data = nx.node_link_data(graph)
+        if output_path:
+            with open(output_path, "w") as f:
+                json.dump(data, f)
+        return data
+    elif format == "graphml":
+        if output_path:
+            nx.write_graphml(graph, output_path)
+        return None
+    else:
+        raise ValueError(f"Unsupported format: {format}")
