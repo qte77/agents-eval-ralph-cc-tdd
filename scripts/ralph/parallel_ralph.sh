@@ -125,9 +125,11 @@ get_branch_name() {
 # Helper: Find worktree for a given index using git worktree list (not filesystem)
 find_worktree_by_index() {
     local wt_num="$1"
+    local prefix_basename="$(basename "$WORKTREE_PREFIX")"
 
-    # Get all registered worktrees from git, filtering by WORKTREE_PREFIX
-    local worktrees=$(git worktree list --porcelain | grep "^worktree " | cut -d' ' -f2 | grep "^${WORKTREE_PREFIX}-")
+    # Get all registered worktrees from git, filtering by WORKTREE_PREFIX basename
+    # Note: git worktree list returns absolute paths, so we match against basename
+    local worktrees=$(git worktree list --porcelain | grep "^worktree " | cut -d' ' -f2 | grep "$prefix_basename")
 
     # For index 1, check both patterns: with number (N_WT>1) and without (N_WT=1)
     if [ "$wt_num" = "1" ]; then
@@ -598,7 +600,10 @@ watch_all_logs() {
         local ralph_pids=$(pgrep -f "ralph|parallel_ralph" 2>/dev/null)
         if [ -n "$ralph_pids" ]; then
             echo "$ralph_pids" | while read -r pid; do
-                pstree -p "$pid" 2>/dev/null | grep -E "(ralph|make|bash|sh)" || true
+                # Show full tree to preserve formatting (no grep filtering)
+                local process_name=$(ps -p "$pid" -o comm= 2>/dev/null || echo "unknown")
+                echo "--- PID $pid ($process_name) ---"
+                pstree -p "$pid" 2>/dev/null || true
             done
         else
             echo "No ralph processes found"
