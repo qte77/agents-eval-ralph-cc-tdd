@@ -3,8 +3,8 @@
 # Uses LLM-based pairwise comparison to select best worktree
 
 # Source dependencies
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/colors.sh"
+_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$_LIB_DIR/colors.sh"
 
 # Evaluate worktrees using Claude-as-Judge
 # Args: $1=run_id, $2=n_wt

@@ -3,11 +3,11 @@
 # Can be sourced or called directly
 
 # Get script directory for sourcing dependencies
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Source dependencies if not already loaded
 if ! command -v log_info &> /dev/null; then
-    source "$SCRIPT_DIR/colors.sh"
+    source "$_LIB_DIR/colors.sh"
 fi
 
 stop_ralph_processes() {
