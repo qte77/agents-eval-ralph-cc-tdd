@@ -551,10 +551,23 @@ main() {
             check_tdd_commits "$story_id" "$commits_before" || tdd_check_result=$?
 
             if [ $tdd_check_result -eq 2 ]; then
-                # No commits made, skip verification and continue to next iteration
-                log_info "No commits - retrying story"
-                log_progress "$iteration" "$story_id" "RETRY" "$TDD_ERROR_MSG"
-                continue
+                # No commits made - check if story was already complete
+                local current_status=$(jq -r --arg sid "$story_id" '.stories[] | select(.id == $sid) | .passes' "$PRD_JSON")
+                if [ "$current_status" == "true" ]; then
+                    # Story was verified as complete (no new work needed)
+                    kanban_update "$story_id" "done"
+                    log_progress "$iteration" "$story_id" "PASS" "Verified as already complete"
+                    log_info "Story $story_id was already complete - marked as PASSING"
+
+                    # Commit state files
+                    commit_story_state "$story_id" "verified story was already complete"
+                    continue
+                else
+                    # Story incomplete, retry
+                    log_info "No commits - retrying story"
+                    log_progress "$iteration" "$story_id" "RETRY" "$TDD_ERROR_MSG"
+                    continue
+                fi
             elif [ $tdd_check_result -ne 0 ]; then
                 # TDD verification failed
                 kanban_update "$story_id" "todo"
