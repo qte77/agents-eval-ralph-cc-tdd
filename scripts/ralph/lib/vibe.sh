@@ -149,6 +149,6 @@ kanban_update() {
             "status": "'"$status"'",
             "has_in_progress_attempt": '"$has_in_progress"',
             "last_attempt_failed": '"$last_failed"',
-            "executor": "WT'"${WORKTREE_NUM:-1}"'"
+            "executor": "ralph-loop:'"${RALPH_RUN_ID:-unknown}"':WT'"${WORKTREE_NUM:-1}"'"
         }' >/dev/null 2>&1
 }

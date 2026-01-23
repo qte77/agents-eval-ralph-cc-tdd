@@ -119,6 +119,20 @@ curl -X PUT http://127.0.0.1:5173/api/tasks/{task-uuid} \
 
 **Source**: `scripts/ralph/lib/vibe.sh` (kanban_init, kanban_update)
 
+### Verified Status Transitions
+
+All status transitions verified working via direct API testing:
+- ✓ `todo` → `inprogress` → `inreview` → `done` → `cancelled` → `todo`
+
+**Known Behavior**: Already-passing stories (`.passes: true` in prd.json) are not synced to Vibe at Ralph startup. Only stories that transition during the current run receive status updates. Pre-completed stories remain in `todo` status in Vibe.
+
+### Task Tracking Fields
+
+Ralph populates additional fields for execution tracking:
+- **`executor`**: Format `ralph-loop:{RUN_ID}:WT{N}` (e.g., "ralph-loop:eea6b0:WT1") - Identifies which Ralph run and worktree is handling the task
+- **`has_in_progress_attempt`**: `true` for active work (`inprogress|inreview`), `false` otherwise
+- **`last_attempt_failed`**: `true` for failures (`todo|cancelled`), `false` for success (`done`)
+
 ## Vibe Kanban Data Storage
 
 Vibe Kanban stores all data locally in `~/.vibe/`:
