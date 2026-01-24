@@ -1,10 +1,4 @@
----
-title: Ralph Loop
-description: Autonomous TDD development loop with Claude Code
-version: 1.0.0
-status: dev
-created: 2026-01-19
----
+# Ralph Loop - Autonomous TDD development loop with Claude Code
 
 Autonomous development loop that executes stories from prd.json using
 Test-Driven Development with Claude Code.
