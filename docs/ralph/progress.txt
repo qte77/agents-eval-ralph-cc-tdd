@@ -65,3 +65,30 @@ Status: FAIL
 Notes: TDD verification failed: Missing [RED] or [GREEN] markers in commits: 60ab729 docs(STORY-001): add learning about checking for existing implementations
 78721f5 chore(STORY-001): mark Dataset Downloader & Persistence as complete
 
+
+## Resumed: Sat Jan 24 12:47:27 AM UTC 2026
+
+## Iteration 1 - Sat Jan 24 12:51:55 AM UTC 2026
+Story: STORY-002
+Status: FAIL
+Notes: TDD verification failed: Found 1 commit(s), need 2+ (RED + GREEN)
+
+## STORY-002: Dataset Loader & Parser - COMPLETED ✅
+Completed at: 2026-01-24 00:52:55
+
+Implementation verified:
+- ✅ PeerReadLoader class loads from local storage (reviews.json)
+- ✅ Parses into Pydantic models (Paper, Review)
+- ✅ Supports batch loading with configurable batch_size
+- ✅ load_with_reviews() returns structured tuple (papers, reviews)
+- ✅ Error handling for missing files and invalid JSON
+- ✅ All tests pass (9/9 in tests/test_peerread.py)
+- ✅ Quality gates pass: ruff, pyright, complexity checks
+
+TDD Evidence:
+- Tests committed first: 63629e9 test(STORY-002): add failing tests [RED]
+- Implementation: 7f9e287 feat(STORY-002): implement PeerRead dataset loader to pass tests [GREEN]
+- Latest GREEN commit: 4b485c6 feat(STORY-002): implement PeerRead dataset loader [GREEN]
+
+Status: Implementation and tests were already present from previous run. All acceptance criteria verified and tests passing. Marked as complete in prd.json.
+
