@@ -41,3 +41,21 @@ Implementation verified:
 
 Status: Story was already implemented and tests passing. Marked as complete in prd.json.
 
+## Iteration 1 - Sat Jan 24 12:22:18 AM UTC 2026
+Story: STORY-000
+Status: FAIL
+Notes: TDD verification failed: Missing [RED] or [GREEN] markers in commits: 26d4c17 docs(STORY-000): add learning about verifying story completion
+012ac6c chore(STORY-000): mark Configuration & Core Data Models as complete
+
+## STORY-001: Dataset Downloader & Persistence - COMPLETED ✅
+Completed at: 2026-01-24 (current timestamp)
+
+Implementation verified:
+- ✅ DatasetDownloader class downloads from source URL
+- ✅ Saves dataset in structured format (peerread/reviews.json)
+- ✅ DatasetMetadata model with version/checksum fields
+- ✅ verify_dataset() validates completeness and checksum
+- ✅ All tests pass (9/9 in tests/test_downloader.py)
+- ✅ Quality gates pass: ruff, pyright, formatting
+
+Status: Implementation and tests were already present from previous run. All acceptance criteria verified and tests passing. Marked as complete in prd.json.
