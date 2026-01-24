@@ -13,7 +13,7 @@
         "Run: claude -p '/generate-prd-json-from-md' or make ralph_init_loop",
         "Command will parse PRD.md and populate real stories here"
       ],
-      "files": ["docs/ralph/prd.json"],
+      "files": ["ralph/docs/prd.json"],
       "passes": false,
       "completed_at": null
     }

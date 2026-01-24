@@ -6,12 +6,12 @@ argument-hint: (no arguments needed)
 tools: Read, Edit, Glob, Grep
 ---
 
-I'll review `docs/ralph/LEARNINGS.md` to ensure quality and relevance following these steps:
+I'll review `ralph/docs/LEARNINGS.md` to ensure quality and relevance following these steps:
 
 ## Step 1: Read Current State
 
 Using Read tool:
-- Read `docs/ralph/LEARNINGS.md` - Review all accumulated learnings
+- Read `ralph/docs/LEARNINGS.md` - Review all accumulated learnings
 - Note section organization and entry patterns
 
 ## Step 2: Quality Assessment

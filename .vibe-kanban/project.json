@@ -5,7 +5,7 @@
   "description": "Ralph Loop - Autonomous TDD development with Claude Code",
   "worktree_prefix": "../[APP NAME]-ralph-wt",
   "state_files": {
-    "prd": "docs/ralph/prd.json",
-    "progress": "docs/ralph/progress.txt"
+    "prd": "ralph/docs/prd.json",
+    "progress": "ralph/docs/progress.txt"
   }
 }

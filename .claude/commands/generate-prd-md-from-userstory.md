@@ -52,7 +52,7 @@ requirements by converting narrative descriptions into technical requirements.
 
 ## Template
 
-See `docs/ralph/templates/prd.md.template` for structure and placeholders.
+See `ralph/docs/templates/prd.md.template` for structure and placeholders.
 
 ## Usage
 

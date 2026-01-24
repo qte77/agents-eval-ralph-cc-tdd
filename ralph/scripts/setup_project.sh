@@ -5,8 +5,8 @@ set -e
 
 # Source color utilities and escape functions
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/ralph/lib/colors.sh"
-source "$SCRIPT_DIR/ralph/lib/config.sh"
+source "$SCRIPT_DIR/../ralph/scripts/lib/colors.sh"
+source "$SCRIPT_DIR/../ralph/scripts/lib/config.sh"
 
 # Template placeholder names (before customization)
 TEMPLATE_PACKAGE_NAME="your_project_name"

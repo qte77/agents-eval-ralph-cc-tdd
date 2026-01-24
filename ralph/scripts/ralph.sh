@@ -2,7 +2,7 @@
 #
 # Ralph Loop - Autonomous iteration script
 #
-# Usage: ./scripts/ralph/ralph.sh [MAX_ITERATIONS]
+# Usage: ./ralph/scripts/ralph.sh [MAX_ITERATIONS]
 #        make ralph_run [ITERATIONS=25]
 #
 # This script orchestrates autonomous task execution by:
@@ -448,9 +448,7 @@ commit_story_state() {
     [ -n "$app_readme" ] && git add "$app_readme"
     [ -n "$app_example" ] && git add "$app_example"
 
-    if ! git commit -m "docs($story_id): $message
-
-Co-Authored-By: Claude <noreply@anthropic.com>"; then
+    if ! git commit -m "docs($story_id): $message"; then
         log_warn "No state changes to commit"
         return 1
     fi
@@ -677,14 +675,9 @@ main() {
         local total=$(jq '.stories | length' "$PRD_JSON")
         local passing=$(jq '[.stories[] | select(.passes == true)] | length' "$PRD_JSON")
 
-        git commit -m "$(cat <<EOF
-docs(ralph): update progress after loop completion
+        git commit -m "docs(ralph): update progress after loop completion
 
-Summary: $passing/$total stories passing
-
-Co-Authored-By: Claude <noreply@anthropic.com>
-EOF
-)"
+Summary: $passing/$total stories passing"
     fi
 
     # Summary

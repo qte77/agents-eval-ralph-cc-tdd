@@ -37,7 +37,7 @@ ARCHIVE_PREFIX="agentseval_ralph_run"
 # =================================================
 
 # Ralph documentation paths
-RALPH_DOCS_DIR="$DOCS_BASE_DIR/ralph"
+RALPH_DOCS_DIR="ralph/docs"
 RALPH_TEMPLATES_DIR="$RALPH_DOCS_DIR/templates"
 
 # Source and archive paths

@@ -451,7 +451,7 @@ with integrated observability for debugging and monitoring.
 
 ## Notes for Ralph Loop
 
-When using the `/generate-prd-json-from-md` command to convert this PRD to `docs/ralph/prd.json`:
+When using the `/generate-prd-json-from-md` command to convert this PRD to `ralph/docs/prd.json`:
 
 1. Each feature becomes a separate sprint/phase
 2. Stories should be implementable in a single context window

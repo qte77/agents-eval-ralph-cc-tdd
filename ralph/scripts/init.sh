@@ -73,7 +73,7 @@ check_project_structure() {
         "docs/PRD.md"
         "Makefile"
         ".claude/commands/generate-prd-json-from-md.md"
-        "scripts/ralph/ralph.sh"
+        "ralph/scripts/ralph.sh"
         "$RALPH_PROMPT_FILE"
     )
 
@@ -190,15 +190,15 @@ check_prd_json() {
 # Make scripts executable
 make_executable() {
     log_info "Making scripts executable..."
-    chmod +x scripts/ralph/ralph.sh
-    chmod +x scripts/ralph/init.sh
-    chmod +x scripts/ralph/parallel_ralph.sh
-    chmod +x scripts/ralph/archive.sh
-    chmod +x scripts/ralph/stop.sh
-    chmod +x scripts/ralph/clean.sh
-    chmod +x scripts/ralph/vibe.sh
-    chmod +x scripts/ralph/lib/stop_ralph_processes.sh
-    chmod +x scripts/ralph/lib/cleanup_worktrees.sh
+    chmod +x ralph/scripts/ralph.sh
+    chmod +x ralph/scripts/init.sh
+    chmod +x ralph/scripts/parallel_ralph.sh
+    chmod +x ralph/scripts/archive.sh
+    chmod +x ralph/scripts/stop.sh
+    chmod +x ralph/scripts/clean.sh
+    chmod +x ralph/scripts/vibe.sh
+    chmod +x ralph/scripts/lib/stop_ralph_processes.sh
+    chmod +x ralph/scripts/lib/cleanup_worktrees.sh
     log_success "Scripts are executable"
 }
 
@@ -224,7 +224,7 @@ main() {
     log_info "Ready to run Ralph loop:"
     log_info "  make ralph_run [ITERATIONS=25]"
     log_info "  or"
-    log_info "  ./scripts/ralph/ralph.sh 5"
+    log_info "  ./ralph/scripts/ralph.sh 5"
     echo ""
 }
 

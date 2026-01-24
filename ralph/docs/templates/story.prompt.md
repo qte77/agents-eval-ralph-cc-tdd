@@ -27,9 +27,7 @@ Follow TDD workflow below. Tests MUST be written FIRST.
   - Run tests - they MUST fail (implementation doesn't exist yet)
   - **RUN VALIDATION**: `make validate` - fix any errors before committing
   - **COMMIT TESTS FIRST**:
-    `git add tests/ && git commit -m "test(STORY-XXX): add tests for feature [RED]
-
-Co-Authored-By: Claude <noreply@anthropic.com>"`
+    `git add tests/ && git commit -m "test(STORY-XXX): add tests for feature [RED]"`
 
 ### GREEN: Implement to make tests pass
 
@@ -39,9 +37,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>"`
   - Run tests - they MUST pass now
   - **RUN VALIDATION**: `make validate` - fix any errors before committing
   - **COMMIT IMPLEMENTATION**:
-    `git add src/ && git commit -m "feat(STORY-XXX): implement feature [GREEN]
-
-Co-Authored-By: Claude <noreply@anthropic.com>"`
+    `git add src/ && git commit -m "feat(STORY-XXX): implement feature [GREEN]"`
 
 ### BLUE: Refactor (OPTIONAL)
 
@@ -114,7 +110,7 @@ Answer these questions:
 
 **Step 2: Append to LEARNINGS.md**
 
-Add to appropriate section in `docs/ralph/LEARNINGS.md`:
+Add to appropriate section in `ralph/docs/LEARNINGS.md`:
 
 - **Validation Fixes**: What fixed validation errors
   - Format: `- [STORY-XXX] Brief description of fix`

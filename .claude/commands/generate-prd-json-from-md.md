@@ -5,7 +5,7 @@ description: Generates prd.json task tracking file from PRD.md requirements docu
 
 # PRD to JSON Conversion
 
-Parses `docs/PRD.md` and generates `docs/ralph/prd.json` for Ralph loop task tracking.
+Parses `docs/PRD.md` and generates `ralph/docs/prd.json` for Ralph loop task tracking.
 
 ## Purpose
 
@@ -17,12 +17,12 @@ prd.json format.
 
 1. **Read `docs/PRD.md`** to extract functional requirements
 2. **Identify atomic stories** - tasks that fit in single context window
-3. **Generate `docs/ralph/prd.json`** with proper schema
+3. **Generate `ralph/docs/prd.json`** with proper schema
 4. **Validate JSON** format before saving
 
 ## PRD.json Schema
 
-See `docs/ralph/templates/prd.json.template` for the complete schema and structure.
+See `ralph/docs/templates/prd.json.template` for the complete schema and structure.
 
 Required fields:
 
@@ -97,7 +97,7 @@ Before saving prd.json:
 }
 ```
 
-Use `docs/ralph/templates/prd.json.template` as the base structure and populate
+Use `ralph/docs/templates/prd.json.template` as the base structure and populate
 the stories array.
 
 ## Usage
@@ -106,7 +106,7 @@ To generate prd.json:
 
 ```bash
 # Run this skill to parse PRD.md
-# Output will be saved to docs/ralph/prd.json
+# Output will be saved to ralph/docs/prd.json
 ```
 
 Ralph loop will then use this file to track task completion.

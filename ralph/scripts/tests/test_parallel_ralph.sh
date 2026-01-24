@@ -4,7 +4,7 @@
 #
 # Basic smoke tests for parallel_ralph.sh functionality
 #
-# Usage: Run from project root: bash scripts/ralph/tests/test_parallel_ralph.sh
+# Usage: Run from project root: bash ralph/scripts/tests/test_parallel_ralph.sh
 #
 
 set -euo pipefail
@@ -26,7 +26,7 @@ echo ""
 echo "=== Test 1: Script Validation ==="
 TEST_COUNT=$((TEST_COUNT + 1))
 
-if [ -x "scripts/ralph/parallel_ralph.sh" ]; then
+if [ -x "ralph/scripts/parallel_ralph.sh" ]; then
     echo "✓ parallel_ralph.sh exists and is executable"
     PASS_COUNT=$((PASS_COUNT + 1))
 else
@@ -42,7 +42,7 @@ required_functions="create_worktree init_worktree_state start_parallel wait_and_
 all_found=true
 
 for func in $required_functions; do
-    if grep -q "^${func}()" scripts/ralph/parallel_ralph.sh; then
+    if grep -q "^${func}()" ralph/scripts/parallel_ralph.sh; then
         echo "  ✓ Function '$func' defined"
     else
         echo "  ✗ Function '$func' not found"
@@ -87,9 +87,9 @@ echo "=== Test 4: Git Worktree Flag Configuration ==="
 TEST_COUNT=$((TEST_COUNT + 1))
 
 # Check that defaults are set in config.sh and sourced by parallel_ralph.sh
-if grep -q 'RALPH_PARALLEL_USE_LOCK=${RALPH_PARALLEL_USE_LOCK:-true}' scripts/ralph/lib/config.sh && \
-   grep -q 'RALPH_PARALLEL_USE_NO_TRACK=${RALPH_PARALLEL_USE_NO_TRACK:-true}' scripts/ralph/lib/config.sh && \
-   grep -q 'source.*lib/config.sh' scripts/ralph/parallel_ralph.sh; then
+if grep -q 'RALPH_PARALLEL_USE_LOCK=${RALPH_PARALLEL_USE_LOCK:-true}' ralph/scripts/lib/config.sh && \
+   grep -q 'RALPH_PARALLEL_USE_NO_TRACK=${RALPH_PARALLEL_USE_NO_TRACK:-true}' ralph/scripts/lib/config.sh && \
+   grep -q 'source.*lib/config.sh' ralph/scripts/parallel_ralph.sh; then
     echo "✓ Worktree flags configurable with safe defaults (USE_LOCK=true, USE_NO_TRACK=true)"
     PASS_COUNT=$((PASS_COUNT + 1))
 else
@@ -102,8 +102,8 @@ echo "=== Test 5: Merge Strategy Validation ==="
 TEST_COUNT=$((TEST_COUNT + 1))
 
 # Check that merge_flags variable includes --no-ff --no-commit
-if grep -q 'merge_flags="--no-ff --no-commit"' scripts/ralph/parallel_ralph.sh && \
-   grep -q 'git merge $merge_flags' scripts/ralph/parallel_ralph.sh; then
+if grep -q 'merge_flags="--no-ff --no-commit"' ralph/scripts/parallel_ralph.sh && \
+   grep -q 'git merge $merge_flags' ralph/scripts/parallel_ralph.sh; then
     echo "✓ Merge uses correct flags (--no-ff --no-commit) with configurable options"
     PASS_COUNT=$((PASS_COUNT + 1))
 else
@@ -115,9 +115,9 @@ echo ""
 echo "=== Test 6: Scoring Algorithm ==="
 TEST_COUNT=$((TEST_COUNT + 1))
 
-if grep -q "score_worktree()" scripts/ralph/parallel_ralph.sh; then
+if grep -q "score_worktree()" ralph/scripts/parallel_ralph.sh; then
     # Check for scoring components: stories, tests, validation bonus
-    if grep -A 20 "score_worktree()" scripts/ralph/parallel_ralph.sh | grep -q "stories_passed.*100"; then
+    if grep -A 20 "score_worktree()" ralph/scripts/parallel_ralph.sh | grep -q "stories_passed.*100"; then
         echo "✓ Scoring algorithm includes story weight (*100)"
         PASS_COUNT=$((PASS_COUNT + 1))
     else
@@ -133,15 +133,15 @@ echo "=== Test 7: Cleanup Procedures ==="
 TEST_COUNT=$((TEST_COUNT + 1))
 
 cleanup_found=true
-if ! grep -q "git worktree unlock" scripts/ralph/parallel_ralph.sh; then
+if ! grep -q "git worktree unlock" ralph/scripts/parallel_ralph.sh; then
     echo "  ✗ Worktree unlock missing"
     cleanup_found=false
 fi
-if ! grep -q "git worktree remove" scripts/ralph/parallel_ralph.sh; then
+if ! grep -q "git worktree remove" ralph/scripts/parallel_ralph.sh; then
     echo "  ✗ Worktree remove missing"
     cleanup_found=false
 fi
-if ! grep -q "git branch -D" scripts/ralph/parallel_ralph.sh; then
+if ! grep -q "git branch -D" ralph/scripts/parallel_ralph.sh; then
     echo "  ✗ Branch deletion missing"
     cleanup_found=false
 fi
@@ -160,7 +160,7 @@ TEST_COUNT=$((TEST_COUNT + 1))
 
 monitoring_found=true
 for func in show_all_status watch_all_logs show_worktree_log; do
-    if ! grep -q "${func}()" scripts/ralph/parallel_ralph.sh; then
+    if ! grep -q "${func}()" ralph/scripts/parallel_ralph.sh; then
         echo "  ✗ Function '$func' missing"
         monitoring_found=false
     fi
@@ -179,15 +179,15 @@ echo "=== Test 9: JSON Validation ==="
 TEST_COUNT=$((TEST_COUNT + 1))
 
 # Test that validate_json.sh exists (executable bit may not be set until after commit)
-if [ -f "scripts/ralph/lib/validate_json.sh" ]; then
+if [ -f "ralph/scripts/lib/validate_json.sh" ]; then
     # Test with valid JSON
     echo '{"test": true}' > /tmp/test_valid.json
-    if bash scripts/ralph/lib/validate_json.sh /tmp/test_valid.json > /dev/null 2>&1; then
+    if bash ralph/scripts/lib/validate_json.sh /tmp/test_valid.json > /dev/null 2>&1; then
         # Test with invalid JSON
         echo '{invalid}' > /tmp/test_invalid.json
-        if ! bash scripts/ralph/lib/validate_json.sh /tmp/test_invalid.json > /dev/null 2>&1; then
+        if ! bash ralph/scripts/lib/validate_json.sh /tmp/test_invalid.json > /dev/null 2>&1; then
             # Test with missing file
-            if ! bash scripts/ralph/lib/validate_json.sh /tmp/nonexistent.json > /dev/null 2>&1; then
+            if ! bash ralph/scripts/lib/validate_json.sh /tmp/nonexistent.json > /dev/null 2>&1; then
                 echo "✓ validate_json.sh works correctly (valid, invalid, missing)"
                 PASS_COUNT=$((PASS_COUNT + 1))
             else
@@ -210,8 +210,8 @@ echo "=== Test 10: N_WT=1 Optimization ==="
 TEST_COUNT=$((TEST_COUNT + 1))
 
 # Check that N_WT=1 path skips scoring
-if grep -q 'if \[ "$N_WT" -eq 1 \]' scripts/ralph/parallel_ralph.sh && \
-   grep -A 5 'if \[ "$N_WT" -eq 1 \]' scripts/ralph/parallel_ralph.sh | grep -q 'best_wt=1'; then
+if grep -q 'if \[ "$N_WT" -eq 1 \]' ralph/scripts/parallel_ralph.sh && \
+   grep -A 5 'if \[ "$N_WT" -eq 1 \]' ralph/scripts/parallel_ralph.sh | grep -q 'best_wt=1'; then
     echo "✓ N_WT=1 optimization present (skips scoring)"
     PASS_COUNT=$((PASS_COUNT + 1))
 else

@@ -5,7 +5,7 @@ Tests complete pipeline from PRD initialization through story execution,
 validation, and documentation generation.
 
 Usage: Run from project root with pytest:
-  uv run pytest scripts/ralph/tests/test_pipeline_e2e.py -m e2e -v
+  uv run pytest ralph/scripts/tests/test_pipeline_e2e.py -m e2e -v
 """
 
 import json

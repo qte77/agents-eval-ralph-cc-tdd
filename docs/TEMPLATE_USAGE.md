@@ -46,7 +46,7 @@ make ralph_status                 # Check progress (with timestamp)
 ```
 
 - To generate prd.json: Run `claude -p '/generate-prd-json-from-md'` command.
-- For DEBUG mode and advanced options see [Ralph README.md](./docs/ralph/README.md).
+- For DEBUG mode and advanced options see [Ralph README.md](../ralph/docs/README.md).
 
 ### Starting New Product Iteration
 
@@ -56,7 +56,7 @@ When PRD.md changes significantly, reorganize and archive:
 make ralph_archive NEW_PRD=docs/PRD-v2.md VERSION=2
 ```
 
-Archives current PRD, prd.json, and progress to `docs/ralph/archive/`, then
+Archives current PRD, prd.json, and progress to `ralph/docs/archive/`, then
 activates new PRD.
 
 ## Optional: MCP Servers
@@ -77,7 +77,7 @@ make ralph_run N_WT=3
 ```
 
 Ralph auto-detects Vibe Kanban and displays live task updates. See
-[docs/ralph/UI.md](./ralph/UI.md) for details.
+[ralph/docs/UI.md](../ralph/docs/UI.md) for details.
 
 **Configuration**: `make ralph_init_loop` creates `.vibe-kanban/project.json`
 from template automatically.
@@ -90,10 +90,10 @@ your-project/
 ├── .devcontainer/        # DevContainer configs (template/ & project/)
 ├── docs/
 │   ├── PRD.md           # Product requirements (edit this!)
-│   ├── ralph/           # Ralph state (gitignored)
 │   └── archive/         # Previous iterations
-├── scripts/
-│   └── ralph/           # Ralph automation scripts
+├── ralph/               # Ralph Loop automation
+│   ├── scripts/         # Ralph automation scripts
+│   └── docs/            # Ralph state (gitignored)
 ├── src/                 # Your source code
 ├── tests/               # Your tests
 ├── Makefile             # Build automation

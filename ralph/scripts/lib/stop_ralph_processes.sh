@@ -14,7 +14,7 @@ stop_ralph_processes() {
     log_info "Stopping Ralph loops (keeping worktrees)..."
 
     # Find and kill main Ralph processes
-    local ralph_pids=$(ps aux | grep "scripts/ralph/ralph.sh" | grep -v grep | awk '{print $2}' || true)
+    local ralph_pids=$(ps aux | grep "ralph/scripts/ralph.sh" | grep -v grep | awk '{print $2}' || true)
     if [ -n "$ralph_pids" ]; then
         log_info "Found Ralph processes: $ralph_pids"
         kill $ralph_pids 2>/dev/null || true

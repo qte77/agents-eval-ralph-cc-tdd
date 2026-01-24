@@ -17,7 +17,7 @@ fi
 # Usage: validate_prd_json [path/to/file.json]
 # Returns: 0 on success, 1 on failure
 validate_prd_json() {
-    local json_file="${1:-docs/ralph/prd.json}"
+    local json_file="${1:-ralph/docs/prd.json}"
 
     if [ ! -f "$json_file" ]; then
         log_error "prd.json not found: $json_file"

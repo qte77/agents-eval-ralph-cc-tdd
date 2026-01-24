@@ -2,7 +2,7 @@
 #
 # Parallel Ralph Loop - Orchestrator for parallel execution
 #
-# Usage: ./scripts/ralph/parallel_ralph.sh [N_WT] [MAX_ITERATIONS]
+# Usage: ./ralph/scripts/parallel_ralph.sh [N_WT] [MAX_ITERATIONS]
 #        make ralph_run N_WT=2 ITERATIONS=10
 #
 # Environment variables:
@@ -235,7 +235,7 @@ start_parallel() {
         cd "$worktree_path"
         export WORKTREE_NUM="$i"
         export RALPH_RUN_ID="$run_id"
-        ./scripts/ralph/ralph.sh "$MAX_ITERATIONS" > "$log_file" 2>&1
+        ./ralph/scripts/ralph.sh "$MAX_ITERATIONS" > "$log_file" 2>&1
     ) &
 
     WORKTREE_PIDS[$i]=$!
@@ -486,9 +486,7 @@ merge_best() {
             fi
         fi
 
-        git commit -m "$commit_msg
-
-Co-Authored-By: Claude <noreply@anthropic.com>"
+        git commit -m "$commit_msg"
 
         log_info "Merge completed successfully"
         return 0
@@ -673,8 +671,8 @@ cleanup_on_error() {
     cleanup_worktrees || true
 
     # Cleanup Vibe Kanban tasks
-    if command -v bash &> /dev/null && [ -f "scripts/ralph/vibe.sh" ]; then
-        bash scripts/ralph/vibe.sh cleanup 2>/dev/null || true
+    if command -v bash &> /dev/null && [ -f "ralph/scripts/vibe.sh" ]; then
+        bash ralph/scripts/vibe.sh cleanup 2>/dev/null || true
     fi
 
     log_info "Cleanup completed. Please run 'make ralph_run' to retry."
@@ -865,9 +863,7 @@ complete_ralph_loop() {
                     # Commit changes if any
                     if ! git diff --quiet "$RALPH_LEARNINGS_FILE" 2>/dev/null; then
                         git add "$RALPH_LEARNINGS_FILE"
-                        git commit -m "docs(ralph): review and prune LEARNINGS.md
-
-Co-Authored-By: Claude <noreply@anthropic.com>"
+                        git commit -m "docs(ralph): review and prune LEARNINGS.md"
                     fi
                 fi
             ) || log_warn "LEARNINGS.md review failed in worktree $i (non-critical)"

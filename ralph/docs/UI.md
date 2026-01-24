@@ -54,7 +54,7 @@ Ralph will:
 
 ### Port Configuration
 
-Default port: **5173** (configured in `scripts/ralph/lib/config.sh`)
+Default port: **5173** (configured in `ralph/scripts/lib/config.sh`)
 
 **To change port:**
 
@@ -277,7 +277,7 @@ in the response and may not persist. Only `status` field updates reliably.
 | `done` | Story passes | All acceptance criteria met |
 | `cancelled` | MAX_ITERATIONS reached | Story incomplete after max attempts |
 
-**Source**: `scripts/ralph/lib/vibe.sh` (kanban_init, kanban_update)
+**Source**: `ralph/scripts/lib/vibe.sh` (kanban_init, kanban_update)
 
 ### Verified Status Transitions
 
@@ -335,10 +335,10 @@ Ralph initialization creates `.vibe-kanban/project.json` from template:
 ```bash
 make ralph_init_loop
 # or
-./scripts/ralph/init.sh
+./ralph/scripts/init.sh
 ```
 
-Template location: `docs/ralph/templates/vibe-project.json.template`
+Template location: `ralph/docs/templates/vibe-project.json.template`
 
 **Variables populated:**
 

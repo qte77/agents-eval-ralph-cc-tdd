@@ -62,8 +62,8 @@ claude -p /review-learnings
 
 **Files:**
 
-- `docs/ralph/LEARNINGS.md` - Accumulated knowledge (read before each story)
-- `docs/ralph/REQUESTS.md` - Human→agent guidance (edit while Ralph runs)
+- `ralph/docs/LEARNINGS.md` - Accumulated knowledge (read before each story)
+- `ralph/docs/REQUESTS.md` - Human→agent guidance (edit while Ralph runs)
 
 **Workflow:** Plan → Work (TDD) → Compound (append learning) → Review (prune/declutter)
 
@@ -113,7 +113,7 @@ Ralph leverages Claude Code features (rules, skills, prompts) for optimal agent 
            ↓ Listed in
 
 ┌─────────────────────────────────────────┐
-│ docs/ralph/templates/story.prompt.md    │ ← Piped to claude -p (dynamic)
+│ ralph/docs/templates/story.prompt.md    │ ← Piped to claude -p (dynamic)
 │ + LEARNINGS.md (accumulated knowledge)  │    Ralph-specific instructions
 │ + REQUESTS.md (human guidance)          │    Runtime content injection
 │ + Story details (prd.json)              │
@@ -129,29 +129,29 @@ Ralph leverages Claude Code features (rules, skills, prompts) for optimal agent 
 ## File Structure
 
 ```text
-docs/ralph/
-├── README.md              # This file
-├── prd.json              # Story definitions and status
-├── progress.txt          # Execution log
-├── LEARNINGS.md          # Accumulated agent knowledge (compound engineering)
-├── REQUESTS.md           # Human→agent communication channel
-└── templates/
-    └── story.prompt.md   # Agent instructions (TDD workflow)
-
-scripts/ralph/
-├── parallel_ralph.sh     # Orchestrator: worktree management, scoring, merging
-├── ralph.sh              # Worker: TDD loop execution (runs inside worktrees)
-├── init.sh              # Environment initialization
-├── archive.sh           # Archive current run state
-├── abort.sh             # Terminate running loops
-├── clean.sh             # Clean Ralph state (worktrees + local)
-├── vibe.sh              # Vibe Kanban management (start/stop_all/status/cleanup)
-└── lib/
-    ├── config.sh        # Centralized configuration
-    ├── colors.sh        # Logging utilities
-    ├── validate_json.sh # JSON validation utilities
-    ├── vibe.sh          # Vibe Kanban REST API integration
-    └── generate_app_docs.sh  # README/example generation
+ralph/
+├── docs/
+│   ├── README.md              # This file
+│   ├── prd.json              # Story definitions and status
+│   ├── progress.txt          # Execution log
+│   ├── LEARNINGS.md          # Accumulated agent knowledge (compound engineering)
+│   ├── REQUESTS.md           # Human→agent communication channel
+│   └── templates/
+│       └── story.prompt.md   # Agent instructions (TDD workflow)
+└── scripts/
+    ├── parallel_ralph.sh     # Orchestrator: worktree management, scoring, merging
+    ├── ralph.sh              # Worker: TDD loop execution (runs inside worktrees)
+    ├── init.sh              # Environment initialization
+    ├── archive.sh           # Archive current run state
+    ├── abort.sh             # Terminate running loops
+    ├── clean.sh             # Clean Ralph state (worktrees + local)
+    ├── vibe.sh              # Vibe Kanban management (start/stop_all/status/cleanup)
+    └── lib/
+        ├── config.sh        # Centralized configuration
+        ├── colors.sh        # Logging utilities
+        ├── validate_json.sh # JSON validation utilities
+        ├── vibe.sh          # Vibe Kanban REST API integration
+        └── generate_app_docs.sh  # README/example generation
 ```
 
 ## Script Usage
@@ -186,7 +186,7 @@ scripts/ralph/
 
 ## Configuration
 
-Centralized in `scripts/ralph/lib/config.sh`:
+Centralized in `ralph/scripts/lib/config.sh`:
 
 **Execution:**
 
@@ -208,7 +208,7 @@ Story complexity detection: checks title/description for patterns like "fix", "t
 
 1. CLI: `./ralph.sh 50`
 2. Env: `VALIDATION_TIMEOUT=600 ./ralph.sh`
-3. Config: `scripts/ralph/lib/config.sh`
+3. Config: `ralph/scripts/lib/config.sh`
 
 See `config.sh` header for complete list.
 
@@ -390,7 +390,7 @@ All worktrees run as detached background processes (via `disown`):
 
 **Config:**
 
-`RALPH_PARALLEL_*` variables in `scripts/ralph/lib/config.sh`
+`RALPH_PARALLEL_*` variables in `ralph/scripts/lib/config.sh`
 
 ## Execution Flow Details
 
@@ -434,10 +434,9 @@ make ralph_run [N_WT=1] [ITERATIONS=25]
   `RALPH_JUDGE_MAX_WT`, `RALPH_SECURITY_REVIEW`,
   `RALPH_MERGE_INTERACTIVE`. Files: `templates/judge.prompt.md`,
   `lib/judge.sh`.
-- [ ] **Directory Consolidation**: Consolidate `scripts/ralph/` and
+- [x] **Directory Consolidation**: Consolidated `scripts/ralph/` and
   `docs/ralph/` into single `ralph/` root directory for cleaner ownership.
-  Structure: `ralph/{scripts,templates,state,docs}`. Add symlinks for
-  backward compatibility.
+  Structure: `ralph/{scripts,docs}`.
 - [ ] **Clean up intermediate files**: Remove `*_green.py`, `*_red.py`,
   `*_stub` after story completion
 - [ ] **E2E tests**: Add end-to-end test coverage for full application paths

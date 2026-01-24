@@ -62,8 +62,8 @@ max-complexity-allowed = 15
 exclude = ["tests/*"]
 
 [tool.pytest.ini_options]
-# Test discovery paths (tests/ for app tests, scripts/ralph/tests/ for Ralph E2E tests only)
-testpaths = ["tests", "scripts/ralph/tests"]
+# Test discovery paths (tests/ for app tests, ralph/scripts/tests/ for Ralph E2E tests only)
+testpaths = ["tests", "ralph/scripts/tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
