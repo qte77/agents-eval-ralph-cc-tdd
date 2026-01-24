@@ -11,6 +11,7 @@ Accumulated knowledge from previous Ralph runs. Read this before starting each s
 - [STORY-000] Use PYTHONPATH to ensure correct module loading in Ralph worktree environments
 - [STORY-002] Ralph worktrees load code from parent dir - edit both worktree and parent /workspaces/agents-eval-ralph-cc-tdd/src/ files
 - [STORY-002] After verifying tests pass in worktree, copy implementation to parent dir for pytest to use correct code
+- [STORY-003] Optional return types (float | None) need proper handling in metrics models - check Pydantic field definitions
 
 ## Code Patterns
 
@@ -24,6 +25,8 @@ Accumulated knowledge from previous Ralph runs. Read this before starting each s
 - Use Path(__file__).parent for config file path resolution (discovered in STORY-000)
 - Parse JSON with context manager pattern and explicit encoding (discovered in STORY-002)
 - Use .get() with defaults for optional fields when parsing JSON to models (discovered in STORY-002)
+- Implement convenience functions that accept multiple parameter combinations and calculate metrics dynamically (discovered in STORY-003)
+- Return None for optional metric fields when calculation is not possible (e.g., empty interaction list) (discovered in STORY-003)
 
 ## Common Mistakes
 
@@ -34,6 +37,7 @@ Accumulated knowledge from previous Ralph runs. Read this before starting each s
 - Always verify story completion by running story-specific tests before marking complete (from STORY-000)
 - Check if story is already completed before starting work - implementation may exist from previous runs (from STORY-001)
 - Run pytest on story-specific test file first to check if all tests pass before assuming story needs work (from STORY-002)
+- Return values with `or 0.0` fallback works for optional metrics only if the metric is not truly optional in the Metrics model (from STORY-003)
 
 ## Testing Strategies
 
@@ -47,3 +51,6 @@ Accumulated knowledge from previous Ralph runs. Read this before starting each s
 - Verify config loading with both default and custom paths (from STORY-000)
 - Create mock JSON files in tmp_path for data loader tests (from STORY-002)
 - Test batch loading with different batch sizes to verify slicing logic (from STORY-002)
+- Test coordination quality calculation with edge cases: perfect score, mixed success/failure, empty list (from STORY-003)
+- Verify ValueError is raised for invalid temporal ranges (end before start) using pytest.raises (from STORY-003)
+- Test batch evaluation to ensure each run is processed independently with correct calculations (from STORY-003)
