@@ -105,6 +105,7 @@ kanban_init() {
 kanban_update() {
     local story_id=$1
     local status=$2
+    local reason="${3:-}"  # Optional reason parameter
 
     # Check if Vibe Kanban was initialized
     if [ -z "$VIBE_URL" ]; then
@@ -126,7 +127,11 @@ kanban_update() {
         return 0
     fi
 
-    echo "[DEBUG] kanban_update: Updating task_id=$task_id to status=$status" >&2
+    if [ -n "$reason" ]; then
+        echo "[DEBUG] kanban_update: Updating task_id=$task_id to status=$status (reason: $reason)" >&2
+    else
+        echo "[DEBUG] kanban_update: Updating task_id=$task_id to status=$status" >&2
+    fi
 
     # Set attempt flags based on status
     local has_in_progress=false
@@ -149,13 +154,28 @@ kanban_update() {
             ;;
     esac
 
+    # Build JSON payload with optional reason and attempt count
+    local json_payload='{
+        "status": "'"$status"'",
+        "has_in_progress_attempt": '"$has_in_progress"',
+        "last_attempt_failed": '"$last_failed"',
+        "executor": "ralph-loop:'"${RALPH_RUN_ID:-unknown}"':WT'"${WORKTREE_NUM:-1}"'"'
+
+    # Add attempt count if available
+    if [ -n "${STORY_ATTEMPT_NUM:-}" ]; then
+        json_payload+=',"attempt_count": '"${STORY_ATTEMPT_NUM}"
+    fi
+
+    # Add reason if provided (escape quotes for JSON)
+    if [ -n "$reason" ]; then
+        local escaped_reason=$(echo "$reason" | sed 's/"/\\"/g')
+        json_payload+=',"notes": "'"$escaped_reason"'"'
+    fi
+
+    json_payload+='}'
+
     # Update task with status and attempt tracking
     curl -sf -X PUT "$VIBE_URL/api/tasks/$task_id" \
         -H "Content-Type: application/json" \
-        -d '{
-            "status": "'"$status"'",
-            "has_in_progress_attempt": '"$has_in_progress"',
-            "last_attempt_failed": '"$last_failed"',
-            "executor": "ralph-loop:'"${RALPH_RUN_ID:-unknown}"':WT'"${WORKTREE_NUM:-1}"'"
-        }' 2>&1
+        -d "$json_payload" 2>&1
 }

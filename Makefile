@@ -120,14 +120,14 @@ ralph_init_loop:  ## Initialize Ralph loop environment. No params.
 	$(MAKE) -s ralph_validate_json
 
 ralph_run:  ## Run Ralph loop - Usage: make ralph_run [N_WT=<N>] [ITERATIONS=<N>] [DEBUG=1] [RALPH_JUDGE_ENABLED=true] [RALPH_SECURITY_REVIEW=true] [RALPH_MERGE_INTERACTIVE=true]
-	echo "Starting Ralph loop (N_WT=$${N_WT:-default}, iterations=$${ITERATIONS:-default}) ..."
+	echo "Starting Ralph loop (N_WT=$${N_WT:-}, iterations=$${ITERATIONS:-}) ..."
 	$(MAKE) -s ralph_validate_json
-	DEBUG=$${DEBUG:-0} \
-	RALPH_JUDGE_ENABLED=$${RALPH_JUDGE_ENABLED:-false} \
-	RALPH_JUDGE_MODEL=$${RALPH_JUDGE_MODEL:-sonnet} \
-	RALPH_JUDGE_MAX_WT=$${RALPH_JUDGE_MAX_WT:-5} \
-	RALPH_SECURITY_REVIEW=$${RALPH_SECURITY_REVIEW:-false} \
-	RALPH_MERGE_INTERACTIVE=$${RALPH_MERGE_INTERACTIVE:-false} \
+	DEBUG=$${DEBUG:-} \
+	RALPH_JUDGE_ENABLED=$${RALPH_JUDGE_ENABLED:-} \
+	RALPH_JUDGE_MODEL=$${RALPH_JUDGE_MODEL:-} \
+	RALPH_JUDGE_MAX_WT=$${RALPH_JUDGE_MAX_WT:-} \
+	RALPH_SECURITY_REVIEW=$${RALPH_SECURITY_REVIEW:-} \
+	RALPH_MERGE_INTERACTIVE=$${RALPH_MERGE_INTERACTIVE:-} \
 	bash scripts/ralph/parallel_ralph.sh "$${N_WT}" "$${ITERATIONS}"
 
 ralph_init_and_run:  ## Initialize and run Ralph loop in one command. Usage: make ralph_init_and_run [N_WT=<N>] [ITERATIONS=<N>] [DEBUG=1] [RALPH_JUDGE_ENABLED=true] [RALPH_SECURITY_REVIEW=true] [RALPH_MERGE_INTERACTIVE=true]

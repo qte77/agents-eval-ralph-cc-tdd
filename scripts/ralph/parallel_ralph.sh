@@ -798,14 +798,23 @@ EOF
         log_info "All $N_WT worktrees started in parallel"
     fi
 
-    # DEBUG mode: Watch logs instead of waiting
+    # Normal mode: Exit immediately, let worktrees run in background
+    # DEBUG mode: Watch logs and wait for completion
     if [ "$DEBUG" = "1" ]; then
         log_info "DEBUG mode enabled - watching logs (Ctrl+C to exit, worktrees continue)..."
         watch_all_logs
+        # After Ctrl+C, continue to wait for completion
+        log_info "Waiting for all worktrees to complete..."
+    else
+        log_info "Ralph loops started in background"
+        log_info "  - Watch logs: make ralph_watch"
+        log_info "  - Check status: make ralph_status"
+        log_info "  - Stop loops: make ralph_stop"
+        log_info "Worktrees will auto-merge when complete. Run 'make ralph_run' to check/merge results."
         exit 0
     fi
 
-    # Wait for completion
+    # Wait for completion (DEBUG mode only)
     wait_and_monitor
 
     # Review LEARNINGS.md in all worktrees (compound engineering - cleanup before scoring/merge)

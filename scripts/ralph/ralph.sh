@@ -471,6 +471,12 @@ check_tdd_commits() {
         return 0
     fi
 
+    # Skip TDD verification for STORY-000 (foundation story - establishes baseline)
+    if [ "$story_id" = "STORY-000" ]; then
+        log_info "Skipping TDD verification for STORY-000 (foundation story)"
+        return 0
+    fi
+
     log_info "Checking TDD commits..."
     TDD_ERROR_MSG=""  # Reset error message
 
@@ -485,16 +491,23 @@ check_tdd_commits() {
         return 2  # Return code 2 = skip (not fail)
     fi
 
+    # Verify commits mention the story ID or phases
+    local recent_commits=$(git log --oneline -n $new_commits)
+    log_info "Recent commits:"
+    echo "$recent_commits"
+
+    # Check if commits are verification-only (chore/docs commits for already-complete stories)
+    # Pattern: commits that mark stories complete without new implementation
+    if echo "$recent_commits" | grep -qE "^[a-f0-9]+ (chore|docs)\(${story_id}\): (mark|update|verify)"; then
+        log_info "Detected verification commits for already-complete story - skipping TDD check"
+        return 0
+    fi
+
     if [ $new_commits -lt 2 ]; then
         TDD_ERROR_MSG="Found $new_commits commit(s), need 2+ (RED + GREEN)"
         log_error "TDD check failed: $TDD_ERROR_MSG"
         return 1
     fi
-
-    # Verify commits mention the story ID or phases
-    local recent_commits=$(git log --oneline -n $new_commits)
-    log_info "Recent commits:"
-    echo "$recent_commits"
 
     # Check for RED and GREEN phase markers
     if echo "$recent_commits" | grep -q "\[RED\]" && echo "$recent_commits" | grep -q "\[GREEN\]"; then
@@ -515,6 +528,8 @@ main() {
     init_log_dir
 
     local iteration=0
+    # Track attempts per story (associative array)
+    declare -A story_attempts
 
     while [ $iteration -lt $MAX_ITERATIONS ]; do
         iteration=$((iteration + 1))
@@ -531,6 +546,12 @@ main() {
 
         local details=$(get_story_details "$story_id")
         local title=$(echo "$details" | cut -d'|' -f1)
+
+        # Track story attempts
+        story_attempts[$story_id]=$((${story_attempts[$story_id]:-0} + 1))
+        local attempt_num=${story_attempts[$story_id]}
+        export STORY_ATTEMPT_NUM="$attempt_num"  # Make available to kanban_update
+        log_info "Story attempt $attempt_num"
 
         # Record commit count before execution
         local commits_before=$(git rev-list --count HEAD)
@@ -563,7 +584,7 @@ main() {
                 fi
             elif [ $tdd_check_result -ne 0 ]; then
                 # TDD verification failed
-                kanban_update "$story_id" "todo"
+                kanban_update "$story_id" "todo" "TDD verification failed: $TDD_ERROR_MSG"
                 log_progress "$iteration" "$story_id" "FAIL" "TDD verification failed: $TDD_ERROR_MSG"
                 continue
             fi
@@ -594,13 +615,13 @@ main() {
                     # Commit state files with documentation
                     commit_story_state "$story_id" "update state and documentation after fixing validation errors"
                 else
-                    kanban_update "$story_id" "todo"
+                    kanban_update "$story_id" "todo" "Quality checks failed after $MAX_FIX_ATTEMPTS fix attempts"
                     log_error "Failed to fix validation errors"
                     log_progress "$iteration" "$story_id" "FAIL" "Quality checks failed after $MAX_FIX_ATTEMPTS fix attempts"
                 fi
             fi
         else
-            kanban_update "$story_id" "todo"
+            kanban_update "$story_id" "todo" "Story execution failed - Claude returned error"
             log_error "Story execution failed"
             log_progress "$iteration" "$story_id" "FAIL" "Execution error"
         fi
@@ -621,8 +642,9 @@ main() {
                 continue
             fi
 
-            kanban_update "$id" "cancelled"
-            log_warn "Story $id cancelled (incomplete after $MAX_ITERATIONS iterations)"
+            local reason="Max iterations ($MAX_ITERATIONS) reached - story incomplete"
+            kanban_update "$id" "cancelled" "$reason"
+            log_warn "Story $id cancelled: $reason"
         done < <(jq -c '.stories[]' "$PRD_JSON")
     fi
 
