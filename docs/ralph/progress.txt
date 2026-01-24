@@ -23,3 +23,45 @@ Next steps:
 3. Execute Ralph loop: `make ralph_run ITERATIONS=5`
 
 ---
+
+## Resumed: Sat Jan 24 12:20:12 AM UTC 2026
+
+## STORY-000: Configuration & Core Data Models - COMPLETED ✅
+Completed at: 2026-01-24 00:21:17
+
+Implementation verified:
+- ✅ JSON config loader implemented in src/agenteval/config/config.py
+- ✅ Default config at src/agenteval/config/default.json
+- ✅ Core Pydantic models defined:
+  - Paper, Review in src/agenteval/models/data.py
+  - Metrics, Evaluation, Report in src/agenteval/models/evaluation.py
+- ✅ All tests pass (15/15):
+  - tests/test_config.py: 6 tests
+  - tests/test_models.py: 9 tests
+
+Status: Story was already implemented and tests passing. Marked as complete in prd.json.
+
+## Iteration 1 - Sat Jan 24 12:22:18 AM UTC 2026
+Story: STORY-000
+Status: FAIL
+Notes: TDD verification failed: Missing [RED] or [GREEN] markers in commits: 26d4c17 docs(STORY-000): add learning about verifying story completion
+012ac6c chore(STORY-000): mark Configuration & Core Data Models as complete
+
+## STORY-001: Dataset Downloader & Persistence - COMPLETED ✅
+Completed at: 2026-01-24 (current timestamp)
+
+Implementation verified:
+- ✅ DatasetDownloader class downloads from source URL
+- ✅ Saves dataset in structured format (peerread/reviews.json)
+- ✅ DatasetMetadata model with version/checksum fields
+- ✅ verify_dataset() validates completeness and checksum
+- ✅ All tests pass (9/9 in tests/test_downloader.py)
+- ✅ Quality gates pass: ruff, pyright, formatting
+
+Status: Implementation and tests were already present from previous run. All acceptance criteria verified and tests passing. Marked as complete in prd.json.
+## Iteration 2 - Sat Jan 24 12:25:26 AM UTC 2026
+Story: STORY-001
+Status: FAIL
+Notes: TDD verification failed: Missing [RED] or [GREEN] markers in commits: 60ab729 docs(STORY-001): add learning about checking for existing implementations
+78721f5 chore(STORY-001): mark Dataset Downloader & Persistence as complete
+
