@@ -22,19 +22,41 @@ cleanup_worktrees() {
 
     if [ -z "$worktree_list" ]; then
         log_info "No worktrees found to clean"
-        return 0
+    else
+        echo "$worktree_list" | awk '{print $1}' | while read worktree_path; do
+            # Extract worktree number from path
+            # Format: ${PREFIX}-${RUN_ID} (N_WT=1) or ${PREFIX}-${RUN_ID}-${NUM} (N_WT>1)
+            # Examples: ../agenteval-ralph-wt-41adf4 → 1
+            #           ../agenteval-ralph-wt-41adf4-2 → 2
+            local basename_wt=$(basename "$worktree_path")
+            local wt_num
+
+            # Check if path ends with -${NUM} (N_WT>1 case)
+            if [[ "$basename_wt" =~ -([0-9]+)$ ]]; then
+                wt_num="${BASH_REMATCH[1]}"
+            else
+                # No number suffix, must be N_WT=1 case
+                wt_num="1"
+            fi
+
+            local branch_name="${RALPH_PARALLEL_BRANCH_PREFIX}-${wt_num}"
+
+            log_info "Removing worktree $wt_num at $worktree_path..."
+            git worktree unlock "$worktree_path" 2>/dev/null || true
+            git worktree remove "$worktree_path" --force 2>/dev/null || true
+            git branch -D "$branch_name" 2>/dev/null || true
+        done
     fi
 
-    echo "$worktree_list" | awk '{print $1}' | while read worktree_path; do
-        # Extract worktree number from path
-        local wt_num=$(basename "$worktree_path" | sed "s#${RALPH_PARALLEL_WORKTREE_PREFIX}-##")
-        local branch_name="${RALPH_PARALLEL_BRANCH_PREFIX}-${wt_num}"
-
-        log_info "Removing worktree $wt_num at $worktree_path..."
-        git worktree unlock "$worktree_path" 2>/dev/null || true
-        git worktree remove "$worktree_path" --force 2>/dev/null || true
-        git branch -D "$branch_name" 2>/dev/null || true
-    done
+    # Cleanup orphaned branches (branches without worktrees - e.g., from failed creation)
+    local orphaned_branches=$(git branch --list "${RALPH_PARALLEL_BRANCH_PREFIX}-*" | sed 's/^[* ]*//' || true)
+    if [ -n "$orphaned_branches" ]; then
+        log_info "Removing orphaned branches..."
+        echo "$orphaned_branches" | while read branch; do
+            [ -z "$branch" ] && continue
+            git branch -D "$branch" 2>/dev/null && log_info "  Removed: $branch" || true
+        done
+    fi
 
     log_info "Cleanup completed"
 }

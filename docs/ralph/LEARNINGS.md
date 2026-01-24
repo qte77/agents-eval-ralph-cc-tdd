@@ -8,6 +8,7 @@ Accumulated knowledge from previous Ralph runs. Read this before starting each s
 <!-- Format: "- [STORY-XXX] Brief description of fix" -->
 - [STORY-001] Other story test files may cause type check failures - scope validation to current story files only
 - [STORY-001] Create stub modules for all imported classes to resolve import errors before implementation (from fixing validation)
+- [STORY-000] Use PYTHONPATH to ensure correct module loading in Ralph worktree environments
 
 ## Code Patterns
 
@@ -17,12 +18,15 @@ Accumulated knowledge from previous Ralph runs. Read this before starting each s
 - Use httpx.Client for HTTP requests with context manager pattern (discovered in STORY-001)
 - Store dataset metadata separately from data files for integrity verification (discovered in STORY-001)
 - Return bool for simple success/failure indication in utility functions (discovered in STORY-001)
+- Place default config in src/package/config/default.json for auto-discovery (discovered in STORY-000)
+- Use Path(__file__).parent for config file path resolution (discovered in STORY-000)
 
 ## Common Mistakes
 
 <!-- Append mistakes to avoid -->
 <!-- Format: "- Mistake description (from STORY-XXX)" -->
 - Tests may already exist in repo - adapt TDD cycle to commit stubs first, then implementation (from STORY-001)
+- Don't forget to create stub modules before writing tests to avoid import errors (from STORY-000)
 
 ## Testing Strategies
 
@@ -32,3 +36,5 @@ Accumulated knowledge from previous Ralph runs. Read this before starting each s
 - Test both success and failure paths for external API calls (from STORY-001)
 - Verify checksum validation with both valid and invalid checksums (from STORY-001)
 - Use tmp_path fixture for isolated file system testing (from STORY-001)
+- Test Pydantic validation errors using pytest.raises(ValidationError) (from STORY-000)
+- Verify config loading with both default and custom paths (from STORY-000)

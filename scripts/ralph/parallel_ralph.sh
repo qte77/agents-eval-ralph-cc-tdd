@@ -51,7 +51,7 @@
 # - Purpose: Distinguish different Ralph runs, prevent collisions
 #
 
-set -euo pipefail
+set -eEuo pipefail
 
 # Get script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -643,6 +643,30 @@ stop_parallel() {
 }
 
 
+# Cleanup on fatal error (error 255 or worktree creation failure)
+cleanup_on_error() {
+    local exit_code=$?
+
+    # Disable ERR trap to prevent recursive cleanup calls
+    trap - ERR
+
+    log_error "Fatal error detected (exit code: $exit_code). Running cleanup..."
+
+    # Stop Ralph processes
+    stop_ralph_processes || true
+
+    # Cleanup worktrees and orphaned branches (bypass interactive prompts)
+    cleanup_worktrees || true
+
+    # Cleanup Vibe Kanban tasks
+    if command -v bash &> /dev/null && [ -f "scripts/ralph/vibe.sh" ]; then
+        bash scripts/ralph/vibe.sh cleanup 2>/dev/null || true
+    fi
+
+    log_info "Cleanup completed. Please run 'make ralph_run' to retry."
+    exit $exit_code
+}
+
 # Main orchestration
 main() {
     # Parse CLI arguments (or use config defaults)
@@ -729,6 +753,10 @@ EOF
 
     # Setup trap for interrupt: unlock but preserve state (allows resume)
     trap 'unlock_worktrees; exit 130' INT TERM
+
+    # Setup trap for fatal errors (e.g., worktree creation failures)
+    # This catches errors during worktree setup and runs cleanup automatically
+    trap 'cleanup_on_error' ERR
 
     if [ "$resume_mode" = true ]; then
         # RESUME MODE: Use existing worktrees
