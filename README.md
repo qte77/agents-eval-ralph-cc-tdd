@@ -31,7 +31,7 @@ complexity analysis.
 - **VS Code** - Workspace settings, tasks, and extensions for optimal Python
   development
 - **Configurable Model routing** - Use different models for hard or easy tasks.
-  See [Ralph README.md](./docs/ralph/README.md#model-selection).
+  See [Ralph README.md](./ralph/docs/README.md#model-selection).
 
 ## Quick Start
 
@@ -44,13 +44,14 @@ make setup_project
 make setup_dev
 
 # Optional
-make ralph_userstory            # Interactive User Story using CC
-make ralph_prd                  # Generate PRD.md from UserStory.md 
+make ralph_create_userstory_md            # Interactive User Story using CC
+make ralph_create_prd_md                  # Generate PRD.md from UserStory.md 
 
 # 3. Write requirements in docs/PRD.md, then run Ralph
-make ralph_init_loop                 # Initialize (creates prd.json)
-make ralph [ITERATIONS=25]  # Run autonomous development
-make ralph_status               # Check progress
+make ralph_init_loop             # Initialize (creates prd.json)
+make ralph_run [ITERATIONS=25]   # Run autonomous development
+make ralph_run                   # Resume if paused (auto-detects existing worktrees)
+make ralph_status                # Check progress (with timestamp)
 
 # 4. Post-run options
 # Reset state (removes prd.json, progress.txt)
@@ -61,7 +62,7 @@ make ralph_archive NEW_PRD=docs/PRD-v2.md [VERSION=2]
 
 For detailed setup and usage, see
 [docs/TEMPLATE_USAGE.md](docs/TEMPLATE_USAGE.md). For Ralph Loop details see
-[Ralph README.md](./docs/ralph/README.md).
+[Ralph README.md](./ralph/docs/README.md).
 
 ## Workflow
 
@@ -73,7 +74,7 @@ Human Workflow (Manual):
   Write PRD.md → make ralph_init_loop → make ralph
 
 Human Workflow (Assisted - Optional):
-  make ralph_userstory → make ralph_prd → make ralph_init_loop → make ralph
+  make ralph_create_userstory_md → make ralph_create_prd_md → make ralph_init_loop → make ralph
 
 Agent Workflow:
   PRD.md → prd.json (generate-prd-json-from-md command) → Ralph Loop → src/ + tests/

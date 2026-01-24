@@ -52,17 +52,17 @@ requirements by converting narrative descriptions into technical requirements.
 
 ## Template
 
-See `docs/ralph/templates/prd.md.template` for structure and placeholders.
+See `ralph/docs/templates/prd.md.template` for structure and placeholders.
 
 ## Usage
 
 ```bash
-make ralph_prd
+make ralph_create_prd_md
 ```
 
 ## Next Steps
 
 ```bash
 make ralph_init_loop    # Generate prd.json from PRD.md
-make ralph     # Start Ralph loop
+make ralph_run          # Start Ralph loop
 ```

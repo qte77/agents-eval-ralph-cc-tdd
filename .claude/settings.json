@@ -1,6 +1,6 @@
 {
   "env": {
-    "ANTHROPIC_MODEL": "opusplan",
+    "ANTHROPIC_MODEL": "opus",
     "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
     "CLAUDE_CODE_IDE_SKIP_AUTO_INSTALL": "1",
     "CLAUDE_CODE_SUBAGENT_MODEL": "opusplan",
@@ -12,9 +12,8 @@
   
   "permissions": {
     "allow": [
-      "Bash(bash:scripts/ralph/*.sh:*)",
-      "Bash(chmod:+x:scripts/ralph/*.sh)",
       "Bash(date:*)",
+      "Bash(git add:*)",
       "Bash(git:diff:*)",
       "Bash(git:log:*)",
       "Bash(git:status:*)",
@@ -29,18 +28,17 @@
       "Edit(AGENT_LEARNINGS.md)",
       "Edit(AGENT_REQUESTS.md)",
       "Edit(docs/**/*.md)",
-      "Edit(docs/ralph/*.json)",
-      "Edit(docs/ralph/*.txt)",
+      "Edit(ralph/docs/*.json)",
+      "Edit(ralph/docs/*.txt)",
       "Edit(src/**/*.py)",
       "Edit(src/**/*.json)",
       "Edit(tests/**/*.py)",
       "Edit(tests/**/*.json)",
+      "mcp__plugin_context7_context7__resolve-library-id",
+      "mcp__plugin_context7_context7__query-docs",
       "Read(.claude/skills/**/*.md)",
       "SlashCommand",
-      "Skill",
-      "WebFetch(domain:github.com/DavidAnson/markdownlint/blob/main/doc/Rules.md)",
-      "WebFetch(domain:docs.anthropic.com/en/docs/claude-code/claude_code_docs_map.md)",
-      "WebFetch(domain:docs.anthropic.com)"
+      "Skill"
     ],
     "deny": [
       "Bash(awk:*)",
@@ -50,28 +48,22 @@
       "Bash(grep:*)",
       "Bash(head:*)",
       "Bash(ls:*)",
-      "Bash(mkdir:*)",
-      "Bash(mv:*)",
-      "Bash(rg:*)",
-      "Bash(rm:*)",
       "Bash(source:*)",
       "Bash(tail:*)",
       "Bash(touch:*)"
     ],
     "ask": [
-      "Bash(git add:*)",
+      "Bash(bash:ralph/scripts/*.sh:*)",
+      "Bash(chmod:+x:ralph/scripts/*.sh)",
       "Bash(git commit:*)",
+      "Bash(mv:*)",
+      "Bash(mkdir:*)",
+      "Bash(rm:*)",
       "Edit(.claude/**)",
-      "Edit(.devcontainer/**)",
-      "Edit(.github/**)",
-      "Edit(.vscode/**)",
-      "Edit(.scripts/**)",
       "Edit(AGENTS.md)",
       "Edit(CLAUDE.md)",
       "Edit(CONTRIBUTING.md)",
-      "Edit(LICENSE.md)",
       "Edit(Makefile)",
-      "Edit(mkdocs.yaml)",
       "Edit(pyproject.toml)",
       "Edit(README.md)"
     ]
@@ -84,9 +76,9 @@
     "code-review@claude-plugins-official": true,
     "code-simplifier@claude-plugins-official": true,
     "context7@claude-plugins-official": true,
-    "ide@claude-plugins-official": true,
-    "pyright-lsp@claude-plugins-official": true,
-    "ralph-loop@claude-plugins-official": true,
     "security-guidance@claude-plugins-official": true
+  },
+  "attribution": {
+    "commit": "Co-Authored-By: Claude <noreply@anthropic.com>"
   }
 }

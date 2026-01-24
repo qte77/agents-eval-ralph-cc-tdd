@@ -20,17 +20,15 @@ Using Read/Glob tools as needed to understand file purposes.
 
 ## Step 2: Generate Commit Message
 
+See `.gitmessage` for expected syntax.
+
 Format:
 
 ```text
 <type>(<scope>): <subject>
 
 <body>
-
-Co-Authored-By: Claude <noreply@anthropic.com>
 ```
-
-Types: feat, fix, refactor, test, docs, chore
 
 ## Step 3: Pause for Approval
 

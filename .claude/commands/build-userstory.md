@@ -28,18 +28,18 @@ into PRD.md using the `/generate-prd-md-from-userstory` command.
    - Out of scope
 
 3. **Generate UserStory.md**
-   - Read template from `docs/ralph/templates/userstory.md.template`
+   - Read template from `ralph/docs/templates/userstory.md.template`
    - Replace placeholders with user responses
    - Write to `docs/UserStory.md`
 
-4. **Suggest next step**: `make ralph_prd` to generate PRD.md
+4. **Suggest next step**: `make ralph_create_prd_md` to generate PRD.md
 
 ## Template
 
-See `docs/ralph/templates/userstory.md.template` for structure and placeholders.
+See `ralph/docs/templates/userstory.md.template` for structure and placeholders.
 
 ## Usage
 
 ```bash
-make ralph_userstory
+make ralph_create_userstory_md
 ```

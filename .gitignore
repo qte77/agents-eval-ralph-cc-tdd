@@ -10,7 +10,7 @@ unset_env.sh
 # Distribution / packaging
 build/
 dist/
-*.egg-info/
+*.egg-info/nd an
 
 # Testing
 .pytest_cache/
@@ -39,8 +39,7 @@ Thumbs.db
 reference/
 site/
 
-# linting
+# sanity
 .ruff_cache/
-
-# type checking
 .mypy_cache/
+.complexipy_cache

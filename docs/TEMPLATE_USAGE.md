@@ -32,20 +32,21 @@ make setup_dev
 **Option B (Assisted)**: Use interactive workflow:
 
 ```bash
-make ralph_userstory  # Create UserStory.md via Q&A
-make ralph_prd        # Generate PRD.md from UserStory.md
+make ralph_create_userstory_md  # Create UserStory.md via Q&A
+make ralph_create_prd_md        # Generate PRD.md from UserStory.md
 ```
 
 ### 3. Run Ralph Loop
 
 ```bash
 make ralph_init_loop              # Initialize (creates prd.json)
-make ralph ITERATIONS=10 # Run autonomous development
-make ralph_status            # Check progress
+make ralph_run ITERATIONS=10      # Run autonomous development
+make ralph_run DEBUG=1            # Watch logs in real-time (optional)
+make ralph_status                 # Check progress (with timestamp)
 ```
 
 - To generate prd.json: Run `claude -p '/generate-prd-json-from-md'` command.
-- For model routing configuration see [Ralph README.md](./docs/ralph/README.md#model-selection).
+- For DEBUG mode and advanced options see [Ralph README.md](../ralph/docs/README.md).
 
 ### Starting New Product Iteration
 
@@ -55,13 +56,31 @@ When PRD.md changes significantly, reorganize and archive:
 make ralph_archive NEW_PRD=docs/PRD-v2.md VERSION=2
 ```
 
-Archives current PRD, prd.json, and progress to `docs/ralph/archive/`, then
+Archives current PRD, prd.json, and progress to `ralph/docs/archive/`, then
 activates new PRD.
 
 ## Optional: MCP Servers
 
 Template includes `context7` and `exa` MCP servers. Remove from
 `.claude/settings.json` if not needed.
+
+## Optional: Vibe Kanban UI
+
+Ralph can sync status to Vibe Kanban for real-time visual monitoring:
+
+```bash
+# Terminal 1: Start Vibe Kanban
+npx vibe-kanban
+
+# Terminal 2: Run Ralph (auto-syncs!)
+make ralph_run N_WT=3
+```
+
+Ralph auto-detects Vibe Kanban and displays live task updates. See
+[ralph/docs/UI.md](../ralph/docs/UI.md) for details.
+
+**Configuration**: `make ralph_init_loop` creates `.vibe-kanban/project.json`
+from template automatically.
 
 ## Directory Structure
 
@@ -71,10 +90,10 @@ your-project/
 ├── .devcontainer/        # DevContainer configs (template/ & project/)
 ├── docs/
 │   ├── PRD.md           # Product requirements (edit this!)
-│   ├── ralph/           # Ralph state (gitignored)
 │   └── archive/         # Previous iterations
-├── scripts/
-│   └── ralph/           # Ralph automation scripts
+├── ralph/               # Ralph Loop automation
+│   ├── scripts/         # Ralph automation scripts
+│   └── docs/            # Ralph state (gitignored)
 ├── src/                 # Your source code
 ├── tests/               # Your tests
 ├── Makefile             # Build automation
@@ -89,15 +108,16 @@ make setup_dev         # Setup environment
 make validate          # Run all checks
 
 # Ralph (Optional assisted workflow)
-make ralph_userstory   # [Optional] Create UserStory.md interactively
-make ralph_prd         # [Optional] Generate PRD.md from UserStory.md
+make ralph_create_userstory_md   # [Optional] Create UserStory.md interactively
+make ralph_create_prd_md         # [Optional] Generate PRD.md from UserStory.md
 
 # Ralph (Core workflow)
-make ralph_init_loop        # Initialize Ralph (creates prd.json)
-make ralph         # Run autonomous dev
-make ralph_status      # Check progress
+make ralph_init_loop   # Initialize Ralph (creates prd.json)
+make ralph_run         # Run autonomous dev
+make ralph_run DEBUG=1 # Watch logs (optional)
+make ralph_status      # Check progress (with timestamp)
 make ralph_clean       # Reset state (removes prd.json, progress.txt)
-make ralph_archive  # Archive and start new iteration
+make ralph_archive     # Archive and start new iteration
 
 make help              # Show all commands
 ```
@@ -106,6 +126,6 @@ make help              # Show all commands
 
 1. Delete `TEMPLATE_USAGE.md`
 2. Write requirements in `docs/PRD.md`
-3. Run `make ralph` for autonomous implementation
+3. Run `make ralph_run` for autonomous implementation
 
 See `.claude/skills/` for available skills and `make help` for all commands.

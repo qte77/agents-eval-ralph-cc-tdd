@@ -29,6 +29,7 @@ dev = [
     "pytest-cov>=7.0.0",
     "ruff>=0.8.0",
     "pyright>=1.1.0",
+    "complexipy>=0.6.0",
 ]
 observability = [
     "logfire>=3.16",
@@ -55,9 +56,14 @@ reportMissingImports = true
 reportMissingTypeStubs = false
 include = ["src/agenteval", "tests"]
 
+[tool.complexipy]
+paths = ["src/agenteval"]
+max-complexity-allowed = 15
+exclude = ["tests/*"]
+
 [tool.pytest.ini_options]
-# Test discovery paths (tests/ for app tests, scripts/ralph/tests/ for Ralph E2E tests only)
-testpaths = ["tests", "scripts/ralph/tests"]
+# Test discovery paths (tests/ for app tests, ralph/scripts/tests/ for Ralph E2E tests only)
+testpaths = ["tests", "ralph/scripts/tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]

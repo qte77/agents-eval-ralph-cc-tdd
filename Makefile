@@ -6,8 +6,9 @@
 
 .SILENT:
 .ONESHELL:
-.PHONY: setup_dev setup_claude_code setup_markdownlint setup_project run_markdownlint ruff test_all test_quick test_coverage test_e2e type_check validate validate_quick quick_validate ralph_validate_json ralph_userstory ralph_prd ralph_init_loop ralph ralph_status ralph_clean ralph_archive ralph_abort ralph_watch ralph_log help
+.PHONY: setup_dev setup_claude_code setup_markdownlint setup_project run_markdownlint ruff test_all test_quick test_coverage test_e2e type_check validate validate_quick quick_validate ralph_validate_json ralph_create_userstory_md ralph_create_prd_md ralph_init_loop ralph_run ralph_status ralph_clean ralph_archive ralph_abort ralph_watch ralph_get_log vibe_start vibe_stop_all vibe_status vibe_cleanup help
 .DEFAULT_GOAL := help
+
 
 # MARK: setup
 
@@ -52,6 +53,9 @@ ruff:  ## Lint: Format and check with ruff
 	uv run ruff format --exclude tests
 	uv run ruff check --fix --exclude tests
 
+complexity:  ## Check cognitive complexity with complexipy
+	uv run complexipy
+
 test_all:  ## Run all tests (excludes E2E tests by default)
 	uv run pytest
 
@@ -64,7 +68,7 @@ test_coverage:  ## Run tests with coverage threshold (configured in pyproject.to
 
 test_e2e:  ## Run E2E tests only (Ralph parallel loop tests)
 	echo "Running E2E tests..."
-	bash scripts/ralph/tests/test_parallel_ralph.sh
+	bash ralph/scripts/tests/test_parallel_ralph.sh
 	uv run pytest -m e2e -v
 
 type_check:  ## Check for static typing errors
@@ -75,6 +79,7 @@ validate:  ## Complete pre-commit validation sequence
 	echo "Running complete validation sequence..."
 	$(MAKE) -s ruff
 	$(MAKE) -s type_check
+	$(MAKE) -s complexity
 	$(MAKE) -s test_coverage
 	echo "Validation completed successfully"
 
@@ -83,6 +88,7 @@ validate_quick:  ## Quick validation for fix iterations (no coverage check)
 	echo "Running quick validation (no coverage check)..."
 	$(MAKE) -s ruff
 	$(MAKE) -s type_check
+	$(MAKE) -s complexity
 	$(MAKE) -s test_quick
 	echo "Quick validation completed"
 
@@ -90,61 +96,78 @@ quick_validate:  ## Fast development cycle validation
 	echo "Running quick validation ..."
 	$(MAKE) -s ruff
 	-$(MAKE) -s type_check
+	-$(MAKE) -s complexity
 	echo "Quick validation completed (check output for any failures)"
 
 
 # MARK: ralph
 
 ralph_validate_json:  ## Internal: Validate prd.json syntax
-	@bash scripts/ralph/lib/validate_json.sh && echo "✓ prd.json validated"
+	bash ralph/scripts/lib/validate_json.sh
 
-ralph_userstory:  ## [Optional] Create UserStory.md interactively. Usage: make ralph_userstory
+ralph_create_userstory_md:  ## [Optional] Create UserStory.md interactively. No params.
 	echo "Creating UserStory.md through interactive Q&A ..."
-	claude /build-userstory
+	claude -p '/build-userstory'
 
-ralph_prd:  ## [Optional] Generate PRD.md from UserStory.md
+ralph_create_prd_md:  ## [Optional] Generate PRD.md from UserStory.md. No params.
 	echo "Generating PRD.md from UserStory.md ..."
-	claude /generate-prd-md-from-userstory
+	claude -p '/generate-prd-md-from-userstory'
 
-ralph_init_loop:  ## Initialize Ralph loop environment
+ralph_init_loop:  ## Initialize Ralph loop environment. No params.
 	echo "Initializing Ralph loop environment ..."
 	claude -p '/generate-prd-json-from-md'
-	bash scripts/ralph/init.sh
+	bash ralph/scripts/init.sh
 	$(MAKE) -s ralph_validate_json
 
-ralph:  ## Run Ralph loop - Usage: make ralph [N_WT=1] [ITERATIONS=25]
-	echo "Starting Ralph loop (N_WT=$${N_WT:-1}, iterations=$${ITERATIONS:-25}) ..."
+ralph_run:  ## Run Ralph loop - Usage: make ralph_run [N_WT=<N>] [ITERATIONS=<N>] [DEBUG=1] [RALPH_JUDGE_ENABLED=true] [RALPH_SECURITY_REVIEW=true] [RALPH_MERGE_INTERACTIVE=true]
+	echo "Starting Ralph loop (N_WT=$${N_WT:-}, iterations=$${ITERATIONS:-}) ..."
 	$(MAKE) -s ralph_validate_json
-	N_WT=$${N_WT:-1}
-	ITERATIONS=$${ITERATIONS:-25}
-	bash scripts/ralph/parallel_ralph.sh $$N_WT $$ITERATIONS
+	DEBUG=$${DEBUG:-} \
+	RALPH_JUDGE_ENABLED=$${RALPH_JUDGE_ENABLED:-} \
+	RALPH_JUDGE_MODEL=$${RALPH_JUDGE_MODEL:-} \
+	RALPH_JUDGE_MAX_WT=$${RALPH_JUDGE_MAX_WT:-} \
+	RALPH_SECURITY_REVIEW=$${RALPH_SECURITY_REVIEW:-} \
+	RALPH_MERGE_INTERACTIVE=$${RALPH_MERGE_INTERACTIVE:-} \
+	bash ralph/scripts/parallel_ralph.sh "$${N_WT}" "$${ITERATIONS}"
+
+ralph_init_and_run:  ## Initialize and run Ralph loop in one command. Usage: make ralph_init_and_run [N_WT=<N>] [ITERATIONS=<N>] [DEBUG=1] [RALPH_JUDGE_ENABLED=true] [RALPH_SECURITY_REVIEW=true] [RALPH_MERGE_INTERACTIVE=true]
+	$(MAKE) -s ralph_init_loop
+	$(MAKE) -s ralph_run N_WT=$${N_WT:-} ITERATIONS=$${ITERATIONS:-} DEBUG=$${DEBUG:-} RALPH_JUDGE_ENABLED=$${RALPH_JUDGE_ENABLED:-} RALPH_SECURITY_REVIEW=$${RALPH_SECURITY_REVIEW:-} RALPH_MERGE_INTERACTIVE=$${RALPH_MERGE_INTERACTIVE:-}
+
 
 ralph_status:  ## Show Ralph loop progress
-	@if ls ../agents-eval-ralph-wt-*/ralph.log 2>/dev/null | head -1 > /dev/null; then \
-		bash scripts/ralph/parallel_ralph.sh status; \
-	else \
-		echo "No active Ralph loops found."; \
-		if [ -f docs/ralph/prd.json ]; then \
-			echo "Hint: Run 'make ralph' to start loop with existing state"; \
-		else \
-			echo "Hint: Run 'make ralph_init_loop' to initialize"; \
-		fi \
-	fi
+	bash ralph/scripts/parallel_ralph.sh status
 
-ralph_abort:  ## Abort all running Ralph loops
-	bash scripts/ralph/abort.sh
+ralph_stop:  ## Stop Ralph loops and kill processes (keep worktrees and data)
+	bash ralph/scripts/stop.sh
 
 ralph_clean:  ## Clean Ralph state (worktrees + local) - Requires double confirmation
-	bash scripts/ralph/clean.sh
+	bash ralph/scripts/clean.sh
 
 ralph_archive:  ## Archive current run state. Usage: make ralph_archive [ARCHIVE_LOGS=1]
-	bash scripts/ralph/archive.sh $(if $(filter 1,$(ARCHIVE_LOGS)),-l)
+	bash ralph/scripts/archive.sh $(if $(filter 1,$(ARCHIVE_LOGS)),-l)
 
 ralph_watch:  ## Live-watch Ralph loop output
-	bash scripts/ralph/parallel_ralph.sh watch
+	bash ralph/scripts/parallel_ralph.sh watch
 
-ralph_log:  ## Show output of specific worktree - Usage: make ralph_log WT=2
-	bash scripts/ralph/parallel_ralph.sh log $${WT:-1}
+ralph_get_log:  ## Show output of specific worktree - Usage: make ralph_get_log WT=2
+	bash ralph/scripts/parallel_ralph.sh log $${WT:-1}
+
+
+# MARK: vibe-kanban
+
+
+vibe_start:  ## Start Vibe Kanban (default from config.sh, override: make vibe_start PORT=8080)
+	bash ralph/scripts/vibe.sh start $${PORT:-}
+
+vibe_stop_all:  ## Stop all Vibe Kanban instances
+	bash ralph/scripts/vibe.sh stop_all
+
+vibe_status:  ## Check Vibe Kanban status (shows all instances)
+	bash ralph/scripts/vibe.sh status
+
+vibe_cleanup:  ## Remove all tasks from Vibe Kanban
+	bash ralph/scripts/vibe.sh cleanup
 
 
 # MARK: help

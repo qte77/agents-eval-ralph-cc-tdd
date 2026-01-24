@@ -43,13 +43,13 @@ necessary dependencies, full test coverage
 **During development** (after writing code):
 
 ```bash
-make validate_quick  # Fast check: formatting + types + tests
+make validate_quick  # Fast check: formatting + types + complexity + tests
 ```
 
 **Before completing** any task:
 
 ```bash
-make validate  # Full check: formatting + types + tests
+make validate  # Full check: formatting + types + complexity + tests
 ```
 
-**CRITICAL**: Run validation commands proactively during development. Fix issues immediately, don't wait until the end. All type checks, linting, and tests must pass before task completion.
+**CRITICAL**: Run validation commands proactively during development. Fix issues immediately, don't wait until the end. All type checks, linting, complexity checks, and tests must pass before task completion.
