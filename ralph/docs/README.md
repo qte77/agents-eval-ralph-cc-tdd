@@ -453,7 +453,9 @@ make ralph_run [N_WT=1] [ITERATIONS=25]
 
 ### Low Priority (Future Exploration)
 
-- [ ] **Real-time Dashboard**: Live monitoring UI for parallel worktrees
+- [x] **Real-time Dashboard**: Live monitoring UI via Vibe Kanban
+  (vibekanban.com). Uni-directional REST API integration from Ralph.
+  See `make vibe_*` targets and [UI.md](./UI.md).
 - [ ] **JSON Status API Output** (Team/Enterprise quick win): Add
   `make ralph_status_json` for structured output. Foundation for
   dashboards, CI/CD hooks, monitoring. Enables Grafana, Datadog,
