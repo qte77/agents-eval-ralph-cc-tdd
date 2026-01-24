@@ -27,6 +27,7 @@ Accumulated knowledge from previous Ralph runs. Read this before starting each s
 <!-- Format: "- Mistake description (from STORY-XXX)" -->
 - Tests may already exist in repo - adapt TDD cycle to commit stubs first, then implementation (from STORY-001)
 - Don't forget to create stub modules before writing tests to avoid import errors (from STORY-000)
+- Always verify story completion by running story-specific tests before marking complete (from STORY-000)
 
 ## Testing Strategies
 
