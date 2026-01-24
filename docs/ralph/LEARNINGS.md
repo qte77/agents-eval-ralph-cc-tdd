@@ -10,6 +10,7 @@ Accumulated knowledge from previous Ralph runs. Read this before starting each s
 - [STORY-001] Create stub modules for all imported classes to resolve import errors before implementation (from fixing validation)
 - [STORY-000] Use PYTHONPATH to ensure correct module loading in Ralph worktree environments
 - [STORY-002] Ralph worktrees load code from parent dir - edit both worktree and parent /workspaces/agents-eval-ralph-cc-tdd/src/ files
+- [STORY-002] After verifying tests pass in worktree, copy implementation to parent dir for pytest to use correct code
 
 ## Code Patterns
 
