@@ -805,24 +805,44 @@ EOF
         log_info "All $N_WT worktrees started in parallel"
     fi
 
-    # Normal mode: Exit immediately, let worktrees run in background
-    # DEBUG mode: Watch logs and wait for completion
-    if [ "$DEBUG" = "1" ]; then
-        log_info "DEBUG mode enabled - watching logs (Ctrl+C to exit, worktrees continue)..."
-        watch_all_logs
-        # After Ctrl+C, continue to wait for completion
-        log_info "Waiting for all worktrees to complete..."
-    else
+    # Normal mode: Fork completion handler to background, exit immediately
+    # DEBUG mode: Watch logs and wait for completion in foreground
+    if [ "$DEBUG" != "1" ]; then
         log_info "Ralph loops started in background"
         log_info "  - Watch logs: make ralph_watch"
         log_info "  - Check status: make ralph_status"
         log_info "  - Stop loops: make ralph_stop"
-        log_info "Worktrees will auto-merge when complete. Run 'make ralph_run' to check/merge results."
+
+        # Fork completion handler to background
+        {
+            # Wait for all worktrees to complete
+            wait_and_monitor
+
+            # Complete the Ralph loop (merge, cleanup, etc.)
+            complete_ralph_loop "$N_WT" "$RUN_ID"
+        } >> "$RALPH_TMP_DIR/completion-${RUN_ID}.log" 2>&1 &
+
+        disown
+        log_info "Completion handler running in background (PID: $!)"
+        log_info "View completion log: tail -f $RALPH_TMP_DIR/completion-${RUN_ID}.log"
         exit 0
     fi
 
-    # Wait for completion (DEBUG mode only)
+    # DEBUG mode: watch logs in foreground
+    log_info "DEBUG mode enabled - watching logs (Ctrl+C to exit, worktrees continue)..."
+    watch_all_logs
+
+    # Wait for completion
     wait_and_monitor
+
+    # Complete the Ralph loop
+    complete_ralph_loop "$N_WT" "$RUN_ID"
+}
+
+# Complete Ralph loop: review, score, merge, cleanup
+complete_ralph_loop() {
+    local N_WT="$1"
+    local RUN_ID="$2"
 
     # Review LEARNINGS.md in all worktrees (compound engineering - cleanup before scoring/merge)
     log_info "Reviewing LEARNINGS.md in all worktrees..."
