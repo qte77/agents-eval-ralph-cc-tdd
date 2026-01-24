@@ -447,17 +447,17 @@ merge_best() {
 
     log_info "Merging complete worktree $best_wt (all $total_stories stories passed)..."
 
-    # Build merge command with configurable flags
-    local merge_flags="--no-ff --no-commit"
+    # Build merge command with configurable flags (use array for proper quoting)
+    local merge_flags=(--no-ff --no-commit)
 
     # --verify-signatures: Verify GPG signatures (security)
-    [ "$MERGE_VERIFY_SIGNATURES" = "true" ] && merge_flags="$merge_flags --verify-signatures"
+    [ "$MERGE_VERIFY_SIGNATURES" = "true" ] && merge_flags+=(--verify-signatures)
 
     # --log: Include commit descriptions in merge commit
-    [ "$MERGE_LOG" = "true" ] && merge_flags="$merge_flags --log"
+    [ "$MERGE_LOG" = "true" ] && merge_flags+=(--log)
 
     # Test merge (dry-run with --no-commit)
-    if git merge $merge_flags "$branch_name" 2>/dev/null; then
+    if git merge "${merge_flags[@]}" "$branch_name" 2>/dev/null; then
         log_info "Merge succeeded - committing..."
 
         # Generate commit message based on N_WT (stories_passed and total_stories already retrieved above)
