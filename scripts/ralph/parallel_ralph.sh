@@ -651,8 +651,15 @@ stop_parallel() {
 
 
 # Cleanup on fatal error (error 255 or worktree creation failure)
+# Graceful shutdowns preserve worktrees for debugging; fatal errors during setup clean up broken state
 cleanup_on_error() {
     local exit_code=$?
+
+    # Exclude graceful shutdown signals from error cleanup (preserve worktrees)
+    # 130 = SIGINT (Ctrl+C), 137 = SIGKILL (kill -9), 143 = SIGTERM (kill)
+    if [ "$exit_code" -eq 130 ] || [ "$exit_code" -eq 137 ] || [ "$exit_code" -eq 143 ]; then
+        return 0
+    fi
 
     # Disable ERR trap to prevent recursive cleanup calls
     trap - ERR
