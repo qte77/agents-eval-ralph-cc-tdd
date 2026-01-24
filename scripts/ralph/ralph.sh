@@ -511,15 +511,34 @@ check_tdd_commits() {
         return 1
     fi
 
-    # Check for RED and GREEN phase markers
-    if echo "$recent_commits" | grep -q "\[RED\]" && echo "$recent_commits" | grep -q "\[GREEN\]"; then
-        log_info "TDD phases verified: RED and GREEN found"
-        return 0
-    else
-        TDD_ERROR_MSG="Missing [RED] or [GREEN] markers in commits: $recent_commits"
-        log_error "TDD check failed: missing [RED] or [GREEN] markers in commits"
+    # Get commits in chronological order (oldest first), extract phase markers
+    local phases=$(git log --oneline -n $new_commits --reverse | grep -o "\[RED\]\|\[GREEN\]\|\[BLUE\]" | tr '\n' ' ')
+
+    # Check required phases exist
+    if ! echo "$phases" | grep -q "\[RED\]" || ! echo "$phases" | grep -q "\[GREEN\]"; then
+        TDD_ERROR_MSG="Missing [RED] or [GREEN] markers"
+        log_error "TDD check failed: $TDD_ERROR_MSG"
         return 1
     fi
+
+    # Verify chronological order: RED → GREEN (→ BLUE optional)
+    if echo "$phases" | grep -q "\[BLUE\]"; then
+        if ! echo "$phases" | grep -qE "\[RED\].*\[GREEN\].*\[BLUE\]"; then
+            TDD_ERROR_MSG="Invalid phase order: must be RED → GREEN → BLUE"
+            log_error "TDD check failed: $TDD_ERROR_MSG"
+            return 1
+        fi
+        log_info "TDD phases verified: RED → GREEN → BLUE"
+    else
+        if ! echo "$phases" | grep -qE "\[RED\].*\[GREEN\]"; then
+            TDD_ERROR_MSG="Invalid phase order: must be RED → GREEN"
+            log_error "TDD check failed: $TDD_ERROR_MSG"
+            return 1
+        fi
+        log_info "TDD phases verified: RED → GREEN"
+    fi
+
+    return 0
 }
 
 # Main loop

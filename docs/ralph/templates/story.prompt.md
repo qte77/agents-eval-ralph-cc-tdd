@@ -17,21 +17,21 @@ Follow TDD workflow below. Tests MUST be written FIRST.
 
 ## Workflow (TDD - MANDATORY)
 
-**RED → GREEN → REFACTOR cycle:**
+**RED → GREEN → BLUE cycle:**
 
-### RED: Write failing tests FIRST
+### RED: Write tests FIRST
 
-- Read story from prd.json, write FAILING tests for acceptance criteria
+- Read story from prd.json, write tests for acceptance criteria
   - Create test file in `tests/` (e.g., `tests/test_messenger.py`)
   - Write tests that verify each acceptance criterion
-  - Run tests - they MUST fail (code doesn't exist yet)
+  - Run tests - they MUST fail (implementation doesn't exist yet)
   - **RUN VALIDATION**: `make validate` - fix any errors before committing
   - **COMMIT TESTS FIRST**:
-    `git add tests/ && git commit -m "test(STORY-XXX): add failing tests [RED]
+    `git add tests/ && git commit -m "test(STORY-XXX): add tests for feature [RED]
 
 Co-Authored-By: Claude <noreply@anthropic.com>"`
 
-### GREEN: Minimal implementation
+### GREEN: Implement to make tests pass
 
 - Study patterns in `src/`, implement MINIMAL code to pass tests
   - Create/modify implementation file (e.g., `src/agentbeats/messenger.py`)
@@ -39,18 +39,24 @@ Co-Authored-By: Claude <noreply@anthropic.com>"`
   - Run tests - they MUST pass now
   - **RUN VALIDATION**: `make validate` - fix any errors before committing
   - **COMMIT IMPLEMENTATION**:
-    `git add src/ && git commit -m "feat(STORY-XXX): implement to pass tests [GREEN]
+    `git add src/ && git commit -m "feat(STORY-XXX): implement feature [GREEN]
 
 Co-Authored-By: Claude <noreply@anthropic.com>"`
 
-### REFACTOR: Clean up
+### BLUE: Refactor (OPTIONAL)
 
-- Clean up code while keeping tests passing (see core-principles.md)
+- **Only if needed**: Refactor code/tests while keeping tests passing
+  - Violations of DRY (duplicated logic)
+  - Violations of KISS (unnecessary complexity)
+  - Inconsistency with existing patterns
   - **RUN VALIDATION**: `make validate` before committing
-  - **COMMIT REFACTORINGS** (if any):
-    `git add . && git commit -m "refactor(STORY-XXX): cleanup [REFACTOR]
+  - **COMMIT REFACTORINGS** - Be specific in description and scope:
+    - Tests only: `refactor(STORY-XXX/tests): rename fixtures for clarity [BLUE]`
+    - Implementation only: `refactor(STORY-XXX/impl): extract validation helper [BLUE]`
+    - Both: `refactor(STORY-XXX/both): consolidate duplicate logic [BLUE]`
+    - Style fixes: `style(STORY-XXX/impl): fix linting errors [BLUE]`
 
-Co-Authored-By: Claude <noreply@anthropic.com>"`
+**BLUE is optional** - Skip if code is already clean and follows existing patterns.
 
 **CRITICAL**: Tests MUST be committed BEFORE implementation. This ensures
 verifiable TDD compliance and provides audit trail for agent evaluation.
