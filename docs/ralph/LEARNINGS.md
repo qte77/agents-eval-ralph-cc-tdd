@@ -9,6 +9,8 @@ Accumulated knowledge from previous Ralph runs. Read this before starting each s
 - [STORY-001] Other story test files may cause type check failures - scope validation to current story files only
 - [STORY-001] Create stub modules for all imported classes to resolve import errors before implementation (from fixing validation)
 - [STORY-000] Use PYTHONPATH to ensure correct module loading in Ralph worktree environments
+- [STORY-002] Ralph worktrees load code from parent dir - edit both worktree and parent /workspaces/agents-eval-ralph-cc-tdd/src/ files
+- [STORY-002] After verifying tests pass in worktree, copy implementation to parent dir for pytest to use correct code
 
 ## Code Patterns
 
@@ -20,6 +22,8 @@ Accumulated knowledge from previous Ralph runs. Read this before starting each s
 - Return bool for simple success/failure indication in utility functions (discovered in STORY-001)
 - Place default config in src/package/config/default.json for auto-discovery (discovered in STORY-000)
 - Use Path(__file__).parent for config file path resolution (discovered in STORY-000)
+- Parse JSON with context manager pattern and explicit encoding (discovered in STORY-002)
+- Use .get() with defaults for optional fields when parsing JSON to models (discovered in STORY-002)
 
 ## Common Mistakes
 
@@ -29,6 +33,7 @@ Accumulated knowledge from previous Ralph runs. Read this before starting each s
 - Don't forget to create stub modules before writing tests to avoid import errors (from STORY-000)
 - Always verify story completion by running story-specific tests before marking complete (from STORY-000)
 - Check if story is already completed before starting work - implementation may exist from previous runs (from STORY-001)
+- Run pytest on story-specific test file first to check if all tests pass before assuming story needs work (from STORY-002)
 
 ## Testing Strategies
 
@@ -40,3 +45,5 @@ Accumulated knowledge from previous Ralph runs. Read this before starting each s
 - Use tmp_path fixture for isolated file system testing (from STORY-001)
 - Test Pydantic validation errors using pytest.raises(ValidationError) (from STORY-000)
 - Verify config loading with both default and custom paths (from STORY-000)
+- Create mock JSON files in tmp_path for data loader tests (from STORY-002)
+- Test batch loading with different batch sizes to verify slicing logic (from STORY-002)
