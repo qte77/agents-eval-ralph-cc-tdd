@@ -283,8 +283,9 @@ execute_story() {
     } >> "$iteration_prompt"
 
     # Execute via Claude Code with selected model
+    # Set PYTHONPATH to worktree's src/ for proper module isolation
     log_info "Running Claude Code with story context..."
-    if cat "$iteration_prompt" | claude -p --model "$model" --dangerously-skip-permissions 2>&1 | tee "$RALPH_TMP_DIR/execute_${story_id}.log"; then
+    if PYTHONPATH="$(pwd)/src:${PYTHONPATH:-}" cat "$iteration_prompt" | claude -p --model "$model" --dangerously-skip-permissions 2>&1 | tee "$RALPH_TMP_DIR/execute_${story_id}.log"; then
         log_info "Execution log saved: $RALPH_TMP_DIR/execute_${story_id}.log"
         rm "$iteration_prompt"
         return 0
@@ -301,7 +302,8 @@ run_quality_checks() {
     > "$error_log"  # Truncate file first (defensive)
     log_info "Running quality checks (timeout: ${VALIDATION_TIMEOUT}s)..."
 
-    if timeout "$VALIDATION_TIMEOUT" make validate 2>&1 | tee "$error_log"; then
+    # Set PYTHONPATH to worktree's src/ for proper module isolation
+    if PYTHONPATH="$(pwd)/src:${PYTHONPATH:-}" timeout "$VALIDATION_TIMEOUT" make validate 2>&1 | tee "$error_log"; then
         log_info "Quality checks passed"
         return 0
     else
@@ -382,8 +384,8 @@ fix_validation_errors() {
             fi
         } >> "$fix_prompt"
 
-        # Execute fix via Claude Code with timeout
-        if timeout "$FIX_TIMEOUT" bash -c "cat \"$fix_prompt\" | claude -p --model \"$model\" --dangerously-skip-permissions" 2>&1 | tee "$RALPH_TMP_DIR/fix_${story_id}_${attempt}.log"; then
+        # Execute fix via Claude Code with timeout (set PYTHONPATH for worktree isolation)
+        if timeout "$FIX_TIMEOUT" bash -c "PYTHONPATH=\"\$(pwd)/src:\${PYTHONPATH:-}\" cat \"$fix_prompt\" | claude -p --model \"$model\" --dangerously-skip-permissions" 2>&1 | tee "$RALPH_TMP_DIR/fix_${story_id}_${attempt}.log"; then
             log_info "Fix attempt log saved: $RALPH_TMP_DIR/fix_${story_id}_${attempt}.log"
             rm "$fix_prompt"
 
