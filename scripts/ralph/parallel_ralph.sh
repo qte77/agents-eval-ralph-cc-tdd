@@ -427,7 +427,25 @@ merge_best() {
     local run_id="$3"
     local branch_name="${BRANCH_PREFIX}-${best_wt}"
 
-    log_info "Merging best result from worktree $best_wt..."
+    # Validate worktree has ALL stories passing before merging
+    local worktree_path=$(get_worktree_path "$best_wt" "$run_id" "$n_wt")
+    local prd_json="$worktree_path/$RALPH_PRD_JSON"
+    local stories_passed=0
+    local total_stories=0
+
+    if [ -f "$prd_json" ]; then
+        stories_passed=$(jq '[.stories[] | select(.passes == true)] | length' "$prd_json" 2>/dev/null || echo 0)
+        total_stories=$(jq '.stories | length' "$prd_json" 2>/dev/null || echo 0)
+    fi
+
+    if [ "$stories_passed" -ne "$total_stories" ]; then
+        log_error "Cannot merge worktree $best_wt: incomplete ($stories_passed/$total_stories stories passed)"
+        log_info "No worktrees completed all stories - preserving worktrees for debugging"
+        unlock_worktrees
+        return 1
+    fi
+
+    log_info "Merging complete worktree $best_wt (all $total_stories stories passed)..."
 
     # Build merge command with configurable flags
     local merge_flags="--no-ff --no-commit"
@@ -442,25 +460,14 @@ merge_best() {
     if git merge $merge_flags "$branch_name" 2>/dev/null; then
         log_info "Merge succeeded - committing..."
 
-        # Get story completion stats for commit message
-        local worktree_path=$(get_worktree_path "$best_wt" "$run_id" "$n_wt")
-        local prd_json="$worktree_path/$RALPH_PRD_JSON"
-        local stories_passed=0
-        local total_stories=0
-
-        if [ -f "$prd_json" ]; then
-            stories_passed=$(jq '[.stories[] | select(.passes == true)] | length' "$prd_json" 2>/dev/null || echo 0)
-            total_stories=$(jq '.stories | length' "$prd_json" 2>/dev/null || echo 0)
-        fi
-
-        # Generate commit message based on N_WT
+        # Generate commit message based on N_WT (stories_passed and total_stories already retrieved above)
         local commit_msg
         if [ "$n_wt" -eq 1 ]; then
             # Single worktree - simpler message
-            commit_msg="feat: complete Ralph loop ($stories_passed/$total_stories stories) [run:$run_id]"
+            commit_msg="feat: complete Ralph loop (all $total_stories stories passed) [run:$run_id]"
         else
             # Parallel worktrees - mention which one was selected
-            commit_msg="feat: merge best Ralph result from worktree $best_wt ($stories_passed/$total_stories stories) [run:$run_id]"
+            commit_msg="feat: merge best Ralph result from worktree $best_wt (all $total_stories stories passed) [run:$run_id]"
         fi
 
         # Optional interactive approval
