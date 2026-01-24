@@ -59,3 +59,9 @@ Implementation verified:
 - ✅ Quality gates pass: ruff, pyright, formatting
 
 Status: Implementation and tests were already present from previous run. All acceptance criteria verified and tests passing. Marked as complete in prd.json.
+## Iteration 2 - Sat Jan 24 12:25:26 AM UTC 2026
+Story: STORY-001
+Status: FAIL
+Notes: TDD verification failed: Missing [RED] or [GREEN] markers in commits: 60ab729 docs(STORY-001): add learning about checking for existing implementations
+78721f5 chore(STORY-001): mark Dataset Downloader & Persistence as complete
+
